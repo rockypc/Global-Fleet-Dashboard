@@ -857,15 +857,18 @@
           Aviation Intelligence Platform</div>
       </div>
     </div>
-    <div id="header-meta" class="hidden flex items-center gap-4">
-      <div style="font-size:12px;color:#1e3a5f;"></div>
-      <div class="flex items-center gap-2">
-        <div id="hdr-count" style="font-size:12px;color:#334155;"></div>
-        <div id="hdr-badge"
-          style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;">
-          LIVE</div>
+      <div id="header-meta" class="hidden flex items-center gap-4">
+        <div style="font-size:12px;color:#1e3a5f;"></div>
+        <div class="flex items-center gap-2">
+          <div id="hdr-count" style="font-size:12px;color:#334155;"></div>
+          <div id="hdr-badge"
+            style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;">
+            LIVE</div>
+          <div id="hdr-data-asof"
+            style="font-size:10px;color:#64748b;border:1px solid #1f2937;background:#0d1424;padding:2px 8px;border-radius:999px;">
+          </div>
+        </div>
       </div>
-    </div>
   </header>
 
   <!-- INIT LOADING -->
@@ -1068,6 +1071,22 @@
               <input id="dd-omni" class="omni-input" placeholder='Search: "Delta A320 CFM56"…' oninput="runDD()">
               <button class="omni-clear" onclick="document.getElementById('dd-omni').value='';runDD();"></button>
               <div class="omni-hint">Searches operator type reg serial engine family</div>
+            </div>
+
+            <div class="card" style="padding:12px 12px 10px 12px;">
+              <div style="font-size:10px;font-weight:700;color:#06b6d4;text-transform:uppercase;letter-spacing:.08em;">
+                Quick Views</div>
+              <div style="font-size:11px;color:#64748b;margin-top:4px;">One-click presets for the most common executive
+                workflows.</div>
+              <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px;">
+                <button onclick="applyDDQuickView('usm')" class="btn btn-ghost"
+                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">USM Prep Candidates</button>
+                <button onclick="applyDDQuickView('transitions')" class="btn btn-ghost"
+                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Upcoming Transitions</button>
+                <button onclick="applyDDQuickView('active-risk')" class="btn btn-ghost"
+                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Active High-Risk</button>
+              </div>
+              <div id="dd-quickview-note" style="font-size:10px;color:#475569;margin-top:8px;min-height:14px;"></div>
             </div>
 
             <!-- ACCORDION: Geographic (open) -->
@@ -1402,6 +1421,15 @@
                     <option value="500">500 rows</option>
                     <option value="all">All rows</option>
                   </select>
+                  <button onclick="exportCurrentDD()" class="btn btn-ghost"
+                    style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
+                    <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+                    </svg>
+                    Export to CSV
+                  </button>
                 </div>
               </div>
               <div class="overflow-auto flex-grow" id="dd-table-scroll">
@@ -2011,13 +2039,13 @@
           <div class="no-print"
             style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-              <button onclick="switchTab('deepdive')" class="btn btn-ghost"
+              <button id="acd-back-btn" onclick="switchTab('deepdive')" class="btn btn-ghost"
                 style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px;">
                 <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to Deep Dive
+                <span id="acd-back-label">Back to Deep Dive</span>
               </button>
               <div style="font-size:11px;color:#334155;">Click a different row in Deep Dive to switch aircraft</div>
             </div>
@@ -2216,6 +2244,7 @@
         }
         Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
         let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
+        let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
         function ic(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c.getContext("2d"), cfg); }
@@ -2287,6 +2316,87 @@
           text.textContent = `${label} · ${(count || 0).toLocaleString()} records`;
           date.textContent = savedAt ? "Saved: " + new Date(savedAt).toLocaleString() : "";
           banner.classList.remove("hidden");
+          currentDataMode = mode;
+          if (mode !== "live" && savedAt) {
+            lastDataAsOfLabel = formatHeaderTimestamp(savedAt);
+          }
+          updateHeaderStatus();
+        }
+
+        function formatHeaderTimestamp(value) {
+          const date = value instanceof Date ? value : new Date(value);
+          if (Number.isNaN(date.getTime())) return "";
+          const parts = new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZoneName: "short"
+          }).formatToParts(date).reduce((acc, part) => {
+            acc[part.type] = (acc[part.type] || "") + part.value;
+            return acc;
+          }, {});
+          return `${parts.month} ${parts.day}, ${parts.year} - ${parts.hour}:${parts.minute} ${parts.timeZoneName || ""}`.trim();
+        }
+
+        function updateHeaderStatus() {
+          const badge = document.getElementById("hdr-badge");
+          const asOf = document.getElementById("hdr-data-asof");
+          if (!badge || !asOf) return;
+          if (currentDataMode === "cached") {
+            badge.textContent = "OFFLINE CACHE";
+            badge.style.background = "#172554";
+            badge.style.color = "#93c5fd";
+            badge.style.borderColor = "#1d4ed8";
+          } else if (currentDataMode === "manual") {
+            badge.textContent = "MANUAL LOAD";
+            badge.style.background = "#3f1d12";
+            badge.style.color = "#fdba74";
+            badge.style.borderColor = "#c2410c";
+          } else {
+            badge.textContent = "LIVE";
+            badge.style.background = "#052e16";
+            badge.style.color = "#4ade80";
+            badge.style.borderColor = "#166534";
+          }
+          asOf.textContent = lastDataAsOfLabel ? `Data As Of: ${lastDataAsOfLabel}` : "";
+        }
+
+        function csvEscape(value) {
+          const text = String(value == null ? "" : value).replace(/\r?\n|\r/g, " ").trim();
+          return /[",]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+        }
+
+        function exportTableToCSV(dataArray, filename) {
+          if (!Array.isArray(dataArray) || !dataArray.length) {
+            alert("No rows are currently available to export.");
+            return;
+          }
+          const headers = Object.keys(dataArray[0]);
+          const lines = [headers.map(csvEscape).join(",")].concat(
+            dataArray.map(row => headers.map(header => csvEscape(row[header])).join(","))
+          );
+          const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+
+        function buildExportFilename(tabName) {
+          const stamp = new Date().toISOString().split("T")[0];
+          return `${tabName}_Export_${stamp}.csv`;
+        }
+
+        function stripHtmlForExport(value) {
+          const text = String(value == null ? "" : value);
+          return text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         }
 
         function parseCsvText(csvText) {
@@ -2356,6 +2466,7 @@
             const csvText = await res.text();
             const parsed = await parseCsvText(csvText);
             const saved = await cacheDashboardData(parsed, { source: "live", name: "Aircraft Detail.csv" });
+            lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", parsed.length, saved);
             initDash(parsed);
             return;
@@ -2416,6 +2527,7 @@
           document.getElementById("dashboard-section").classList.add("flex");
           document.getElementById("header-meta").classList.remove("hidden");
           document.getElementById("hdr-count").textContent = data.length.toLocaleString() + " aircraft";
+          updateHeaderStatus();
 
           // Schema Validation
           if (data.length > 0) {
@@ -3355,6 +3467,7 @@
               if (scoreA !== scoreB) return scoreA - scoreB;
               return (a._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER) - (b._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER);
             });
+          tatsVisibleRows = pipeline.slice();
 
           const high = pipeline.filter(r => r._tatsAutoRisk === "High Risk").length;
           const medium = pipeline.filter(r => r._tatsAutoRisk === "Medium Risk").length;
@@ -3366,9 +3479,17 @@
               <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Pipeline</div><div style="font-size:28px;font-weight:800;color:#06b6d4;">${pipeline.length.toLocaleString()}</div></div>
             </div>
             <div class="card flex flex-col overflow-hidden" style="padding:0;">
-              <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;">
-                <span class="s-title">Automated TATS Prospecting Pipeline</span>
-                <span style="font-size:11px;color:#475569;margin-left:8px;">Live from uploaded fleet data</span>
+              <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <span class="s-title">Automated TATS Prospecting Pipeline</span>
+                  <span style="font-size:11px;color:#475569;margin-left:8px;">Live from uploaded fleet data</span>
+                </div>
+                <button onclick="exportCurrentTATS()" class="btn btn-ghost" style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
+                  <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+                  </svg>
+                  Export to CSV
+                </button>
               </div>
               <div class="overflow-auto">
                 <table style="width:100%;border-collapse:collapse;min-width:1180px;">
@@ -3395,6 +3516,19 @@
               </div>
             </div>
           `;
+        }
+
+        function exportCurrentTATS() {
+          const exportRows = tatsVisibleRows.map(r => ({
+            "Risk Tier": r._tatsAutoRisk || "",
+            "Operator": r["Operator"] || "",
+            "Registration / Serial Number": r["Registration"] || r["Serial Number"] || "",
+            "Aircraft Type": r["Type"] || "",
+            "Engine Family": r["Engine Family"] || "",
+            "Status": r["Status"] || "",
+            "Lease End": r["Lease End"] || ""
+          }));
+          exportTableToCSV(exportRows, buildExportFilename("TATS_Prospecting"));
         }
 
         function fill(id, arr) { const e = document.getElementById(id); if (!e) return; const cur = e.value; const first = e.options[0].text; e.innerHTML = `<option value="">${first}</option>` + arr.map(v => `<option value="${v}">${v}</option>`).join(""); if (arr.includes(cur)) e.value = cur; }
@@ -3488,7 +3622,63 @@
         };
         function getActiveDDCols() { return Object.keys(ddColVis).filter(g => ddColVis[g]).flatMap(g => DD_COLS[g]); }
         function toggleCols(g) { const cbs = document.querySelectorAll("#col-toggles input"); cbs.forEach(cb => { if (cb.getAttribute("onchange") && cb.getAttribute("onchange").includes("'" + g + "'")) { ddColVis[g] = cb.checked; } }); renderDDTable(); }
-        function resetAllDD() { DD_FILTERS.forEach(f => { const e = document.getElementById(f.id); if (e) e.value = ""; });["dd-reg", "dd-sn", "dd-iata", "dd-agemin", "dd-agemax", "dd-seatsmin", "dd-seatsmax"].forEach(id => { const e = document.getElementById(id); if (e) e.value = ""; }); document.getElementById("dd-tatstier").value = ""; document.getElementById("dd-lsendq").value = ""; runDD(); }
+        function updateDDQuickViewNote() {
+          const note = document.getElementById("dd-quickview-note");
+          if (!note) return;
+          const currentYear = new Date().getFullYear();
+          const nextYear = currentYear + 1;
+          const labels = {
+            "usm": "USM Prep Candidates: Storage filter + minimum age 15 years.",
+            "transitions": `Upcoming Transitions: Lease ends across ${currentYear} and ${nextYear}.`,
+            "active-risk": "Active High-Risk: In-service fleet sorted by the nearest lease end."
+          };
+          note.textContent = labels[ddQuickView] || "";
+        }
+        function clearDDQuickView() {
+          ddQuickView = "";
+          document.getElementById("dd-status").value = "";
+          document.getElementById("dd-agemin").value = "";
+          document.getElementById("dd-lsendyr").value = "";
+          updateDDQuickViewNote();
+          runDD();
+        }
+        function findSelectOptionValue(id, matcher) {
+          const el = document.getElementById(id);
+          if (!el) return "";
+          const option = Array.from(el.options || []).find(opt => matcher.test(opt.value || opt.text || ""));
+          return option ? option.value : "";
+        }
+        function resetAllDD() {
+          DD_FILTERS.forEach(f => { const e = document.getElementById(f.id); if (e) e.value = ""; });
+          ["dd-reg", "dd-sn", "dd-iata", "dd-agemin", "dd-agemax", "dd-seatsmin", "dd-seatsmax"].forEach(id => { const e = document.getElementById(id); if (e) e.value = ""; });
+          document.getElementById("dd-tatstier").value = "";
+          document.getElementById("dd-lsendq").value = "";
+          ddQuickView = "";
+          updateDDQuickViewNote();
+          runDD();
+        }
+        function applyDDQuickView(mode) {
+          ddQuickView = mode;
+          document.getElementById("dd-omni").value = "";
+          document.getElementById("dd-search").value = "";
+          document.getElementById("dd-rowlimit").value = "100";
+          document.getElementById("dd-lsendq").value = "";
+          if (mode === "usm") {
+            document.getElementById("dd-status").value = findSelectOptionValue("dd-status", /stor/i);
+            document.getElementById("dd-agemin").value = "15";
+            document.getElementById("dd-lsendyr").value = "";
+          } else if (mode === "transitions") {
+            document.getElementById("dd-status").value = "";
+            document.getElementById("dd-agemin").value = "";
+            document.getElementById("dd-lsendyr").value = "";
+          } else if (mode === "active-risk") {
+            document.getElementById("dd-status").value = findSelectOptionValue("dd-status", /(in service|active)/i);
+            document.getElementById("dd-agemin").value = "";
+            document.getElementById("dd-lsendyr").value = "";
+          }
+          updateDDQuickViewNote();
+          runDD();
+        }
         function runDD() {
           let d = allData;
           DD_FILTERS.forEach(f => { const v = gv(f.id); if (v) d = d.filter(r => (r[f.k] || "").trim() === v); });
@@ -3506,6 +3696,16 @@
           const smin = parseInt(document.getElementById("dd-seatsmin").value) || null; const smax = parseInt(document.getElementById("dd-seatsmax").value) || null;
           if (smin !== null) d = d.filter(r => r._seats !== null && r._seats >= smin);
           if (smax !== null) d = d.filter(r => r._seats !== null && r._seats <= smax);
+          if (ddQuickView === "transitions") {
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            d = d.filter(r => r._leEndYr === currentYear || r._leEndYr === nextYear);
+          } else if (ddQuickView === "active-risk") {
+            d = d.filter(r => /in service|active/i.test(r["Status"] || ""));
+            d = d.slice().sort((a, b) => (a._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER) - (b._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER));
+          } else if (ddQuickView === "usm") {
+            d = d.filter(r => /stor/i.test(r["Status"] || ""));
+          }
           ddFiltered = d;
           // KPIs
           const ops = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean));
@@ -3529,8 +3729,9 @@
           const chips = [];
           DD_FILTERS.forEach(f => { const v = gv(f.id); if (v) chips.push({ label: `${f.k.split("/")[0]}: ${v}`, id: f.id }); });
           ["dd-reg", "dd-sn", "dd-iata", "dd-buildyr", "dd-lsendyr", "dd-lsendq", "dd-tatstier"].forEach(id => { const v = gv(id); if (v) chips.push({ label: `${id.replace("dd-", "")}: ${v}`, id }); });
+          if (ddQuickView) chips.push({ label: `quick view: ${ddQuickView === "usm" ? "USM Prep Candidates" : ddQuickView === "transitions" ? "Upcoming Transitions" : "Active High-Risk"}`, id: "__quickview__" });
           const cb = document.getElementById("dd-chips");
-          cb.innerHTML = chips.length ? chips.map(c => `<div class="chip">${c.label}<button onclick="clearDDFilter('${c.id}')"></button></div>`).join("") : "<span style='font-size:10.5px;color:#1f2937;'>None  showing all ${allData.length.toLocaleString()} records</span>";
+          cb.innerHTML = chips.length ? chips.map(c => `<div class="chip">${c.label}<button onclick="${c.id === "__quickview__" ? "clearDDQuickView()" : `clearDDFilter('${c.id}')`}"></button></div>`).join("") : "<span style='font-size:10.5px;color:#1f2937;'>None  showing all ${allData.length.toLocaleString()} records</span>";
           renderDDTable();
         }
         function clearDDFilter(id) { const e = document.getElementById(id); if (e) { e.value = ""; if (e.type === "number" || e.type === "text") e.value = ""; } runDD(); }
@@ -3543,6 +3744,7 @@
           let d = q ? ddFiltered.filter(r => JSON.stringify(Object.values(r)).toLowerCase().includes(q)) : ddFiltered;
           const total = d.length;
           d = lim === "all" ? d : d.slice(0, parseInt(lim) || 100);
+          ddVisibleRows = d.slice();
           document.getElementById("dd-table-info").textContent = `${d.length.toLocaleString()} of ${total.toLocaleString()}`;
           document.getElementById("dd-tbody").innerHTML = d.map((r, i) => {
             const rowCells = cols.map(c => {
@@ -3555,6 +3757,15 @@
           <td style="text-align:center;padding:4px 6px;"><svg style="width:11px;height:11px;color:#1e3a5f;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></td>
           ${rowCells}</tr>`;
           }).join("") || `<tr><td colspan="${cols.length + 1}" style="text-align:center;color:#334155;padding:24px;">No aircraft match the selected filters</td></tr>`;
+        }
+        function exportCurrentDD() {
+          const cols = getActiveDDCols();
+          const exportRows = ddVisibleRows.map(r => cols.reduce((acc, col) => {
+            const raw = col.fn ? col.fn(r) : (r[col.k] ?? "");
+            acc[col.h] = stripHtmlForExport(raw);
+            return acc;
+          }, {}));
+          exportTableToCSV(exportRows, buildExportFilename("Deep_Dive"));
         }
         // ===== AIRCRAFT DETAIL =====
         function isWidebodyAsset(r) {
@@ -3630,6 +3841,11 @@
           switchTab('acdetail');
           document.getElementById('acd-empty').style.display = 'none';
           document.getElementById('acd-content').style.display = 'flex';
+          const backLabel = document.getElementById('acd-back-label');
+          if (backLabel) {
+            const count = ddFiltered.length || allData.length || 0;
+            backLabel.textContent = `< Back to Filtered Results (${count.toLocaleString()} Matching Aircraft)`;
+          }
 
           // Hero
           const reg = r['Registration'] || '-';
