@@ -2198,6 +2198,8 @@
                 Financials &amp; Weight
               </div>
               <div id="acd-fin-specs" class="spec-grid"></div>
+              <div id="acd-lease-yield-card" style="margin-top:14px;"></div>
+              <div id="acd-value-forecast-card" style="margin-top:14px;"></div>
               <div id="acd-idle-card"></div>
             </div>
           </div>
@@ -2245,6 +2247,7 @@
         Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
         let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
+        let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
         function ic(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c.getContext("2d"), cfg); }
@@ -2286,8 +2289,8 @@
 
         // Persistence
         const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "https://example.com/airline-credit-scores.csv";
-        const URL_SUPPLY = "https://example.com/remarketing-supply.csv";
+        const URL_CREDIT = "Consolidated%20Scores%20Sheet.csv";
+        // const URL_SUPPLY = "Remarketing%20Supply.csv";
 
         function setInitState(mode, msg, sub) {
           const loading = document.getElementById("init-loading");
@@ -2494,22 +2497,20 @@
         }
 
         async function fetchCsvBundle() {
-          const [mainText, creditText, supplyText] = await Promise.all([
+          const [mainText, creditText] = await Promise.all([
             fetchCsvText(URL_MAIN, { required: true }),
-            fetchCsvText(URL_CREDIT, { required: false }),
-            fetchCsvText(URL_SUPPLY, { required: false })
+            fetchCsvText(URL_CREDIT, { required: false })
           ]);
 
-          const [mainRows, creditRows, supplyRows] = await Promise.all([
+          const [mainRows, creditRows] = await Promise.all([
             parseCsvText(mainText, { clean: true }),
-            creditText ? parseCsvText(creditText) : Promise.resolve([]),
-            supplyText ? parseCsvText(supplyText) : Promise.resolve([])
+            creditText ? parseCsvText(creditText) : Promise.resolve([])
           ]);
 
           const byKey = {
             main: mainRows,
             credit: creditRows,
-            supply: supplyRows
+            supply: []
           };
           const lookups = buildSupplementalLookups(byKey.credit || [], byKey.supply || []);
           return {
@@ -2545,7 +2546,7 @@
 
           try {
             const bundle = await fetchCsvBundle();
-            const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit + Supply" });
+            const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", bundle.mainRows.length, saved);
             initDash(bundle.mainRows, bundle.lookups);
@@ -3905,6 +3906,268 @@
           return "$" + Math.round(value || 0).toLocaleString();
         }
 
+        function formatUsdMillions(value) {
+          return "$" + ((value || 0) / 1000000).toFixed(1) + "M";
+        }
+
+        function getAcDetailMonthlyLeaseDefault(r) {
+          return Number.isFinite(r && r._rate) ? Math.max(0, r._rate * 1000000) : 0;
+        }
+
+        function getLeaseDiscountRate(score) {
+          const normalized = String(score || "NR").trim().toUpperCase();
+          if (!normalized || normalized === "NR" || normalized.includes("C")) return 0.06;
+          if (normalized.includes("BBB") || normalized.includes("A")) return 0.042;
+          if (normalized.includes("BB") || normalized.includes("B")) return 0.05;
+          return 0.06;
+        }
+
+        function getRemainingLeaseMonths(r) {
+          if (!r || !(r._leEnd instanceof Date) || Number.isNaN(r._leEnd.getTime())) return 0;
+          const daysRemaining = Math.ceil((r._leEnd - new Date()) / 864e5);
+          return daysRemaining > 0 ? Math.ceil(daysRemaining / 30) : 0;
+        }
+
+        function getAcDetailBaseValueUsd(r) {
+          const base = Number.isFinite(r && r._mktValueUSD) ? r._mktValueUSD : (Number.isFinite(r && r._val) ? r._val * 1000000 : 0);
+          return Math.max(0, base + (acDetailState.marketCondition === "full" ? 4000000 : 0));
+        }
+
+        function calculateLeaseNPV(monthlyLeaseRateUsd, remainingMonths, annualDiscountRate) {
+          const leaseRate = Math.max(0, Number(monthlyLeaseRateUsd) || 0);
+          const months = Math.max(0, Number(remainingMonths) || 0);
+          const monthlyDiscountRate = annualDiscountRate / 12;
+          let npv = 0;
+          for (let month = 1; month <= months; month++) {
+            npv += leaseRate / Math.pow(1 + monthlyDiscountRate, month);
+          }
+          return npv;
+        }
+
+        function buildAcDetailForecastSeries(baseValueUsd) {
+          const years = Array.from({ length: 11 }, (_, idx) => `Year ${idx}`);
+          if (!baseValueUsd) {
+            return {
+              years,
+              base: Array(years.length).fill(0),
+              soft: Array(years.length).fill(0),
+              peak: Array(years.length).fill(0)
+            };
+          }
+          const base = years.map((_, idx) => idx === 0 ? baseValueUsd : Math.max(3000000, baseValueUsd * Math.pow(0.95, idx)));
+          return {
+            years,
+            base,
+            soft: base.map(v => v * 0.8),
+            peak: base.map(v => v * 1.1)
+          };
+        }
+
+        function updateAcDetailMarketToggleUI() {
+          const toggle = document.getElementById("acd-life-toggle");
+          const track = document.getElementById("acd-life-track");
+          const thumb = document.getElementById("acd-life-thumb");
+          const half = document.getElementById("acd-life-label-half");
+          const full = document.getElementById("acd-life-label-full");
+          if (!toggle || !track || !thumb || !half || !full) return;
+          const isFull = toggle.checked;
+          track.style.background = isFull ? "#0f766e" : "#1f2937";
+          track.style.borderColor = isFull ? "#14b8a6" : "#334155";
+          thumb.style.transform = isFull ? "translateX(18px)" : "translateX(0)";
+          half.style.color = isFull ? "#64748b" : "#e2e8f0";
+          full.style.color = isFull ? "#e2e8f0" : "#64748b";
+        }
+
+        function renderAcDetailForecastChart(r) {
+          const empty = document.getElementById("acd-forecast-empty");
+          const canvas = document.getElementById("acd-forecast-chart");
+          if (!canvas) return;
+          const startingValueUsd = getAcDetailBaseValueUsd(r);
+          if (!startingValueUsd) {
+            if (charts["acd-forecast-chart"]) {
+              charts["acd-forecast-chart"].destroy();
+              delete charts["acd-forecast-chart"];
+            }
+            canvas.style.display = "none";
+            if (empty) empty.textContent = "Indicative Market Value not found in repo.";
+            return;
+          }
+          canvas.style.display = "block";
+          if (empty) empty.textContent = "";
+          const forecast = buildAcDetailForecastSeries(startingValueUsd);
+          ic("acd-forecast-chart", {
+            type: "line",
+            data: {
+              labels: forecast.years,
+              datasets: [
+                {
+                  label: "Base",
+                  data: forecast.base.map(v => v / 1000000),
+                  borderColor: "#3b82f6",
+                  backgroundColor: "rgba(59,130,246,.12)",
+                  borderWidth: 2.5,
+                  pointRadius: 2.5,
+                  pointHoverRadius: 4,
+                  tension: 0.2
+                },
+                {
+                  label: "Peak",
+                  data: forecast.peak.map(v => v / 1000000),
+                  borderColor: "#22c55e",
+                  borderDash: [6, 4],
+                  borderWidth: 2,
+                  pointRadius: 2,
+                  pointHoverRadius: 4,
+                  tension: 0.2
+                },
+                {
+                  label: "Soft",
+                  data: forecast.soft.map(v => v / 1000000),
+                  borderColor: "#ef4444",
+                  borderDash: [6, 4],
+                  borderWidth: 2,
+                  pointRadius: 2,
+                  pointHoverRadius: 4,
+                  tension: 0.2
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: { color: "#94a3b8", boxWidth: 10, usePointStyle: true, pointStyle: "line" }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (ctx) {
+                      return `${ctx.dataset.label}: ${formatUsdMillions(ctx.raw * 1000000)}`;
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  border: { display: false },
+                  ticks: { color: "#64748b" }
+                },
+                y: {
+                  grid: { color: "rgba(148,163,184,.12)" },
+                  border: { display: false },
+                  ticks: {
+                    color: "#64748b",
+                    callback: function (value) { return "$" + value + "M"; }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        function updateAcDetailValuationOutputs(r) {
+          const leaseInput = document.getElementById("acd-lease-rate-input");
+          if (leaseInput) {
+            acDetailState.monthlyLeaseRateUsd = Math.max(0, parseFloat(leaseInput.value) || 0);
+          }
+
+          const toggle = document.getElementById("acd-life-toggle");
+          acDetailState.marketCondition = toggle && toggle.checked ? "full" : "half";
+          updateAcDetailMarketToggleUI();
+
+          const adjustedBaseValueUsd = getAcDetailBaseValueUsd(r);
+          const marketValueDisplay = document.getElementById("acd-market-value-display");
+          const marketValueMode = document.getElementById("acd-market-value-mode");
+          if (marketValueDisplay) marketValueDisplay.textContent = adjustedBaseValueUsd ? formatUsdMillions(adjustedBaseValueUsd) : "Not found in repo.";
+          if (marketValueMode) marketValueMode.textContent = acDetailState.marketCondition === "full" ? "Full-Life Return (+$4.0M)" : "Half-Life baseline";
+
+          const remainingMonths = getRemainingLeaseMonths(r);
+          const discountRate = getLeaseDiscountRate(r._creditScore);
+          const creditScore = String(r._creditScore || "NR").trim() || "NR";
+          const npv = calculateLeaseNPV(acDetailState.monthlyLeaseRateUsd, remainingMonths, discountRate);
+          const npvValue = document.getElementById("acd-encumbered-value");
+          const npvNote = document.getElementById("acd-encumbered-note");
+          const npvRate = document.getElementById("acd-discount-rate");
+          if (npvValue) npvValue.textContent = formatWholeUsd(npv);
+          if (npvNote) {
+            npvNote.textContent = remainingMonths > 0
+              ? `${remainingMonths.toLocaleString()} months remaining to ${formatDate(r._leEnd)}.`
+              : "Lease End not found in repo or already expired.";
+          }
+          if (npvRate) {
+            npvRate.textContent = `${(discountRate * 100).toFixed(2)}% discount rate from ${creditScore} counterparty rating`;
+          }
+
+          renderAcDetailForecastChart(r);
+        }
+
+        function renderAcDetailValuation(r) {
+          const leaseWrap = document.getElementById("acd-lease-yield-card");
+          const forecastWrap = document.getElementById("acd-value-forecast-card");
+          if (!leaseWrap || !forecastWrap) return;
+
+          if (!Number.isFinite(acDetailState.monthlyLeaseRateUsd)) {
+            acDetailState.monthlyLeaseRateUsd = getAcDetailMonthlyLeaseDefault(r);
+          }
+
+          leaseWrap.innerHTML = `
+            <div class="idle-cost-card">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:#14b8a6;text-transform:uppercase;letter-spacing:.1em;">Lease Pricing &amp; Yield</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Discounted cash flow view of the remaining lease using the operator credit score already joined into this asset.</div>
+                </div>
+                <div id="acd-discount-rate" style="font-size:11px;color:#cbd5e1;text-align:right;"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:14px;align-items:end;margin-top:14px;">
+                <div>
+                  <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Assumed Monthly Lease Rate ($)</div>
+                  <input id="acd-lease-rate-input" class="idle-cost-input" type="number" min="0" step="10000" value="${Math.round(acDetailState.monthlyLeaseRateUsd || 0)}">
+                </div>
+                <div>
+                  <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Encumbered Lease Value</div>
+                  <div id="acd-encumbered-value" style="font-size:28px;font-weight:900;line-height:1.1;color:#22c55e;">$0</div>
+                  <div id="acd-encumbered-note" style="font-size:11px;color:#64748b;margin-top:5px;"></div>
+                </div>
+              </div>
+            </div>`;
+
+          forecastWrap.innerHTML = `
+            <div class="idle-cost-card">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.1em;">10-Year Value Forecast</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Base case depreciates 5% annually to a $3M floor, with soft and peak scenarios around the same airframe.</div>
+                </div>
+              </div>
+              <div style="height:260px;margin-top:14px;position:relative;">
+                <canvas id="acd-forecast-chart"></canvas>
+                <div id="acd-forecast-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#64748b;pointer-events:none;"></div>
+              </div>
+            </div>`;
+
+          const leaseInput = document.getElementById("acd-lease-rate-input");
+          if (leaseInput) {
+            leaseInput.addEventListener("input", function () {
+              acDetailState.monthlyLeaseRateUsd = Math.max(0, parseFloat(this.value) || 0);
+              updateAcDetailValuationOutputs(r);
+            });
+          }
+
+          const toggle = document.getElementById("acd-life-toggle");
+          if (toggle) {
+            toggle.addEventListener("change", function () {
+              acDetailState.marketCondition = this.checked ? "full" : "half";
+              updateAcDetailValuationOutputs(r);
+            });
+          }
+
+          updateAcDetailValuationOutputs(r);
+        }
+
         function renderIdleCostPredictor(r) {
           const wrap = document.getElementById('acd-idle-card');
           if (!wrap) return;
@@ -3961,6 +4224,9 @@
         function showAcDetail(idx) {
           const r = allData[idx];
           if (!r) return;
+          acDetailState.idx = idx;
+          acDetailState.marketCondition = "half";
+          acDetailState.monthlyLeaseRateUsd = getAcDetailMonthlyLeaseDefault(r);
           switchTab('acdetail');
           document.getElementById('acd-empty').style.display = 'none';
           document.getElementById('acd-content').style.display = 'flex';
@@ -4102,8 +4368,25 @@
           // Financials & Weight
           const supplyCount = Number.isFinite(+r._competingSupplyCount) ? +r._competingSupplyCount : 0;
           const supplyHtml = `<span style="color:${supplyCount > 10 ? '#fbbf24' : '#cbd5e1'};font-weight:${supplyCount > 10 ? '800' : '600'};">${supplyCount.toLocaleString()}</span>`;
+          const baseMarketValueUsd = Number.isFinite(r._mktValueUSD) ? r._mktValueUSD : (Number.isFinite(r._val) ? r._val * 1000000 : 0);
+          const marketValueHtml = `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span id="acd-market-value-display" style="font-weight:800;color:#e2e8f0;">${baseMarketValueUsd ? formatUsdMillions(baseMarketValueUsd) : 'Not found in repo.'}</span>
+                <span id="acd-market-value-mode" style="font-size:10px;color:#64748b;">Half-Life baseline</span>
+              </div>
+              <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                <span id="acd-life-label-half" style="font-size:10px;font-weight:700;color:#e2e8f0;">Half-Life</span>
+                <span style="position:relative;display:inline-flex;align-items:center;width:42px;height:24px;">
+                  <input id="acd-life-toggle" type="checkbox" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+                  <span id="acd-life-track" style="position:absolute;inset:0;border-radius:999px;background:#1f2937;border:1px solid #334155;transition:all .18s ease;"></span>
+                  <span id="acd-life-thumb" style="position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:999px;background:#f8fafc;box-shadow:0 2px 4px rgba(15,23,42,.35);transition:transform .18s ease;"></span>
+                </span>
+                <span id="acd-life-label-full" style="font-size:10px;font-weight:700;color:#64748b;">Full-Life Return</span>
+              </label>
+            </div>`;
           document.getElementById('acd-fin-specs').innerHTML = [
-            row('Market Value', r._val ? '$' + r._val.toFixed(1) + 'M' : null),
+            rowHtml('Indicative Market Value', marketValueHtml, `Indicative Market Value: ${baseMarketValueUsd ? formatUsdMillions(baseMarketValueUsd) : 'Not found in repo.'}`),
             row('Lease Rate', r._rate ? '$' + r._rate.toFixed(2) + 'M' : null),
             row('MTOW (lbs)', r._mtow ? r._mtow.toLocaleString() : null, true),
             row('Max Landing (lbs)', r['Max Landing Weight (lbs)'] ? parseInt(r['Max Landing Weight (lbs)']).toLocaleString() : null, true),
@@ -4111,6 +4394,7 @@
             row('Fin Exposure', r._finExp ? '$' + r._finExp.toFixed(1) + 'M' : '$0M'),
             rowHtml('Secondary Market Supply', supplyHtml, `Secondary Market Supply: ${supplyCount}`)
           ].join('');
+          renderAcDetailValuation(r);
           renderIdleCostPredictor(r);
 
           // Seating
