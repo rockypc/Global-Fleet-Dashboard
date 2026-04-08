@@ -1,0 +1,395 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 6687 >>
+stream
+0.96 0.97 0.99 rg
+0 0 612 792 re f
+0.06 0.09 0.16 rg
+30 660 552 102 re f
+0.06 0.09 0.16 RG
+1 w
+30 660 552 102 re S
+BT
+1 1 1 rg
+/F2 22 Tf
+1 0 0 1 44 728 Tm
+(Global Fleet Dashboard) Tj
+ET
+BT
+0.86 0.97 0.95 rg
+/F2 9 Tf
+1 0 0 1 470 730 Tm
+(repo summary / 1 page) Tj
+ET
+BT
+0.78 0.95 0.90 rg
+/F2 10 Tf
+1 0 0 1 44 703 Tm
+(WHAT IT IS) Tj
+ET
+BT
+0.95 0.98 1 rg
+/F1 9.2 Tf
+1 0 0 1 44 689 Tm
+(A browser-based fleet analytics dashboard built as a single HTML app around an uploaded) Tj
+ET
+BT
+0.95 0.98 1 rg
+/F1 9.2 Tf
+1 0 0 1 44 677.5 Tm
+(Aircraft Detail.csv file. It parses the CSV client-side, stores the working dataset in browser) Tj
+ET
+BT
+0.95 0.98 1 rg
+/F1 9.2 Tf
+1 0 0 1 44 666 Tm
+(storage, and renders tabbed views for fleet, lease, value, risk, and aircraft-level analysis.) Tj
+ET
+0.12 0.28 0.31 rg
+372 678 190 50 re f
+0.18 0.54 0.52 RG
+1 w
+372 678 190 50 re S
+BT
+0.80 0.98 0.94 rg
+/F2 10 Tf
+1 0 0 1 384 711 Tm
+(WHO IT'S FOR) Tj
+ET
+BT
+0.94 1 0.99 rg
+/F1 8.8 Tf
+1 0 0 1 384 697 Tm
+(Primary persona inferred from repo evidence:) Tj
+ET
+BT
+0.94 1 0.99 rg
+/F1 8.8 Tf
+1 0 0 1 384 686.5 Tm
+(aircraft fleet, leasing, transition, or) Tj
+ET
+BT
+0.94 1 0.99 rg
+/F1 8.8 Tf
+1 0 0 1 384 676 Tm
+(portfolio analysts working from monthly data.) Tj
+ET
+1 1 1 rg
+30 398 320 248 re f
+0.84 0.89 0.94 RG
+1 w
+30 398 320 248 re S
+BT
+0.06 0.46 0.43 rg
+/F2 10 Tf
+1 0 0 1 44 626 Tm
+(WHAT IT DOES) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 609 Tm
+(- Uploads and parses a monthly aircraft detail CSV directly in the browser.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 594 Tm
+(- Saves the parsed dataset and pipeline state in browser local storage.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 579 Tm
+(- Provides a Deep Dive table with dense filters, KPIs, search, and aircraft drill-down.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 564 Tm
+(- Renders analytics for region, manufacturer-engine mix, family share, inventory, and growth.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 549 Tm
+(- Tracks lease timing with a Lease Gantt view plus next-12-month transition exposure.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 534 Tm
+(- Calculates TATS-style opportunity scores and risk tiers from lease and fleet signals.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 44 519 Tm
+(- Surfaces MRO / USM candidate views and includes a prospecting pipeline tracker.) Tj
+ET
+1 1 1 rg
+30 170 320 214 re f
+0.84 0.89 0.94 RG
+1 w
+30 170 320 214 re S
+BT
+0.06 0.46 0.43 rg
+/F2 10 Tf
+1 0 0 1 44 364 Tm
+(HOW IT WORKS) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 347 Tm
+(Components / services / data flow:) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 334.5 Tm
+(1. UI shell: GlobalFleetDashboard.html contains the app UI, logic, and styling.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 322 Tm
+(2. Input: a local CSV is selected or dropped, then parsed in-browser with Papa Parse.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 309.5 Tm
+(3. Client data layer: localforage stores gfd_data, gfd_meta, and tats_pipeline.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 297 Tm
+(4. Derived metrics: JS computes fields such as _tats, _finExp, _mroRisk, and _usmPrime.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 284.5 Tm
+(5. Visual layer: Chart.js, chartjs-chart-treemap, D3, Lucide, Tailwind, and custom CSS) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 272 Tm
+(   render tabs including Deep Dive, Lease Gantt, Country, Fleet Explorer, TATS, USM,) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 259.5 Tm
+(   Exposure, History, and A/C Detail.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.75 Tf
+1 0 0 1 44 247 Tm
+(Backend/API, auth, tests, CI/CD, and deployment config: Not found in repo.) Tj
+ET
+1 1 1 rg
+364 514 218 132 re f
+0.84 0.89 0.94 RG
+1 w
+364 514 218 132 re S
+BT
+0.06 0.46 0.43 rg
+/F2 10 Tf
+1 0 0 1 378 626 Tm
+(REPO-EVIDENT SIGNALS) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 606 Tm
+(Sample CSV rows: 53,931) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 593 Tm
+(Visible status groups in sample data: In Service, On order, Storage) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 580 Tm
+(Regional coverage in sample data includes Asia Pacific, North America, Europe,) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 567 Tm
+(Middle East, Latin America, and Africa) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 554 Tm
+(CSV fields used in code include operator, owner, manager, engine, seating, lease,) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 541 Tm
+(storage, utilization, cycles, and indicative market value) Tj
+ET
+1 1 1 rg
+364 324 218 176 re f
+0.84 0.89 0.94 RG
+1 w
+364 324 218 176 re S
+BT
+0.06 0.46 0.43 rg
+/F2 10 Tf
+1 0 0 1 378 480 Tm
+(HOW TO RUN) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 460 Tm
+(1. Open GlobalFleetDashboard.html in a modern desktop browser.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 447 Tm
+(2. Keep internet access enabled so the browser can fetch the CDN-hosted libraries) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 434 Tm
+(   referenced in the HTML file.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 421 Tm
+(3. Upload Aircraft Detail.csv when prompted.) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 408 Tm
+(4. Use the tabs and filters to explore fleet, lease, exposure, TATS, USM, history,) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 395 Tm
+(   and aircraft-detail views.) Tj
+ET
+1.00 0.94 0.87 rg
+378 340 190 42 re f
+0.96 0.72 0.46 RG
+1 w
+378 340 190 42 re S
+BT
+0.49 0.18 0.07 rg
+/F1 8.3 Tf
+1 0 0 1 388 365 Tm
+(README, install script, package manifest, and local) Tj
+ET
+BT
+0.49 0.18 0.07 rg
+/F1 8.3 Tf
+1 0 0 1 388 354.5 Tm
+(server/start command: Not found in repo.) Tj
+ET
+1 1 1 rg
+364 170 218 140 re f
+0.84 0.89 0.94 RG
+1 w
+364 170 218 140 re S
+BT
+0.06 0.46 0.43 rg
+/F2 10 Tf
+1 0 0 1 378 290 Tm
+(KEY FILES) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 270 Tm
+(GlobalFleetDashboard.html) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 257 Tm
+(  - application UI, scoring logic, tab rendering, filters, and charts) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 244 Tm
+(Aircraft Detail.csv) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 231 Tm
+(  - source dataset expected by the dashboard) Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 218 Tm
+() Tj
+ET
+BT
+0.20 0.28 0.38 rg
+/F1 8.85 Tf
+1 0 0 1 378 205 Tm
+(Summary scope: repo evidence only. Missing items are called out explicitly.) Tj
+ET
+BT
+0.32 0.39 0.49 rg
+/F1 8.2 Tf
+1 0 0 1 32 138 Tm
+(Evidence base: repo contains 1 HTML app file and 1 CSV data file.) Tj
+ET
+BT
+0.32 0.39 0.49 rg
+/F1 8.2 Tf
+1 0 0 1 32 125 Tm
+(Generated by a local script to guarantee a single-page PDF deliverable.) Tj
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+7135
+%%EOF
