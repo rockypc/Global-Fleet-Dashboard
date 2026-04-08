@@ -702,6 +702,116 @@
       letter-spacing: .07em;
       margin-top: 2px;
     }
+
+    .idle-cost-card {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #1e3a5f;
+      background: linear-gradient(135deg, rgba(13, 30, 58, 0.95), rgba(10, 15, 30, 0.96));
+    }
+
+    .idle-cost-input {
+      width: 100%;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      background: #0a0f1e;
+      color: #f1f5f9;
+      font-size: 22px;
+      font-weight: 800;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .idle-cost-input:focus {
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, .15);
+    }
+
+    @media print {
+      @page {
+        size: auto;
+        margin: 0.5in;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #111827 !important;
+      }
+
+      header,
+      #update-banner,
+      #init-loading,
+      #upload-section,
+      #dashboard-section>div:first-child,
+      .no-print {
+        display: none !important;
+      }
+
+      #dashboard-section,
+      #tab-area {
+        overflow: visible !important;
+      }
+
+      #tab-area>div {
+        display: none !important;
+      }
+
+      #tab-acdetail {
+        display: block !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+      }
+
+      #acd-empty {
+        display: none !important;
+      }
+
+      #acd-content {
+        display: flex !important;
+        gap: 12px !important;
+      }
+
+      #tab-acdetail .card,
+      #acd-hero,
+      .idle-cost-card {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: none !important;
+      }
+
+      #tab-acdetail .spec-label,
+      #tab-acdetail .acd-kpi-lbl,
+      #tab-acdetail .s-sub,
+      #tab-acdetail [style*="color:#334155"],
+      #tab-acdetail [style*="color:#475569"],
+      #tab-acdetail [style*="color:#64748b"] {
+        color: #6b7280 !important;
+      }
+
+      #tab-acdetail .spec-value,
+      #tab-acdetail .acd-kpi-val,
+      #tab-acdetail .s-title,
+      #tab-acdetail [style*="color:#f1f5f9"],
+      #tab-acdetail [style*="color:#e2e8f0"] {
+        color: #111827 !important;
+      }
+
+      #tab-acdetail .badge {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+      }
+
+      #tab-acdetail .idle-cost-input {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+        box-shadow: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -1898,16 +2008,28 @@
         <div id="acd-content" style="display:none;flex-direction:column;gap:16px;">
 
           <!-- Back button + header -->
-          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-            <button onclick="switchTab('deepdive')" class="btn btn-ghost"
-              style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px;">
-              <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
+          <div class="no-print"
+            style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <button onclick="switchTab('deepdive')" class="btn btn-ghost"
+                style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Deep Dive
+              </button>
+              <div style="font-size:11px;color:#334155;">Click a different row in Deep Dive to switch aircraft</div>
+            </div>
+            <button onclick="window.print()" class="btn"
+              style="padding:8px 14px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;display:flex;align-items:center;gap:6px;">
+              <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.2"
                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M6 9V4h12v5M6 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-1M6 14h12v6H6v-6z" />
               </svg>
-              Back to Deep Dive
+              Export IC Tear Sheet
             </button>
-            <div style="font-size:11px;color:#334155;">Click a different row in Deep Dive to switch aircraft</div>
           </div>
 
           <!-- HERO CARD -->
@@ -2048,6 +2170,7 @@
                 Financials &amp; Weight
               </div>
               <div id="acd-fin-specs" class="spec-grid"></div>
+              <div id="acd-idle-card"></div>
             </div>
           </div>
 
@@ -2171,9 +2294,22 @@
             Papa.parse(csvText, {
               header: true,
               skipEmptyLines: true,
-              complete: (res) => resolve(res.data || []),
+              complete: (res) => resolve(cleanFleetRows(res.data || [])),
               error: reject
             });
+          });
+        }
+
+        function cleanFleetRows(rows) {
+          return (rows || []).filter(row => {
+            if (!row || typeof row !== "object") return false;
+            return Object.values(row).some(value => String(value || "").trim() !== "");
+          }).filter(row => {
+            const manufacturer = String(row["Manufacturer"] || "").trim();
+            return manufacturer === "Airbus" || manufacturer === "Boeing";
+          }).filter(row => {
+            const statusText = `${row["Status"] || ""} ${row["Order Status"] || ""}`.toLowerCase();
+            return !statusText.includes("unconfirmed");
           });
         }
 
@@ -2192,7 +2328,8 @@
         async function tryLoadCachedData() {
           const stored = await localforage.getItem("gfd_data");
           const meta = await localforage.getItem("gfd_meta");
-          if (stored && stored.length) return { data: stored, meta: meta || {} };
+          const cleaned = cleanFleetRows(stored || []);
+          if (cleaned.length) return { data: cleaned, meta: meta || {} };
           return null;
         }
 
@@ -2262,11 +2399,12 @@
           document.getElementById("upload-desc").textContent = "Processing your CSV, please wait...";
           Papa.parse(f, {
             header: true, skipEmptyLines: true, complete: async function (res) {
+              const cleanedData = cleanFleetRows(res.data || []);
               try {
-                const saved = await cacheDashboardData(res.data, { source: "manual", name: f.name });
-                updateDataBanner("manual", res.data.length, saved);
+                const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name });
+                updateDataBanner("manual", cleanedData.length, saved);
               } catch (e) { }
-              initDash(res.data);
+              initDash(cleanedData);
             }, error: function (e) { alert("CSV parse error: " + e.message); location.reload(); }
           });
         });
@@ -3419,6 +3557,73 @@
           }).join("") || `<tr><td colspan="${cols.length + 1}" style="text-align:center;color:#334155;padding:24px;">No aircraft match the selected filters</td></tr>`;
         }
         // ===== AIRCRAFT DETAIL =====
+        function isWidebodyAsset(r) {
+          const text = [r["Current Family"], r["Type"], r["Master Series"], r["Series"]].join(" ").toLowerCase();
+          if (/(widebody|twin[-\s]?aisle)/i.test(text)) return true;
+          return /(a300|a310|a330|a340|a350|a380|747|767|777|787|md-11|dc-10|l-1011)/i.test(text);
+        }
+
+        function getDefaultIdleCostPerDay(r) {
+          return isWidebodyAsset(r) ? 25000 : 8000;
+        }
+
+        function formatWholeUsd(value) {
+          return "$" + Math.round(value || 0).toLocaleString();
+        }
+
+        function renderIdleCostPredictor(r) {
+          const wrap = document.getElementById('acd-idle-card');
+          if (!wrap) return;
+          const isStored = r._statusNormalized === "Storage";
+          const storageMonths = Number.isFinite(r._moInStor) ? Math.max(r._moInStor, 0) : 0;
+          const storageDays = Math.round(storageMonths * 30);
+          const defaultRate = getDefaultIdleCostPerDay(r);
+          const sizeLabel = isWidebodyAsset(r) ? 'Widebody / Twin-Aisle default' : 'Narrowbody / Single-Aisle default';
+
+          wrap.innerHTML = `
+            <div class="idle-cost-card">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:#06b6d4;text-transform:uppercase;letter-spacing:.1em;">Idle Cost Predictor</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${sizeLabel}. Override the daily rate if your commercial case uses a different downtime assumption.</div>
+                </div>
+                <div style="font-size:10px;color:#475569;text-align:right;">Status: <span style="color:${isStored ? '#f43f5e' : '#10b981'};font-weight:700;">${r._statusNormalized || '-'}</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(180px,220px) 1fr;gap:14px;align-items:end;margin-top:14px;">
+                <div>
+                  <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Cost per Day</div>
+                  <input id="acd-idle-rate" class="idle-cost-input" type="number" min="0" step="500" value="${defaultRate}">
+                </div>
+                <div>
+                  <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Estimated Revenue Lost to Downtime</div>
+                  <div id="acd-idle-loss" style="font-size:28px;font-weight:900;line-height:1.1;color:${isStored ? '#ef4444' : '#94a3b8'};">$0</div>
+                  <div id="acd-idle-note" style="font-size:11px;color:#64748b;margin-top:5px;"></div>
+                </div>
+              </div>
+            </div>`;
+
+          const input = document.getElementById('acd-idle-rate');
+          const loss = document.getElementById('acd-idle-loss');
+          const note = document.getElementById('acd-idle-note');
+          const update = () => {
+            const dailyRate = Math.max(0, parseFloat(input.value) || 0);
+            if (!isStored) {
+              loss.textContent = formatWholeUsd(0);
+              loss.style.color = '#94a3b8';
+              note.textContent = `Current status is ${r._statusNormalized || 'Other'}; downtime loss activates only for stored aircraft.`;
+              return;
+            }
+            const lostRevenue = dailyRate * storageDays;
+            loss.textContent = formatWholeUsd(lostRevenue);
+            loss.style.color = '#ef4444';
+            note.textContent = storageDays > 0
+              ? `Storage exposure uses ${storageDays.toLocaleString()} days (${storageMonths.toFixed(1)} months x 30).`
+              : 'Storage status detected, but Months in Storage was not found in repo; estimate is using 0 days.';
+          };
+          input.addEventListener('input', update);
+          update();
+        }
+
         function showAcDetail(idx) {
           const r = allData[idx];
           if (!r) return;
@@ -3561,6 +3766,7 @@
             row('Max Payload (lbs)', r['Max Payload (lbs)'] ? parseInt(r['Max Payload (lbs)']).toLocaleString() : null, true),
             row('Fin Exposure', r._finExp ? '$' + r._finExp.toFixed(1) + 'M' : '$0M')
           ].join('');
+          renderIdleCostPredictor(r);
 
           // Seating
           const fc = parseInt(r['First Class Number of Seats']) || 0;
@@ -3793,7 +3999,7 @@
 
       <!-- ==================== USM & MRO PIPELINE TAB ==================== -->
       <div id="tab-usm" class="hidden p-4 flex flex-col gap-4">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex-shrink:0;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-emerald">
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Prime USM Candidates
             </div>
@@ -3808,6 +4014,11 @@
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Harvesting Cycles
             </div>
             <div style="font-size:28px;font-weight:800;color:#3b82f6;" id="usm-kpi-cycles">0</div>
+          </div>
+          <div class="kpi kpi-accent kpi-rose">
+            <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Upcoming Engine Shop
+              Visit Wave</div>
+            <div style="font-size:28px;font-weight:800;color:#f43f5e;" id="usm-kpi-prwave">0</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;height:340px;">
@@ -4892,6 +5103,8 @@ function renderSunburst(topN){
           document.getElementById("usm-kpi-age").textContent = ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-";
           const cyc = d.map(r => r._cumCyc).filter(v => v !== null);
           document.getElementById("usm-kpi-cycles").textContent = cyc.length ? (cyc.reduce((a, b) => a + b, 0).toLocaleString()) : "-";
+          const prWave = allData.filter(r => r._statusNormalized === "In Service" && r._age !== null && r._age >= 8 && r._age <= 12);
+          document.getElementById("usm-kpi-prwave").textContent = prWave.length.toLocaleString();
 
           // Chart 1: Targets by Engine Fam (Horizontal Bar)
           const famD = topN(cBy(d, "Engine Family"), 10);
