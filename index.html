@@ -2285,7 +2285,9 @@
         }
 
         // Persistence
-        const DATA_URL = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
+        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
+        const URL_CREDIT = "https://example.com/airline-credit-scores.csv";
+        const URL_SUPPLY = "https://example.com/remarketing-supply.csv";
 
         function setInitState(mode, msg, sub) {
           const loading = document.getElementById("init-loading");
@@ -2399,12 +2401,15 @@
           return text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         }
 
-        function parseCsvText(csvText) {
+        function parseCsvText(csvText, { clean = false } = {}) {
           return new Promise((resolve, reject) => {
             Papa.parse(csvText, {
               header: true,
               skipEmptyLines: true,
-              complete: (res) => resolve(cleanFleetRows(res.data || [])),
+              complete: (res) => {
+                const rows = res.data || [];
+                resolve(clean ? cleanFleetRows(rows) : rows.filter(row => row && typeof row === "object" && Object.values(row).some(value => String(value || "").trim() !== "")));
+              },
               error: reject
             });
           });
@@ -2435,6 +2440,84 @@
           return saved;
         }
 
+        function normalizeJoinKey(value) {
+          return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+        }
+
+        function buildSupplementalLookups(creditRows = [], supplyRows = []) {
+          const creditLookup = {};
+          (creditRows || []).forEach(row => {
+            const operatorKey = normalizeJoinKey(row["Airlines"] || row["Airline"] || row["Operator"]);
+            if (!operatorKey) return;
+            creditLookup[operatorKey] = {
+              score: String(row["Credit Score"] || row["Score"] || row["Rating"] || "").trim(),
+              outlook: String(row["Credit Outlook"] || row["Outlook"] || row["Status"] || "").trim()
+            };
+          });
+
+          const supplyLookup = {};
+          (supplyRows || []).forEach(row => {
+            const typeKey = normalizeJoinKey(row["Variant"] || row["Type"]);
+            if (!typeKey) return;
+            supplyLookup[typeKey] = (supplyLookup[typeKey] || 0) + 1;
+          });
+
+          return { creditLookup, supplyLookup };
+        }
+
+        function applySupplementalJoins(rows, lookups = {}) {
+          const creditLookup = lookups.creditLookup || {};
+          const supplyLookup = lookups.supplyLookup || {};
+          return (rows || []).map(row => {
+            const operatorKey = normalizeJoinKey(row["Operator"]);
+            const typeKey = normalizeJoinKey(row["Type"]);
+            const credit = creditLookup[operatorKey] || {};
+            return {
+              ...row,
+              _creditScore: String(row._creditScore || credit.score || "").trim(),
+              _creditOutlook: String(row._creditOutlook || credit.outlook || "").trim(),
+              _competingSupplyCount: Number.isFinite(+row._competingSupplyCount) ? +row._competingSupplyCount : (supplyLookup[typeKey] || 0)
+            };
+          });
+        }
+
+        async function fetchCsvText(url, { required = true } = {}) {
+          try {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
+            return await res.text();
+          } catch (err) {
+            if (required) throw err;
+            console.warn(`Supplemental feed unavailable for ${url}.`, err);
+            return "";
+          }
+        }
+
+        async function fetchCsvBundle() {
+          const [mainText, creditText, supplyText] = await Promise.all([
+            fetchCsvText(URL_MAIN, { required: true }),
+            fetchCsvText(URL_CREDIT, { required: false }),
+            fetchCsvText(URL_SUPPLY, { required: false })
+          ]);
+
+          const [mainRows, creditRows, supplyRows] = await Promise.all([
+            parseCsvText(mainText, { clean: true }),
+            creditText ? parseCsvText(creditText) : Promise.resolve([]),
+            supplyText ? parseCsvText(supplyText) : Promise.resolve([])
+          ]);
+
+          const byKey = {
+            main: mainRows,
+            credit: creditRows,
+            supply: supplyRows
+          };
+          const lookups = buildSupplementalLookups(byKey.credit || [], byKey.supply || []);
+          return {
+            mainRows: applySupplementalJoins(byKey.main || [], lookups),
+            lookups
+          };
+        }
+
         async function tryLoadCachedData() {
           const stored = await localforage.getItem("gfd_data");
           const meta = await localforage.getItem("gfd_meta");
@@ -2461,14 +2544,11 @@
           }
 
           try {
-            const res = await fetch(DATA_URL, { cache: "no-store" });
-            if (!res.ok) throw new Error(`Sync failed (${res.status})`);
-            const csvText = await res.text();
-            const parsed = await parseCsvText(csvText);
-            const saved = await cacheDashboardData(parsed, { source: "live", name: "Aircraft Detail.csv" });
+            const bundle = await fetchCsvBundle();
+            const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit + Supply" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
-            updateDataBanner("live", parsed.length, saved);
-            initDash(parsed);
+            updateDataBanner("live", bundle.mainRows.length, saved);
+            initDash(bundle.mainRows, bundle.lookups);
             return;
           } catch (err) {
             console.warn("Live sync unavailable, attempting cached data.", err);
@@ -2520,7 +2600,7 @@
           });
         });
 
-        function initDash(data) {
+        function initDash(data, supplemental = {}) {
           document.getElementById("init-loading").classList.add("hidden");
           document.getElementById("upload-section").classList.add("hidden");
           document.getElementById("dashboard-section").classList.remove("hidden");
@@ -2555,6 +2635,10 @@
             r._operatorClean = r["Operator"] ? String(r["Operator"]).trim() : "Unknown";
             r._country = r["Operator Country/Subregion"] ? String(r["Operator Country/Subregion"]).trim() : "Unknown";
             r._region = r["Operator Region"] ? String(r["Operator Region"]).trim() : "Unknown";
+            const joinedCredit = (supplemental.creditLookup || {})[normalizeJoinKey(r["Operator"])] || null;
+            r._creditScore = String(r._creditScore || (joinedCredit && joinedCredit.score) || "").trim();
+            r._creditOutlook = String(r._creditOutlook || (joinedCredit && joinedCredit.outlook) || "").trim();
+            r._competingSupplyCount = Number.isFinite(+r._competingSupplyCount) ? +r._competingSupplyCount : ((supplemental.supplyLookup || {})[normalizeJoinKey(r["Type"])] || 0);
 
             // Status Normalization
             const rawStatus = (r["Status"] || "").toLowerCase();
@@ -2841,6 +2925,37 @@
             .replace(/'/g, "&#39;");
         }
 
+        function getCreditRiskMeta(score, outlook = "") {
+          const normalized = String(score || "").trim().toUpperCase();
+          const normalizedOutlook = String(outlook || "").trim().toLowerCase();
+          if (normalizedOutlook.includes("watch")) {
+            return { label: normalized || "WATCH", bg: "#3f0d14", color: "#fda4af", border: "#be123c" };
+          }
+          if (!normalized) {
+            return { label: "NR", bg: "#111827", color: "#94a3b8", border: "#374151" };
+          }
+          if (/^C(CC|C)?[-+]?|^CC$|^C$|^D$/.test(normalized)) {
+            return { label: normalized, bg: "#3f0d14", color: "#fda4af", border: "#be123c" };
+          }
+          if (/^A|^BBB/.test(normalized)) {
+            return { label: normalized, bg: "#052e16", color: "#86efac", border: "#166534" };
+          }
+          if (/^BB|^B/.test(normalized)) {
+            return { label: normalized, bg: "#3f2a05", color: "#fcd34d", border: "#b45309" };
+          }
+          return { label: normalized, bg: "#3f0d14", color: "#fda4af", border: "#be123c" };
+        }
+
+        function creditBadgeHtml(score, outlook = "") {
+          const meta = getCreditRiskMeta(score, outlook);
+          const title = [score || "Not Rated", outlook || ""].filter(Boolean).join(" · ");
+          return `<span title="${escapeHtml(title || "Not Rated")}" style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;line-height:1;border:1px solid ${meta.border};background:${meta.bg};color:${meta.color};">${escapeHtml(meta.label)}</span>`;
+        }
+
+        function operatorWithCreditHtml(operator, score, outlook = "") {
+          return `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>${escapeHtml(operator || "-")}</span>${creditBadgeHtml(score, outlook)}</div>`;
+        }
+
         function avg(values, allowZero = true) {
           const filtered = values.filter(v => Number.isFinite(v) && (allowZero || v > 0));
           return filtered.length ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
@@ -2904,7 +3019,10 @@
               engineFamily: dominantValue(rows.map(r => (r["Engine Family"] || "").trim())),
               engineType: dominantValue(rows.map(r => (r["Engine Type"] || "").trim())),
               engineManufacturer: dominantValue(rows.map(r => (r["Engine Manufacturer"] || "").trim())),
-              avgAge: avg(rows.map(r => r._age || 0), false)
+              avgAge: avg(rows.map(r => r._age || 0), false),
+              creditScore: String(sample._creditScore || "").trim(),
+              creditOutlook: String(sample._creditOutlook || "").trim(),
+              competingSupplyCount: Number.isFinite(+sample._competingSupplyCount) ? +sample._competingSupplyCount : 0
             };
           }).sort((a, b) => b.avgTotalSeats - a.avgTotalSeats);
 
@@ -3192,10 +3310,11 @@
                   <div><label class="fl">Originating Operator</label><select class="fs" id="placement-operator" onchange="renderPlacementRadar()"></select></div>
                 </div>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
                 <div class="kpi kpi-accent kpi-violet"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Baseline Total Seats</div><div style="font-size:28px;font-weight:800;color:#8b5cf6;" id="placement-kpi-seats">-</div></div>
                 <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Baseline Engine Type</div><div style="font-size:24px;font-weight:800;color:#f59e0b;" id="placement-kpi-engine">-</div></div>
                 <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Global Operators for This Type</div><div style="font-size:28px;font-weight:800;color:#06b6d4;" id="placement-kpi-operators">0</div></div>
+                <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Secondary Market Supply</div><div style="font-size:28px;font-weight:800;color:#f59e0b;" id="placement-kpi-supply">0</div></div>
               </div>
               <div style="display:grid;grid-template-columns:.9fr 1.1fr;gap:12px;min-height:420px;">
                 <div class="card flex flex-col"><div class="s-title">Global Target Operators</div><div class="s-sub">Count of matching aircraft by operator for the selected type.</div><div class="flex-grow relative"><canvas id="placement-ops-chart"></canvas></div></div>
@@ -3228,10 +3347,14 @@
           const baseline = operatorTypeConfigs.find(c => c.type === typeEl.value && c.operator === operatorEl.value);
           const peers = operatorTypeConfigs.filter(c => c.type === typeEl.value && c.operator !== operatorEl.value);
           const operatorCount = new Set(operatorTypeConfigs.filter(c => c.type === typeEl.value).map(c => c.operator)).size;
+          const competingSupply = baseline ? baseline.competingSupplyCount : 0;
 
           document.getElementById("placement-kpi-seats").textContent = baseline ? baseline.avgTotalSeats.toFixed(1) : "-";
           document.getElementById("placement-kpi-engine").textContent = baseline ? baseline.engineType : "-";
           document.getElementById("placement-kpi-operators").textContent = operatorCount.toLocaleString();
+          const supplyEl = document.getElementById("placement-kpi-supply");
+          supplyEl.textContent = competingSupply.toLocaleString();
+          supplyEl.style.color = competingSupply > 10 ? "#fbbf24" : "#cbd5e1";
 
           const scored = peers.map(c => {
             let score = 0;
@@ -3501,7 +3624,7 @@
             return `
                         <tr>
                           <td>${tBadge(r._tatsAutoRisk)}</td>
-                          <td>${escapeHtml(r["Operator"] || "-")}</td>
+                          <td>${operatorWithCreditHtml(r["Operator"] || "-", r._creditScore, r._creditOutlook)}</td>
                           <td class="mono">${escapeHtml(reg)}</td>
                           <td>${escapeHtml(r["Type"] || "-")}</td>
                           <td>${escapeHtml(r["Engine Family"] || "-")}</td>
@@ -3604,7 +3727,7 @@
           aircraft: [{ h: "Manufacturer", k: "Manufacturer" }, { h: "Family", k: "Current Family" }, { h: "Master Series", k: "Master Series" }, { h: "Series", k: "Series" }, { h: "Type", k: "Type" }, { h: "Sub Series", k: "Aircraft Sub Series" }, { h: "Mkt Group", k: "Market Grouping" }, { h: "Usage", k: "Primary Usage" }, { h: "Build Yr", fn: r => r._buildYr || "-" }, { h: "Age", fn: r => { const a = r._age; return a ? `<span style="color:${a > 20 ? "#f87171" : a > 15 ? "#fbbf24" : "#94a3b8"}">${a}</span>` : "-"; }, sort: "_age" }, { h: "TATS", fn: r => `<span style="font-weight:700;color:${r._tats >= 70 ? "#f87171" : r._tats >= 40 ? "#fbbf24" : "#4ade80"}">${r._tats}</span>` }],
           engine: [{ h: "Eng Mfg", k: "Engine Manufacturer" }, { h: "Eng Family", k: "Engine Family" }, { h: "Eng Type", k: "Engine Type" }, { h: "Eng Master", k: "Engine Master Series" }, { h: "Eng Series", k: "Engine Series" }, { h: "Eng Sub", k: "Engine Sub Series" }, { h: "# Eng", k: "Number Of Engines" }, { h: "APU", k: "APU Sub Series" }],
           ops: [{ h: "Cum Hours", fn: r => r["Cumulative Hours"] ? parseInt(r["Cumulative Hours"]).toLocaleString() : "-" }, { h: "Cum Cycles", fn: r => r["Cumulative Cycles"] ? parseInt(r["Cumulative Cycles"]).toLocaleString() : "-" }, { h: "Avg Daily Util", k: "Average Daily Utilisation" }, { h: "P12M Hrs", k: "Previous 12 Months Hours" }, { h: "P12M Cyc", k: "Previous 12 Months Cycles" }, { h: "Rpt Date", k: "Reported Hours and Cycles Date" }],
-          ownership: [{ h: "Operator", k: "Operator" }, { h: "Op Group", k: "Operator Group" }, { h: "Op IATA", k: "Operator IATA" }, { h: "Op Country", k: "Operator Country/Subregion" }, { h: "Op Region", k: "Operator Region" }, { h: "Owner", k: "Owner" }, { h: "Owner Cty", k: "Owner Country/Subregion" }, { h: "Manager", k: "Manager" }, { h: "Op Lessor", k: "Operational Lessor" }, { h: "Sub Lessor", k: "Sub Lessor" }],
+          ownership: [{ h: "Operator", fn: r => operatorWithCreditHtml(r["Operator"] || "-", r._creditScore, r._creditOutlook) }, { h: "Op Group", k: "Operator Group" }, { h: "Op IATA", k: "Operator IATA" }, { h: "Op Country", k: "Operator Country/Subregion" }, { h: "Op Region", k: "Operator Region" }, { h: "Owner", k: "Owner" }, { h: "Owner Cty", k: "Owner Country/Subregion" }, { h: "Manager", k: "Manager" }, { h: "Op Lessor", k: "Operational Lessor" }, { h: "Sub Lessor", k: "Sub Lessor" }],
           lease: [{ h: "Lease Start", k: "Lease Start" }, { h: "Lease End", k: "Lease End" }, { h: "Lse End Yr", fn: r => r._leEndYr || "-" }, { h: "Lse End Q", fn: r => r._leEndQ ? "Q" + r._leEndQ : "-" }, { h: "Lse Dur (m)", k: "Lease Duration (months)" }, { h: "Dry/Wet", k: "Lease Dry / Wet" }, { h: "Lse Type", k: "Lease Type" }, { h: "Delivery", k: "Delivery Date" }, { h: "In Service", k: "In Service Date" }],
           value: [
             { h: "Mkt Value $M", fn: r => r._val ? "$" + r._val.toFixed(1) + "M" : "-", num: true },
@@ -3896,7 +4019,10 @@
 
           // Helper to build spec rows
           const row = (lbl, val, mono = false) => val && val !== '-'
-            ? `<div class="spec-row"><div class="spec-label">${lbl}</div><div class="spec-value${mono ? ' mono' : ''}" title="${val}">${val}</div></div>`
+            ? `<div class="spec-row"><div class="spec-label">${lbl}</div><div class="spec-value${mono ? ' mono' : ''}" title="${escapeHtml(val)}">${val}</div></div>`
+            : '';
+          const rowHtml = (lbl, html, title = "") => html
+            ? `<div class="spec-row"><div class="spec-label">${lbl}</div><div class="spec-value" title="${escapeHtml(title || stripHtmlForExport(html))}">${html}</div></div>`
             : '';
 
           // Aircraft Classification
@@ -3974,13 +4100,16 @@
           ].join('');
 
           // Financials & Weight
+          const supplyCount = Number.isFinite(+r._competingSupplyCount) ? +r._competingSupplyCount : 0;
+          const supplyHtml = `<span style="color:${supplyCount > 10 ? '#fbbf24' : '#cbd5e1'};font-weight:${supplyCount > 10 ? '800' : '600'};">${supplyCount.toLocaleString()}</span>`;
           document.getElementById('acd-fin-specs').innerHTML = [
             row('Market Value', r._val ? '$' + r._val.toFixed(1) + 'M' : null),
             row('Lease Rate', r._rate ? '$' + r._rate.toFixed(2) + 'M' : null),
             row('MTOW (lbs)', r._mtow ? r._mtow.toLocaleString() : null, true),
             row('Max Landing (lbs)', r['Max Landing Weight (lbs)'] ? parseInt(r['Max Landing Weight (lbs)']).toLocaleString() : null, true),
             row('Max Payload (lbs)', r['Max Payload (lbs)'] ? parseInt(r['Max Payload (lbs)']).toLocaleString() : null, true),
-            row('Fin Exposure', r._finExp ? '$' + r._finExp.toFixed(1) + 'M' : '$0M')
+            row('Fin Exposure', r._finExp ? '$' + r._finExp.toFixed(1) + 'M' : '$0M'),
+            rowHtml('Secondary Market Supply', supplyHtml, `Secondary Market Supply: ${supplyCount}`)
           ].join('');
           renderIdleCostPredictor(r);
 
