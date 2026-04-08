@@ -714,16 +714,16 @@
         viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
       </svg>
-      <span id="banner-text">Data loaded from local storage</span>
+      <span id="banner-text">Live Synced Data</span>
     </div>
     <div class="flex items-center gap-3">
       <span id="banner-date" style="color:#475569;font-size:11px;"></span>
-      <button onclick="clearData()" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
+      <button id="sync-data-btn" onclick="syncLatestData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
         <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Update Data
+        Sync Latest Data
       </button>
       <button onclick="document.getElementById('update-banner').classList.add('hidden')"
         style="background:none;border:none;color:#475569;cursor:pointer;font-size:16px;line-height:1;padding:0 4px;"></button>
@@ -773,8 +773,8 @@
       </svg>
     </div>
     <div style="text-align:center;">
-      <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="init-msg">Checking local storage...</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px;" id="init-sub">Loading your saved fleet data</div>
+      <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="init-msg">Syncing live fleet data...</div>
+      <div style="font-size:12px;color:#334155;margin-top:4px;" id="init-sub">Fetching the latest CSV from GitHub with offline cache fallback</div>
     </div>
     <style>
       @keyframes spin {
@@ -799,7 +799,7 @@
         Detail CSV</h2>
       <p id="upload-desc" style="font-size:13px;color:#4b5563;line-height:1.6;margin-bottom:28px;">
         Drop your <strong style="color:#7dd3fc;">Aircraft Detail.csv</strong> here or click to browse.<br>
-        <span style="color:#1e40af;">Your data will be saved in browser storage no re-upload needed next time.</span>
+        <span style="color:#1e40af;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
       </p>
       <label
         style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;padding:12px 30px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(8,145,178,.3);">
@@ -821,7 +821,8 @@
     <!-- TAB NAV -->
     <div style="background:#060d1a;border-bottom:1px solid #1a2234;flex-shrink:0;overflow-x:auto;">
       <nav class="flex px-2" style="flex-shrink:0;">
-        <button class="tab-btn active" id="tbtn-deepdive" onclick="switchTab('deepdive')"><svg
+        <button class="tab-btn active" id="tbtn-home" onclick="switchTab('home')">🏠 Home</button>
+        <button class="tab-btn" id="tbtn-deepdive" onclick="switchTab('deepdive')"><svg
             style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
@@ -877,6 +878,26 @@
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>Fleet Explorer</button>
+        <button class="tab-btn" id="tbtn-lopa" onclick="switchTab('lopa')"><svg style="width:12px;height:12px;"
+            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>LOPA &amp; Cabin</button>
+        <button class="tab-btn" id="tbtn-placement" onclick="switchTab('placement')"><svg style="width:12px;height:12px;"
+            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>Placement Radar</button>
+        <button class="tab-btn" id="tbtn-ccolopa" onclick="switchTab('ccolopa')"><svg style="width:12px;height:12px;"
+            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M7 12h10M10 18h4" />
+          </svg>Global LOPA</button>
+        <button class="tab-btn" id="tbtn-engineintel" onclick="switchTab('engineintel')"><svg style="width:12px;height:12px;"
+            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h12M9 8l-3 4 3 4m6-8l3 4-3 4" />
+          </svg>Engine Market</button>
+        <button class="tab-btn" id="tbtn-transitionintel" onclick="switchTab('transitionintel')"><svg style="width:12px;height:12px;"
+            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>Transitions &amp; USM</button>
         <button class="tab-btn" id="tbtn-tats" onclick="switchTab('tats')"><svg style="width:12px;height:12px;"
             fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -907,8 +928,9 @@
 
     <!-- TAB CONTENT AREA -->
     <div class="flex-grow overflow-y-auto" id="tab-area" style="scrollbar-gutter:stable;">
+      <div id="tab-home" class="p-4 flex flex-col gap-4"></div>
       <!-- ==================== DEEP DIVE TAB ==================== -->
-      <div id="tab-deepdive" class="p-4 flex flex-col gap-4">
+      <div id="tab-deepdive" class="hidden p-4 flex flex-col gap-4">
 
         <!-- Active filter chips row -->
         <div class="flex items-center gap-2 flex-wrap" id="dd-chip-bar" style="min-height:28px;">
@@ -2111,23 +2133,124 @@
         }
 
         // Persistence
-        document.addEventListener("DOMContentLoaded", async () => {
+        const DATA_URL = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
+
+        function setInitState(mode, msg, sub) {
+          const loading = document.getElementById("init-loading");
+          const upload = document.getElementById("upload-section");
+          if (mode === "loading") {
+            loading.classList.remove("hidden");
+            upload.classList.add("hidden");
+          } else if (mode === "upload") {
+            loading.classList.add("hidden");
+            upload.classList.remove("hidden");
+          } else {
+            loading.classList.add("hidden");
+            upload.classList.add("hidden");
+          }
+          if (msg) document.getElementById("init-msg").textContent = msg;
+          if (sub) document.getElementById("init-sub").textContent = sub;
+        }
+
+        function updateDataBanner(mode, count, savedAt) {
+          const banner = document.getElementById("update-banner");
+          const text = document.getElementById("banner-text");
+          const date = document.getElementById("banner-date");
+          const label = mode === "live"
+            ? "Live Synced Data"
+            : mode === "cached"
+              ? "Cached Offline Data"
+              : "Manual Upload Data";
+          text.textContent = `${label} · ${(count || 0).toLocaleString()} records`;
+          date.textContent = savedAt ? "Saved: " + new Date(savedAt).toLocaleString() : "";
+          banner.classList.remove("hidden");
+        }
+
+        function parseCsvText(csvText) {
+          return new Promise((resolve, reject) => {
+            Papa.parse(csvText, {
+              header: true,
+              skipEmptyLines: true,
+              complete: (res) => resolve(res.data || []),
+              error: reject
+            });
+          });
+        }
+
+        async function cacheDashboardData(data, meta = {}) {
+          const saved = Date.now();
+          await localforage.setItem("gfd_data", data);
+          await localforage.setItem("gfd_meta", {
+            saved,
+            count: data.length,
+            source: meta.source || "live",
+            name: meta.name || "Aircraft Detail.csv"
+          });
+          return saved;
+        }
+
+        async function tryLoadCachedData() {
+          const stored = await localforage.getItem("gfd_data");
+          const meta = await localforage.getItem("gfd_meta");
+          if (stored && stored.length) return { data: stored, meta: meta || {} };
+          return null;
+        }
+
+        function showUpload() {
+          setInitState("upload", "Live sync unavailable", "Upload a CSV only if you do not have internet access and no cache is available.");
+        }
+
+        async function clearData() {
+          if (confirm("Clear saved data and cached sync history?")) {
+            await localforage.removeItem("gfd_data");
+            await localforage.removeItem("gfd_meta");
+            location.reload();
+          }
+        }
+
+        async function syncLatestData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
+          if (showSpinner) {
+            setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
+          }
+
           try {
-            const meta = await localforage.getItem("gfd_meta");
-            const stored = await localforage.getItem("gfd_data");
-            if (stored && stored.length > 0) {
-              if (meta) {
-                document.getElementById("banner-text").textContent = `Data loaded from local storage · ${stored.length.toLocaleString()} records`;
-                document.getElementById("banner-date").textContent = "Saved: " + new Date(meta.saved).toLocaleDateString();
+            const res = await fetch(DATA_URL, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Sync failed (${res.status})`);
+            const csvText = await res.text();
+            const parsed = await parseCsvText(csvText);
+            const saved = await cacheDashboardData(parsed, { source: "live", name: "Aircraft Detail.csv" });
+            updateDataBanner("live", parsed.length, saved);
+            initDash(parsed);
+            return;
+          } catch (err) {
+            console.warn("Live sync unavailable, attempting cached data.", err);
+          }
+
+          try {
+            const cached = await tryLoadCachedData();
+            if (cached) {
+              updateDataBanner("cached", cached.data.length, cached.meta.saved);
+              if (showSpinner) {
+                setInitState("loading", "Using cached offline data...", "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
               }
-              document.getElementById("update-banner").classList.remove("hidden");
-              document.getElementById("init-msg").textContent = "Loading saved fleet data...";
-              setTimeout(() => initDash(stored), 80);
-            } else showUpload();
-          } catch (e) { showUpload(); }
+              initDash(cached.data);
+              return;
+            }
+          } catch (err) {
+            console.warn("Cached data unavailable.", err);
+          }
+
+          if (allowUploadFallback) {
+            showUpload();
+          } else if (fromUser) {
+            alert("Live sync failed and no cached dataset is available yet.");
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+          setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
+          await syncLatestData({ showSpinner: true, allowUploadFallback: true });
         });
-        function showUpload() { document.getElementById("init-loading").classList.add("hidden"); document.getElementById("upload-section").classList.remove("hidden"); }
-        async function clearData() { if (confirm("Clear saved data to upload a new monthly file?")) { await localforage.removeItem("gfd_data"); await localforage.removeItem("gfd_meta"); location.reload(); } }
         // Drag/drop
         const dz = document.getElementById("dropzone");
         if (dz) { ["dragenter", "dragover"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = "#06b6d4"; }));["dragleave", "drop"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.style.borderColor = "#1f2937"; })); dz.addEventListener("drop", ev => { if (ev.dataTransfer.files.length) { document.getElementById("csv-file").files = ev.dataTransfer.files; document.getElementById("csv-file").dispatchEvent(new Event("change")); } }); }
@@ -2139,8 +2262,10 @@
           document.getElementById("upload-desc").textContent = "Processing your CSV, please wait...";
           Papa.parse(f, {
             header: true, skipEmptyLines: true, complete: async function (res) {
-              try { await localforage.setItem("gfd_data", res.data); await localforage.setItem("gfd_meta", { saved: Date.now(), count: res.data.length, name: f.name }); } catch (e) { }
-              document.getElementById("update-banner").classList.remove("hidden");
+              try {
+                const saved = await cacheDashboardData(res.data, { source: "manual", name: f.name });
+                updateDataBanner("manual", res.data.length, saved);
+              } catch (e) { }
               initDash(res.data);
             }, error: function (e) { alert("CSV parse error: " + e.message); location.reload(); }
           });
@@ -2258,12 +2383,17 @@
             // Retaining backward compat parsed fields
             r._rate = parseFloat(r["Indicative Market Lease Rate (US$m)"]) || null;
             r._buildYr = parseInt(r["Build Year"]) || null;
-            r._seats = parseInt(r["Number of Seats"]) || null;
+            r._fcSeats = parseInt(r["First Class Number of Seats"]) || 0;
+            r._bcSeats = parseInt(r["Business Class Number of Seats"]) || 0;
+            r._peSeats = parseInt(r["Premium Economy Number of Seats"]) || 0;
+            r._ecoSeats = parseInt(r["Economy Class Number of Seats"]) || 0;
+            r._seats = parseInt(r["Number of Seats"]) || (r._fcSeats + r._bcSeats + r._peSeats + r._ecoSeats) || null;
             r._mtow = parseFloat(r["Operating MTOW (lbs)"]) || null;
             r._leEnd = r._leaseEndDate;
             r._leEndYr = r._leEnd ? r._leEnd.getFullYear() : null;
             r._leEndQ = r._leEnd ? Math.ceil((r._leEnd.getMonth() + 1) / 3) : null;
             r._delYr = r["Delivery Date"] ? (() => { const p = r["Delivery Date"].split("-"); return p.length === 3 ? parseInt(p[2]) || null : null; })() : null;
+            r._premiumDensity = r._seats ? (((r._fcSeats + r._bcSeats + r._peSeats) / r._seats) * 100) : 0;
 
             // --- Industry proxy calculated fields ---
             r._cumCyc = parseFloat(r["Cumulative Cycles"]) || 0;
@@ -2426,15 +2556,12 @@
           });
 
           buildCountry();
+          rebuildOperatorTypeConfigs();
           fillAllSelects();
           renderP1(); renderCountryTab(); renderLessors(); renderP9();
           runDD();
-          // The old dependencies are gone, refresh UI automatically using derived data.
-          // Note: we'll rewrite refreshTATSVisuals to use the native allData instead of external hitlists
-          try {
-            renderPipelineTable();
-            refreshTATSVisuals();
-          } catch (e) { console.warn("TATS UI Update:", e); }
+          renderHome();
+          switchTab("home");
         }
 
         function buildCountry() {
@@ -2450,6 +2577,686 @@
           document.getElementById("co-kpi-cty").textContent = countryReport.length.toLocaleString();
           document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
           document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
+        }
+
+        let operatorTypeConfigs = [];
+        let engineBenchmarks = [];
+
+        function escapeHtml(value) {
+          return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function avg(values, allowZero = true) {
+          const filtered = values.filter(v => Number.isFinite(v) && (allowZero || v > 0));
+          return filtered.length ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
+        }
+
+        function dominantValue(values) {
+          const counts = {};
+          values.filter(Boolean).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
+          const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+          return sorted.length ? sorted[0][0] : "Unknown";
+        }
+
+        function formatDate(date) {
+          if (!date) return "-";
+          const d = date instanceof Date ? date : new Date(date);
+          return isNaN(d) ? "-" : d.toLocaleDateString();
+        }
+
+        function setSelectOptions(id, options, placeholder = "All", preferredValue = "") {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const current = preferredValue || el.value;
+          const opts = uniq(options.map(v => String(v || "").trim()).filter(Boolean));
+          el.innerHTML = `<option value="">${placeholder}</option>` + opts.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+          if (current && opts.includes(current)) el.value = current;
+        }
+
+        function rebuildOperatorTypeConfigs() {
+          const grouped = {};
+          allData.forEach(r => {
+            const operator = (r["Operator"] || "").trim() || "Unknown";
+            const type = (r["Type"] || "").trim() || "Unknown";
+            const key = `${operator}__${type}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(r);
+          });
+
+          operatorTypeConfigs = Object.values(grouped).map(rows => {
+            const sample = rows[0] || {};
+            const avgTotalSeats = avg(rows.map(r => r._seats || 0), false);
+            const avgFC = avg(rows.map(r => r._fcSeats || 0), false);
+            const avgBC = avg(rows.map(r => r._bcSeats || 0), false);
+            const avgPE = avg(rows.map(r => r._peSeats || 0), false);
+            const avgEco = avg(rows.map(r => r._ecoSeats || 0), false);
+            const premiumDensity = avgTotalSeats ? (((avgFC + avgBC + avgPE) / avgTotalSeats) * 100) : 0;
+            return {
+              operator: (sample["Operator"] || "").trim() || "Unknown",
+              type: (sample["Type"] || "").trim() || "Unknown",
+              manufacturer: (sample["Manufacturer"] || "").trim() || "Unknown",
+              family: (sample["Current Family"] || "").trim() || "Unknown",
+              region: sample._region || "Unknown",
+              companyType: (sample["Operator Company Type"] || "").trim() || "Unknown",
+              fleetCount: rows.length,
+              avgTotalSeats,
+              avgFC,
+              avgBC,
+              avgPE,
+              avgEco,
+              premiumDensity,
+              avgPremiumDensity: avg(rows.map(r => r._premiumDensity || 0)),
+              engineFamily: dominantValue(rows.map(r => (r["Engine Family"] || "").trim())),
+              engineType: dominantValue(rows.map(r => (r["Engine Type"] || "").trim())),
+              engineManufacturer: dominantValue(rows.map(r => (r["Engine Manufacturer"] || "").trim())),
+              avgAge: avg(rows.map(r => r._age || 0), false)
+            };
+          }).sort((a, b) => b.avgTotalSeats - a.avgTotalSeats);
+
+          const engineMap = {};
+          allData.forEach(r => {
+            const family = (r["Engine Family"] || "").trim() || "Unknown";
+            const type = (r["Engine Type"] || "").trim() || "Unknown";
+            const key = `${family}__${type}`;
+            if (!engineMap[key]) engineMap[key] = { family, type, fleet: 0, operators: new Set(), ages: [] };
+            engineMap[key].fleet += r._statusNormalized === "On Order" ? 0 : 1;
+            if (r["Operator"]) engineMap[key].operators.add((r["Operator"] || "").trim());
+            if (r._age !== null) engineMap[key].ages.push(r._age);
+          });
+          engineBenchmarks = Object.values(engineMap).map(e => ({
+            engineFamily: e.family,
+            engineType: e.type,
+            totalActiveFleet: e.fleet,
+            totalOperators: e.operators.size,
+            avgAge: e.ages.length ? e.ages.reduce((a, b) => a + b, 0) / e.ages.length : 0
+          })).sort((a, b) => b.totalActiveFleet - a.totalActiveFleet);
+        }
+
+        function getModuleIcon(kind) {
+          const icons = {
+            radar: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a6 6 0 100-12 6 6 0 000 12zm0 0v3m9-9h-3M6 12H3m14.95 6.95l-2.12-2.12M8.17 8.17 6.05 6.05m11.9 0-2.12 2.12M8.17 15.83l-2.12 2.12"/></svg>',
+            layout: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>',
+            engine: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h10m0 0 3-3m-3 3 3 3M6 7h3M6 17h3"/></svg>',
+            transition: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>',
+            search: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="m20 20-3.5-3.5"/></svg>',
+            database: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 5v14c0 1.657 3.582 3 8 3s8-1.343 8-3V5"/></svg>',
+            value: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7H14.5a3.5 3.5 0 010 7H6"/></svg>',
+            globe: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>',
+            chart: '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19h16M7 16V8m5 8V5m5 11v-6"/></svg>'
+          };
+          return icons[kind] || icons.chart;
+        }
+
+        function renderHome() {
+          const tab = document.getElementById("tab-home");
+          if (!tab) return;
+          const sections = [
+            { title: "Executive CCO & Remarketing Suite", cards: [
+              { tab: "placement", icon: "radar", title: "Asset Remarketing & Placement Radar", desc: "CCO workflow tool. Select a target aircraft coming off-lease to automatically score and rank the best potential new lessees globally based on matching engine types and seating density." },
+              { tab: "ccolopa", icon: "layout", title: "Global LOPA & Configuration Benchmarking", desc: "Cabin layout intelligence. Compare Premium vs. Economy seat ratios across different operators for the exact same aircraft type to estimate reconfiguration costs." },
+              { tab: "engineintel", icon: "engine", title: "Engine Options & Market Penetration", desc: "Maps out engine market share against specific aircraft types and operators to assess market liquidity for specific powerplants." },
+              { tab: "transitionintel", icon: "transition", title: "Competitor Transitions & USM Sourcing", desc: "Anticipate secondary market supply. Tracks upcoming lease ends grouped by competitor lessors, and flags older, stored aircraft as prime targets for USM engine harvesting." }
+            ]},
+            { title: "Core Fleet & RFP Intelligence", cards: [
+              { tab: "deepdive", icon: "search", title: "RFP Deep Dive (RFP Matcher)", desc: "The core investigative tool. Use the Omni-Search and progressive filters to isolate specific serial numbers or operator assets when working with sparse RFP details." },
+              { tab: "fleet", icon: "database", title: "Fleet Explorer", desc: "A broad, filterable database view of the global fleet with detailed granular data on market usage, engine status, and MTOW." },
+              { tab: "p4", icon: "database", title: "Inventory List", desc: "A flat, highly sortable ledger of all aircraft including statuses, ages, and managers. Ideal for quick exports and table-based sorting." }
+            ]},
+            { title: "Financials, Risk & Outreach", cards: [
+              { tab: "tats", icon: "radar", title: "TATS Prospecting Engine", desc: "Outreach and pipeline management. Tracks High/Medium/Low transition risks and provides templated hooks for direct airline outreach and pipeline tracking." },
+              { tab: "p5", icon: "chart", title: "TATS Risk Score Analytics", desc: "Macro view of TATS Tier distributions. Analyzes which operators and regions hold the highest aggregate transition and operational risks." },
+              { tab: "p8", icon: "value", title: "Market Value Distribution", desc: "Financial exposure tracking. Visualizes total market value by region and identifies the top 20 operators holding the highest asset values globally." },
+              { tab: "gantt", icon: "transition", title: "Lease End Gantt Chart", desc: "A visual timeline of upcoming lease transitions plotted on a Gantt chart, color-coded by TATS risk tier. Highlights transition bottlenecks." },
+              { tab: "lessors", icon: "database", title: "Lessors & Managers", desc: "Competitive intelligence. A treemap and tabular breakdown of global fleet managers, calculating average fleet age and high-risk exposure percentages per lessor." }
+            ]},
+            { title: "Market & Geographic Analytics", cards: [
+              { tab: "p9", icon: "chart", title: "Fleet Growth Over Time", desc: "Historical lifecycle metrics. Tracks cumulative fleet growth by build year and visualizes the dominance of specific aircraft families over time." },
+              { tab: "p3", icon: "chart", title: "Family Market Share", desc: "Build-year analytics and cumulative market share breakdowns across Airbus, Boeing, and regional jet families." },
+              { tab: "p1", icon: "globe", title: "Regional Analytics", desc: "Geographic distribution. Breaks down aircraft counts by global regions, countries, and market groupings." },
+              { tab: "p2", icon: "engine", title: "Manufacturer-Engine Supply Chain", desc: "Sankey and flow analysis of airframe manufacturers mapped to their engine suppliers, highlighting OEM market dependencies." },
+              { tab: "country", icon: "globe", title: "Country Overview", desc: "Sovereign risk and density analysis. Ranks the top countries by number of registered airlines and total localized aircraft fleets." }
+            ]}
+          ];
+
+          tab.innerHTML = `
+            <div class="card" style="background:radial-gradient(circle at top left, rgba(6,182,212,.18), transparent 35%), radial-gradient(circle at right, rgba(139,92,246,.14), transparent 30%), #111827;">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <div style="font-size:31px;font-weight:800;color:#f8fafc;letter-spacing:-.03em;">Global Aviation Intelligence Hub</div>
+                  <div style="font-size:13px;color:#94a3b8;max-width:860px;margin-top:6px;">Centralized command center for asset remarketing, RFP matching, fleet analytics, and transition risk management.</div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span class="badge bg-is">Database: LIVE</span>
+                  <span class="badge bg-or">Total Aircraft: ${allData.length.toLocaleString()}</span>
+                  <span class="badge bg-st">Environment: Secure</span>
+                </div>
+              </div>
+            </div>
+            ${sections.map(section => `
+              <section>
+                <h3 class="text-xl font-bold text-[#06b6d4] mt-2 mb-4">${section.title}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  ${section.cards.map(card => `
+                    <div class="bg-[#111827] border border-[#1f2937] hover:border-[#06b6d4] rounded-xl p-5 transition-all flex flex-col gap-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-[#7dd3fc]" style="background:#0f172a;border:1px solid #1f2937;">${getModuleIcon(card.icon)}</div>
+                        <div style="font-size:16px;font-weight:700;color:#f8fafc;line-height:1.2;">${card.title}</div>
+                      </div>
+                      <div style="font-size:12.5px;color:#94a3b8;line-height:1.6;flex-grow;">${card.desc}</div>
+                      <button class="btn btn-cyan" onclick="switchTab('${card.tab}')">Launch Module</button>
+                    </div>
+                  `).join("")}
+                </div>
+              </section>
+            `).join("")}
+          `;
+        }
+
+        function getFilteredConfigs(filters = {}) {
+          return operatorTypeConfigs.filter(cfg => {
+            if (filters.operator && cfg.operator !== filters.operator) return false;
+            if (filters.companyType && cfg.companyType !== filters.companyType) return false;
+            if (filters.manufacturer && cfg.manufacturer !== filters.manufacturer) return false;
+            if (filters.family && cfg.family !== filters.family) return false;
+            if (filters.type && cfg.type !== filters.type) return false;
+            return true;
+          });
+        }
+
+        function renderLopaModule(tabId, mode = "ops") {
+          const tab = document.getElementById(`tab-${tabId}`);
+          if (!tab) return;
+          const isOpsMode = mode === "ops";
+          if (!tab.dataset.shell) {
+            tab.innerHTML = `
+              <div class="card">
+                <div class="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <div class="s-title">${isOpsMode ? "LOPA & Cabin Benchmarking" : "Global LOPA & Configuration Benchmarking"}</div>
+                    <div class="s-sub">${isOpsMode ? "Average seating layouts by operator and aircraft type to estimate transition complexity." : "Standalone cabin layout intelligence for benchmarking premium-heavy versus high-density operators."}</div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${isOpsMode ? "5" : "3"} gap-3 w-full lg:w-auto" id="${tabId}-filters"></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+                <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Selected Fleet Size</div><div style="font-size:28px;font-weight:800;color:#06b6d4;" id="${tabId}-kpi-fleet">0</div></div>
+                <div class="kpi kpi-accent kpi-violet"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Avg Total Seats</div><div style="font-size:28px;font-weight:800;color:#8b5cf6;" id="${tabId}-kpi-seats">0</div></div>
+                <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Avg Premium Density</div><div style="font-size:28px;font-weight:800;color:#f59e0b;" id="${tabId}-kpi-premium">0%</div></div>
+                <div class="kpi kpi-accent kpi-emerald"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Highest Density Operator</div><div style="font-size:22px;font-weight:800;color:#10b981;" id="${tabId}-kpi-highest">-</div></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:12px;min-height:420px;">
+                <div class="card flex flex-col"><div class="s-title">LOPA Matrix by Operator</div><div class="s-sub">100% stacked cabin mix with exact average seat counts in the tooltip.</div><div class="flex-grow relative"><canvas id="${tabId}-stack"></canvas></div></div>
+                <div class="card flex flex-col"><div class="s-title">Premium Density vs. Capacity</div><div class="s-sub">Premium-heavy carriers cluster upper-left while denser operators trend lower-right.</div><div class="flex-grow relative"><canvas id="${tabId}-scatter"></canvas></div></div>
+              </div>
+              <div class="card flex flex-col overflow-hidden" style="padding:0;">
+                <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;"><span class="s-title">Configuration Matrix</span></div>
+                <div class="overflow-auto">
+                  <table style="width:100%;border-collapse:collapse;min-width:1080px;">
+                    <thead>
+                      <tr>
+                        <th>Operator</th>
+                        <th>Aircraft Type</th>
+                        <th class="num">Fleet Count</th>
+                        <th class="num">Avg Total Seats</th>
+                        <th class="num">Avg FC</th>
+                        <th class="num">Avg BC</th>
+                        <th class="num">Avg PE</th>
+                        <th class="num">Avg Eco</th>
+                        <th class="num">Premium Density %</th>
+                      </tr>
+                    </thead>
+                    <tbody id="${tabId}-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+            tab.dataset.shell = "true";
+          }
+
+          const filterHost = document.getElementById(`${tabId}-filters`);
+          const currentSelections = {
+            [`${tabId}-operator`]: gv(`${tabId}-operator`),
+            [`${tabId}-optype`]: gv(`${tabId}-optype`),
+            [`${tabId}-manufacturer`]: gv(`${tabId}-manufacturer`),
+            [`${tabId}-family`]: gv(`${tabId}-family`),
+            [`${tabId}-type`]: gv(`${tabId}-type`)
+          };
+          const filterConfig = isOpsMode
+            ? [
+              { id: `${tabId}-operator`, label: "Operator", options: uniq(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-optype`, label: "Operator Company Type", options: uniq(allData.map(r => (r["Operator Company Type"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-manufacturer`, label: "Manufacturer", options: uniq(allData.map(r => (r["Manufacturer"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-family`, label: "Aircraft Family", options: uniq(allData.map(r => (r["Current Family"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-type`, label: "Aircraft Type", options: uniq(allData.map(r => (r["Type"] || "").trim()).filter(Boolean)) }
+            ]
+            : [
+              { id: `${tabId}-manufacturer`, label: "Manufacturer", options: uniq(allData.map(r => (r["Manufacturer"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-type`, label: "Aircraft Type", options: uniq(allData.map(r => (r["Type"] || "").trim()).filter(Boolean)) },
+              { id: `${tabId}-operator`, label: "Operator", options: uniq(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)) }
+            ];
+
+          filterHost.innerHTML = filterConfig.map(f => `
+            <div>
+              <label class="fl">${f.label}</label>
+              <select class="fs" id="${f.id}" onchange="renderLopaModule('${tabId}','${mode}')">
+                <option value="">All</option>
+                ${f.options.map(v => `<option value="${escapeHtml(v)}" ${currentSelections[f.id] === v ? "selected" : ""}>${escapeHtml(v)}</option>`).join("")}
+              </select>
+            </div>
+          `).join("");
+
+          const filters = {
+            operator: gv(`${tabId}-operator`),
+            companyType: gv(`${tabId}-optype`),
+            manufacturer: gv(`${tabId}-manufacturer`),
+            family: gv(`${tabId}-family`),
+            type: gv(`${tabId}-type`)
+          };
+          const filtered = getFilteredConfigs(filters);
+          const fleetRows = allData.filter(r => {
+            if (filters.operator && (r["Operator"] || "").trim() !== filters.operator) return false;
+            if (filters.companyType && (r["Operator Company Type"] || "").trim() !== filters.companyType) return false;
+            if (filters.manufacturer && (r["Manufacturer"] || "").trim() !== filters.manufacturer) return false;
+            if (filters.family && (r["Current Family"] || "").trim() !== filters.family) return false;
+            if (filters.type && (r["Type"] || "").trim() !== filters.type) return false;
+            return true;
+          });
+
+          document.getElementById(`${tabId}-kpi-fleet`).textContent = fleetRows.length.toLocaleString();
+          document.getElementById(`${tabId}-kpi-seats`).textContent = filtered.length ? avg(filtered.map(r => r.avgTotalSeats)).toFixed(1) : "0";
+          document.getElementById(`${tabId}-kpi-premium`).textContent = filtered.length ? `${avg(filtered.map(r => r.premiumDensity)).toFixed(1)}%` : "0%";
+          const topCfg = filtered.slice().sort((a, b) => b.avgTotalSeats - a.avgTotalSeats)[0];
+          document.getElementById(`${tabId}-kpi-highest`).textContent = topCfg ? topCfg.operator : "-";
+
+          const stackData = filtered.slice(0, 18);
+          ic(`${tabId}-stack`, {
+            type: "bar",
+            data: {
+              labels: stackData.map(r => `${r.operator} ${r.type}`),
+              datasets: [
+                { label: "First", data: stackData.map(r => r.avgTotalSeats ? (r.avgFC / r.avgTotalSeats) * 100 : 0), seatCounts: stackData.map(r => r.avgFC), backgroundColor: "#fbbf24" },
+                { label: "Business", data: stackData.map(r => r.avgTotalSeats ? (r.avgBC / r.avgTotalSeats) * 100 : 0), seatCounts: stackData.map(r => r.avgBC), backgroundColor: "#8b5cf6" },
+                { label: "Premium Eco", data: stackData.map(r => r.avgTotalSeats ? (r.avgPE / r.avgTotalSeats) * 100 : 0), seatCounts: stackData.map(r => r.avgPE), backgroundColor: "#38bdf8" },
+                { label: "Economy", data: stackData.map(r => r.avgTotalSeats ? (r.avgEco / r.avgTotalSeats) * 100 : 0), seatCounts: stackData.map(r => r.avgEco), backgroundColor: "#2563eb" }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: "y",
+              scales: {
+                x: { stacked: true, min: 0, max: 100, grid: { display: false }, ticks: { callback: v => `${v}%`, color: "#64748b" }, border: { display: false } },
+                y: { stacked: true, grid: { display: false }, ticks: { color: "#cbd5e1", font: { size: 10 } }, border: { display: false } }
+              },
+              plugins: {
+                legend: { labels: { color: "#cbd5e1", boxWidth: 10 } },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.dataset.seatCounts[ctx.dataIndex].toFixed(1)} seats (${ctx.raw.toFixed(1)}%)` } }
+              }
+            }
+          });
+
+          ic(`${tabId}-scatter`, {
+            type: "scatter",
+            data: { datasets: [{ label: "Operator + Type", data: filtered.map(r => ({ x: +r.avgTotalSeats.toFixed(1), y: +r.premiumDensity.toFixed(1), operator: r.operator, type: r.type })), backgroundColor: "#06b6d4" }] },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Avg Total Seats", color: "#64748b" }, grid: { display: false }, ticks: { color: "#64748b" }, border: { display: false } },
+                y: { title: { display: true, text: "Premium Density %", color: "#64748b" }, grid: { display: false }, ticks: { color: "#64748b" }, border: { display: false } }
+              },
+              plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw.operator} ${ctx.raw.type}: ${ctx.raw.x} seats, ${ctx.raw.y}% premium` } } }
+            }
+          });
+
+          document.getElementById(`${tabId}-tbody`).innerHTML = filtered.map(r => `
+            <tr>
+              <td>${escapeHtml(r.operator)}</td>
+              <td>${escapeHtml(r.type)}</td>
+              <td class="num">${r.fleetCount.toLocaleString()}</td>
+              <td class="num">${r.avgTotalSeats.toFixed(1)}</td>
+              <td class="num">${r.avgFC.toFixed(1)}</td>
+              <td class="num">${r.avgBC.toFixed(1)}</td>
+              <td class="num">${r.avgPE.toFixed(1)}</td>
+              <td class="num">${r.avgEco.toFixed(1)}</td>
+              <td class="num">${r.premiumDensity.toFixed(1)}%</td>
+            </tr>
+          `).join("") || `<tr><td colspan="9" style="text-align:center;color:#475569;padding:18px;">No configurations match the current filters.</td></tr>`;
+        }
+
+        function renderPlacementRadar() {
+          const tab = document.getElementById("tab-placement");
+          if (!tab) return;
+          if (!tab.dataset.shell) {
+            tab.innerHTML = `
+              <div class="card">
+                <div class="s-title">Asset Remarketing & Placement Radar</div>
+                <div class="s-sub">Select an aircraft type and origin operator to rank the lowest-friction transition targets globally.</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div><label class="fl">Aircraft Type</label><select class="fs" id="placement-type" onchange="renderPlacementRadar()"></select></div>
+                  <div><label class="fl">Originating Operator</label><select class="fs" id="placement-operator" onchange="renderPlacementRadar()"></select></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                <div class="kpi kpi-accent kpi-violet"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Baseline Total Seats</div><div style="font-size:28px;font-weight:800;color:#8b5cf6;" id="placement-kpi-seats">-</div></div>
+                <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Baseline Engine Type</div><div style="font-size:24px;font-weight:800;color:#f59e0b;" id="placement-kpi-engine">-</div></div>
+                <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Global Operators for This Type</div><div style="font-size:28px;font-weight:800;color:#06b6d4;" id="placement-kpi-operators">0</div></div>
+              </div>
+              <div style="display:grid;grid-template-columns:.9fr 1.1fr;gap:12px;min-height:420px;">
+                <div class="card flex flex-col"><div class="s-title">Global Target Operators</div><div class="s-sub">Count of matching aircraft by operator for the selected type.</div><div class="flex-grow relative"><canvas id="placement-ops-chart"></canvas></div></div>
+                <div class="card flex flex-col overflow-hidden" style="padding:0;">
+                  <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;"><span class="s-title">Target List</span></div>
+                  <div class="overflow-auto">
+                    <table style="width:100%;border-collapse:collapse;min-width:960px;">
+                      <thead><tr><th>Target Operator</th><th>Region</th><th>Their Engine Type</th><th class="num">Their Avg Seats</th><th class="num">Their Premium %</th><th class="num">Match Score</th></tr></thead>
+                      <tbody id="placement-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            `;
+            tab.dataset.shell = "true";
+          }
+
+          const typeOptions = uniq(operatorTypeConfigs.map(c => c.type).filter(Boolean));
+          const typeEl = document.getElementById("placement-type");
+          const currentType = typeEl.value || typeOptions[0] || "";
+          typeEl.innerHTML = typeOptions.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+          typeEl.value = typeOptions.includes(currentType) ? currentType : (typeOptions[0] || "");
+
+          const operatorOptions = uniq(operatorTypeConfigs.filter(c => c.type === typeEl.value).map(c => c.operator));
+          const operatorEl = document.getElementById("placement-operator");
+          const currentOperator = operatorEl.value || operatorOptions[0] || "";
+          operatorEl.innerHTML = operatorOptions.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+          operatorEl.value = operatorOptions.includes(currentOperator) ? currentOperator : (operatorOptions[0] || "");
+
+          const baseline = operatorTypeConfigs.find(c => c.type === typeEl.value && c.operator === operatorEl.value);
+          const peers = operatorTypeConfigs.filter(c => c.type === typeEl.value && c.operator !== operatorEl.value);
+          const operatorCount = new Set(operatorTypeConfigs.filter(c => c.type === typeEl.value).map(c => c.operator)).size;
+
+          document.getElementById("placement-kpi-seats").textContent = baseline ? baseline.avgTotalSeats.toFixed(1) : "-";
+          document.getElementById("placement-kpi-engine").textContent = baseline ? baseline.engineType : "-";
+          document.getElementById("placement-kpi-operators").textContent = operatorCount.toLocaleString();
+
+          const scored = peers.map(c => {
+            let score = 0;
+            if (baseline && c.engineType === baseline.engineType) score += 50;
+            if (baseline && Math.abs(c.avgTotalSeats - baseline.avgTotalSeats) <= 5) score += 30;
+            if (baseline && Math.abs(c.premiumDensity - baseline.premiumDensity) <= 3) score += 20;
+            return { ...c, matchScore: score };
+          }).sort((a, b) => b.matchScore - a.matchScore || b.fleetCount - a.fleetCount);
+
+          const fleetByOperator = Object.entries(cBy(allData.filter(r => (r["Type"] || "").trim() === typeEl.value && (r["Operator"] || "").trim() !== operatorEl.value), "Operator")).sort((a, b) => b[1] - a[1]).slice(0, 12);
+          ic("placement-ops-chart", {
+            type: "bar",
+            data: { labels: fleetByOperator.map(e => e[0]), datasets: [{ data: fleetByOperator.map(e => e[1]), backgroundColor: "#06b6d4", borderRadius: 5 }] },
+            options: { ...barO(true), plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid: { display: false }, border: { display: false } } } }
+          });
+
+          document.getElementById("placement-tbody").innerHTML = scored.map(row => `
+            <tr>
+              <td>${escapeHtml(row.operator)}</td>
+              <td>${escapeHtml(row.region || "Unknown")}</td>
+              <td>${escapeHtml(row.engineType)}</td>
+              <td class="num">${row.avgTotalSeats.toFixed(1)}</td>
+              <td class="num">${row.premiumDensity.toFixed(1)}%</td>
+              <td class="num" style="font-weight:800;color:${row.matchScore > 80 ? "#4ade80" : row.matchScore >= 50 ? "#fbbf24" : "#94a3b8"};">${row.matchScore}%</td>
+            </tr>
+          `).join("") || `<tr><td colspan="6" style="text-align:center;color:#475569;padding:18px;">No peer operators found for the selected baseline.</td></tr>`;
+        }
+
+        function renderEngineIntel() {
+          const tab = document.getElementById("tab-engineintel");
+          if (!tab) return;
+          if (!tab.dataset.shell) {
+            tab.innerHTML = `
+              <div class="card">
+                <div class="s-title">Engine Options & Market Penetration</div>
+                <div class="s-sub">Compare engine dominance by aircraft family or type to understand market liquidity for powerplant options.</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div><label class="fl">Aircraft Type</label><select class="fs" id="engineintel-type" onchange="renderEngineIntel()"></select></div>
+                  <div><label class="fl">Aircraft Family</label><select class="fs" id="engineintel-family" onchange="renderEngineIntel()"></select></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:420px;">
+                <div class="card flex flex-col"><div class="s-title">Engine Market Share for Selection</div><div class="s-sub">Engine manufacturer and family counts across the filtered fleet.</div><div class="flex-grow relative"><canvas id="engineintel-share"></canvas></div></div>
+                <div class="card flex flex-col"><div class="s-title">Engine Selection by Operator</div><div class="s-sub">Operators aligned against the engine families they selected for the same airframe.</div><div class="flex-grow relative"><canvas id="engineintel-operator"></canvas></div></div>
+              </div>
+              <div class="card flex flex-col overflow-hidden" style="padding:0;">
+                <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;"><span class="s-title">Engine Benchmark Table</span></div>
+                <div class="overflow-auto">
+                  <table style="width:100%;border-collapse:collapse;min-width:860px;">
+                    <thead><tr><th>Engine Family</th><th>Engine Type</th><th class="num">Total Active Fleet</th><th class="num">Total Operators</th><th class="num">Avg Age of Assets</th></tr></thead>
+                    <tbody id="engineintel-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+            tab.dataset.shell = "true";
+          }
+
+          const typeValues = uniq(allData.map(r => (r["Type"] || "").trim()).filter(Boolean));
+          const familyValues = uniq(allData.map(r => (r["Current Family"] || "").trim()).filter(Boolean));
+          setSelectOptions("engineintel-type", typeValues, "All");
+          setSelectOptions("engineintel-family", familyValues, "All");
+          const type = gv("engineintel-type");
+          const family = gv("engineintel-family");
+          const filtered = allData.filter(r => (!type || (r["Type"] || "").trim() === type) && (!family || (r["Current Family"] || "").trim() === family));
+
+          const shareMap = {};
+          filtered.forEach(r => {
+            const key = `${(r["Engine Manufacturer"] || "Unknown").trim()} / ${(r["Engine Family"] || "Unknown").trim()}`;
+            shareMap[key] = (shareMap[key] || 0) + 1;
+          });
+          const share = Object.entries(shareMap).sort((a, b) => b[1] - a[1]).slice(0, 12);
+          ic("engineintel-share", {
+            type: "bar",
+            data: { labels: share.map(e => e[0]), datasets: [{ data: share.map(e => e[1]), backgroundColor: "#8b5cf6", borderRadius: 5 }] },
+            options: { ...barO(true), plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { grid: { display: false }, border: { display: false } } } }
+          });
+
+          const operatorRows = topN(cBy(filtered, "Operator"), 10).map(e => e[0]);
+          const families = uniq(filtered.map(r => (r["Engine Family"] || "").trim()).filter(Boolean)).slice(0, 5);
+          ic("engineintel-operator", {
+            type: "bar",
+            data: {
+              labels: operatorRows,
+              datasets: families.map((fam, idx) => ({
+                label: fam,
+                data: operatorRows.map(op => filtered.filter(r => (r["Operator"] || "").trim() === op && (r["Engine Family"] || "").trim() === fam).length),
+                backgroundColor: C[idx % C.length]
+              }))
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: "y",
+              scales: {
+                x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: "#64748b" } },
+                y: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: "#cbd5e1", font: { size: 10 } } }
+              },
+              plugins: { legend: { labels: { color: "#cbd5e1", boxWidth: 10 } } }
+            }
+          });
+
+          const tableRows = engineBenchmarks.filter(r => (!type || filtered.some(d => (d["Engine Type"] || "").trim() === r.engineType)) && (!family || filtered.some(d => (d["Engine Family"] || "").trim() === r.engineFamily)));
+          document.getElementById("engineintel-tbody").innerHTML = tableRows.map(r => `
+            <tr>
+              <td>${escapeHtml(r.engineFamily)}</td>
+              <td>${escapeHtml(r.engineType)}</td>
+              <td class="num">${r.totalActiveFleet.toLocaleString()}</td>
+              <td class="num">${r.totalOperators.toLocaleString()}</td>
+              <td class="num">${r.avgAge.toFixed(1)}</td>
+            </tr>
+          `).join("") || `<tr><td colspan="5" style="text-align:center;color:#475569;padding:18px;">No engine records match the current filter selection.</td></tr>`;
+        }
+
+        function renderTransitionIntel() {
+          const tab = document.getElementById("tab-transitionintel");
+          if (!tab) return;
+          if (!tab.dataset.shell) {
+            tab.innerHTML = `
+              <div class="card">
+                <div class="s-title">Competitor Transitions & USM Sourcing</div>
+                <div class="s-sub">Monitor near-term lease expiries and isolate stored teardown candidates for engine harvesting.</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:12px;min-height:420px;">
+                <div class="card flex flex-col"><div class="s-title">Transition Wave</div><div class="s-sub">Lease End year counts stacked by manager or lessor.</div><div class="flex-grow relative"><canvas id="transitionintel-wave"></canvas></div></div>
+                <div class="card flex flex-col"><div class="s-title">USM Retirement Radar</div><div class="s-sub">Stored aircraft plotted by age and cumulative cycles.</div><div class="flex-grow relative"><canvas id="transitionintel-usm"></canvas></div></div>
+              </div>
+              <div class="card flex flex-col overflow-hidden" style="padding:0;">
+                <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;"><span class="s-title">Transition / USM Watchlist</span></div>
+                <div class="overflow-auto">
+                  <table style="width:100%;border-collapse:collapse;min-width:980px;">
+                    <thead><tr><th>Reg</th><th>Operator</th><th>Manager</th><th>Engine</th><th>Status</th><th>Lease End</th><th class="num">Age</th></tr></thead>
+                    <tbody id="transitionintel-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+            tab.dataset.shell = "true";
+          }
+
+          const transitionRows = allData.filter(r => r._daysToLeaseEnd !== null && r._daysToLeaseEnd <= 730);
+          const years = uniq(transitionRows.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean));
+          const managers = uniq(transitionRows.map(r => (r["Manager"] || "").trim() || "Unknown")).slice(0, 6);
+          ic("transitionintel-wave", {
+            type: "bar",
+            data: {
+              labels: years,
+              datasets: managers.map((mgr, idx) => ({
+                label: mgr,
+                data: years.map(y => transitionRows.filter(r => String(r._leEndYr) === y && (((r["Manager"] || "").trim()) || "Unknown") === mgr).length),
+                backgroundColor: C[idx % C.length]
+              }))
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: "#64748b" } },
+                y: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: "#64748b" } }
+              },
+              plugins: { legend: { labels: { color: "#cbd5e1", boxWidth: 10 } } }
+            }
+          });
+
+          const stored = allData.filter(r => r._statusNormalized === "Storage");
+          ic("transitionintel-usm", {
+            type: "scatter",
+            data: {
+              datasets: [{
+                label: "Stored Aircraft",
+                data: stored.map(r => ({ x: +(r._age || 0), y: +(r._cumCyc || 0), reg: r["Registration"] || r["Serial Number"] || "-", operator: r["Operator"] || "-" })),
+                backgroundColor: "#f59e0b"
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { title: { display: true, text: "Age", color: "#64748b" }, grid: { display: false }, border: { display: false }, ticks: { color: "#64748b" } },
+                y: { title: { display: true, text: "Cumulative Cycles", color: "#64748b" }, grid: { display: false }, border: { display: false }, ticks: { color: "#64748b" } }
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.raw.reg} | ${ctx.raw.operator} | ${ctx.raw.x} yrs | ${Math.round(ctx.raw.y).toLocaleString()} cycles` } }
+              }
+            }
+          });
+
+          const watchlist = allData.filter(r => (r._daysToLeaseEnd !== null && r._daysToLeaseEnd <= 730) || r._usmPrime).sort((a, b) => {
+            const aRisk = a._usmPrime ? 1 : 0;
+            const bRisk = b._usmPrime ? 1 : 0;
+            if (bRisk !== aRisk) return bRisk - aRisk;
+            return (a._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER) - (b._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER);
+          });
+          document.getElementById("transitionintel-tbody").innerHTML = watchlist.map(r => `
+            <tr>
+              <td class="mono">${escapeHtml(r["Registration"] || r["Serial Number"] || "-")}</td>
+              <td>${escapeHtml(r["Operator"] || "-")}</td>
+              <td>${escapeHtml(r["Manager"] || "-")}</td>
+              <td>${escapeHtml(r["Engine Family"] || r["Engine Type"] || "-")}</td>
+              <td>${sBadge(r["Status"] || "-")}</td>
+              <td>${escapeHtml(r["Lease End"] || "-")}</td>
+              <td class="num">${r._age !== null ? r._age.toFixed(1) : "-"}</td>
+            </tr>
+          `).join("") || `<tr><td colspan="7" style="text-align:center;color:#475569;padding:18px;">No near-term transitions or USM candidates found.</td></tr>`;
+        }
+
+        async function copyTatsHook(text) {
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch (err) {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+        }
+
+        function renderTATS() {
+          const tab = document.getElementById("tab-tats");
+          if (!tab) return;
+          const pipeline = allData.map(r => {
+            let riskTier = "Low Risk";
+            if ((r._daysToLeaseEnd !== null && r._daysToLeaseEnd < 180) || /stor/i.test(r["Status"] || "")) riskTier = "High Risk";
+            else if (r._daysToLeaseEnd !== null && r._daysToLeaseEnd >= 180 && r._daysToLeaseEnd <= 365) riskTier = "Medium Risk";
+            return { ...r, _tatsAutoRisk: riskTier };
+          }).filter(r => r._tatsAutoRisk === "High Risk" || r._tatsAutoRisk === "Medium Risk")
+            .sort((a, b) => {
+              const scoreA = a._tatsAutoRisk === "High Risk" ? 0 : 1;
+              const scoreB = b._tatsAutoRisk === "High Risk" ? 0 : 1;
+              if (scoreA !== scoreB) return scoreA - scoreB;
+              return (a._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER) - (b._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER);
+            });
+
+          const high = pipeline.filter(r => r._tatsAutoRisk === "High Risk").length;
+          const medium = pipeline.filter(r => r._tatsAutoRisk === "Medium Risk").length;
+
+          tab.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <div class="kpi kpi-accent kpi-rose"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">High Risk (&lt; 180 Days / Stored)</div><div style="font-size:28px;font-weight:800;color:#f43f5e;">${high.toLocaleString()}</div></div>
+              <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Medium Risk (&lt; 1 Year)</div><div style="font-size:28px;font-weight:800;color:#f59e0b;">${medium.toLocaleString()}</div></div>
+              <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Pipeline</div><div style="font-size:28px;font-weight:800;color:#06b6d4;">${pipeline.length.toLocaleString()}</div></div>
+            </div>
+            <div class="card flex flex-col overflow-hidden" style="padding:0;">
+              <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;">
+                <span class="s-title">Automated TATS Prospecting Pipeline</span>
+                <span style="font-size:11px;color:#475569;margin-left:8px;">Live from uploaded fleet data</span>
+              </div>
+              <div class="overflow-auto">
+                <table style="width:100%;border-collapse:collapse;min-width:1180px;">
+                  <thead><tr><th>Risk Tier</th><th>Operator</th><th>Registration / Serial Number</th><th>Aircraft Type</th><th>Engine Family</th><th>Status</th><th>Lease End</th><th>Action</th></tr></thead>
+                  <tbody id="tats-tbody">
+                    ${pipeline.map(r => {
+            const reg = r["Registration"] || r["Serial Number"] || "-";
+            const pitch = `Hi team, noticed the ${(r["Type"] || "aircraft")} (Reg: ${reg}) operated by ${(r["Operator"] || "Unknown")} is showing a status of ${(r["Status"] || "Unknown")} with a lease transition date around ${(r["Lease End"] || "Unknown")}. Let's connect to discuss placement options.`;
+            return `
+                        <tr>
+                          <td>${tBadge(r._tatsAutoRisk)}</td>
+                          <td>${escapeHtml(r["Operator"] || "-")}</td>
+                          <td class="mono">${escapeHtml(reg)}</td>
+                          <td>${escapeHtml(r["Type"] || "-")}</td>
+                          <td>${escapeHtml(r["Engine Family"] || "-")}</td>
+                          <td>${sBadge(r["Status"] || "-")}</td>
+                          <td>${escapeHtml(r["Lease End"] || "-")}</td>
+                          <td><button class="btn btn-ghost" onclick="copyTatsHook(decodeURIComponent('${encodeURIComponent(pitch)}'))">Copy Hook</button></td>
+                        </tr>
+                      `;
+          }).join("") || `<tr><td colspan="8" style="text-align:center;color:#475569;padding:18px;">No high- or medium-risk aircraft were found in the current fleet.</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
         }
 
         function fill(id, arr) { const e = document.getElementById(id); if (!e) return; const cur = e.value; const first = e.options[0].text; e.innerHTML = `<option value="">${first}</option>` + arr.map(v => `<option value="${v}">${v}</option>`).join(""); if (arr.includes(cur)) e.value = cur; }
@@ -2474,14 +3281,33 @@
           fill("fe-region", regions); fill("fe-country", countries); fill("fe-opgroup", opGroups); fill("fe-operator", ops); fill("fe-mfg", mfgs); fill("fe-family", families); fill("fe-engine", engMfg); fill("fe-grouping", mktG); fill("fe-status", statuses); fill("fe-usage", usage);
         }
 
-        const ALL_TABS = ["deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "tats", "usm", "exposure", "historical", "acdetail"];
+        const ALL_TABS = ["home", "deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "lopa", "placement", "ccolopa", "engineintel", "transitionintel", "tats", "usm", "exposure", "historical", "acdetail"];
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
           const usm = typeof renderUSM === "function" ? renderUSM : null;
           const exp = typeof renderExposure === "function" ? renderExposure : null;
           const hist = typeof renderHistorical === "function" ? renderHistorical : null;
-          const rMap = { p2: renderP2, p3: renderP3, p4: renderP4, p5: renderP5, p8: renderP8, gantt: renderGantt, fleet: runFE, deepdive: runDD, tats: () => { if (!tatsMaster.length && allData.length) deriveTATSFromFleet(); else { refreshTATSVisuals(); renderPipelineTable(); } }, usm: () => { if (usm) setTimeout(usm, 50); }, exposure: () => { if (exp) setTimeout(exp, 50); }, historical: () => { if (hist) setTimeout(hist, 50); } };
+          const rMap = {
+            home: renderHome,
+            deepdive: runDD,
+            p2: renderP2,
+            p3: renderP3,
+            p4: renderP4,
+            p5: renderP5,
+            p8: renderP8,
+            gantt: renderGantt,
+            fleet: runFE,
+            lopa: () => renderLopaModule("lopa", "ops"),
+            placement: renderPlacementRadar,
+            ccolopa: () => renderLopaModule("ccolopa", "cco"),
+            engineintel: renderEngineIntel,
+            transitionintel: renderTransitionIntel,
+            tats: renderTATS,
+            usm: () => { if (usm) setTimeout(usm, 50); },
+            exposure: () => { if (exp) setTimeout(exp, 50); },
+            historical: () => { if (hist) setTimeout(hist, 50); }
+          };
           if (rMap[id]) rMap[id]();
         }
 
@@ -2500,7 +3326,7 @@
           { id: "dd-oplessor", k: "Operational Lessor" }, { id: "dd-sublessor", k: "Sub Lessor" }, { id: "dd-leasetype", k: "Lease Dry / Wet" },
           { id: "dd-status", k: "Status" }, { id: "dd-storloc", k: "Storage Conversion Location Name" }
         ];
-        let ddColVis = { basic: true, aircraft: true, engine: true, ops: true, ownership: true, lease: true, value: false, seating: false };
+        let ddColVis = { basic: true, aircraft: true, engine: true, ops: true, ownership: true, lease: true, value: true, seating: false };
         const DD_COLS = {
           basic: [{ h: "Reg", k: "Registration", mono: true }, { h: "Serial", k: "Serial Number", mono: true }, { h: "TATS Tier", fn: r => tBadge(r._tatsTier) }, { h: "Status", fn: r => sBadge(r["Status"] || "") }],
           aircraft: [{ h: "Manufacturer", k: "Manufacturer" }, { h: "Family", k: "Current Family" }, { h: "Master Series", k: "Master Series" }, { h: "Series", k: "Series" }, { h: "Type", k: "Type" }, { h: "Sub Series", k: "Aircraft Sub Series" }, { h: "Mkt Group", k: "Market Grouping" }, { h: "Usage", k: "Primary Usage" }, { h: "Build Yr", fn: r => r._buildYr || "-" }, { h: "Age", fn: r => { const a = r._age; return a ? `<span style="color:${a > 20 ? "#f87171" : a > 15 ? "#fbbf24" : "#94a3b8"}">${a}</span>` : "-"; }, sort: "_age" }, { h: "TATS", fn: r => `<span style="font-weight:700;color:${r._tats >= 70 ? "#f87171" : r._tats >= 40 ? "#fbbf24" : "#4ade80"}">${r._tats}</span>` }],
@@ -2508,7 +3334,18 @@
           ops: [{ h: "Cum Hours", fn: r => r["Cumulative Hours"] ? parseInt(r["Cumulative Hours"]).toLocaleString() : "-" }, { h: "Cum Cycles", fn: r => r["Cumulative Cycles"] ? parseInt(r["Cumulative Cycles"]).toLocaleString() : "-" }, { h: "Avg Daily Util", k: "Average Daily Utilisation" }, { h: "P12M Hrs", k: "Previous 12 Months Hours" }, { h: "P12M Cyc", k: "Previous 12 Months Cycles" }, { h: "Rpt Date", k: "Reported Hours and Cycles Date" }],
           ownership: [{ h: "Operator", k: "Operator" }, { h: "Op Group", k: "Operator Group" }, { h: "Op IATA", k: "Operator IATA" }, { h: "Op Country", k: "Operator Country/Subregion" }, { h: "Op Region", k: "Operator Region" }, { h: "Owner", k: "Owner" }, { h: "Owner Cty", k: "Owner Country/Subregion" }, { h: "Manager", k: "Manager" }, { h: "Op Lessor", k: "Operational Lessor" }, { h: "Sub Lessor", k: "Sub Lessor" }],
           lease: [{ h: "Lease Start", k: "Lease Start" }, { h: "Lease End", k: "Lease End" }, { h: "Lse End Yr", fn: r => r._leEndYr || "-" }, { h: "Lse End Q", fn: r => r._leEndQ ? "Q" + r._leEndQ : "-" }, { h: "Lse Dur (m)", k: "Lease Duration (months)" }, { h: "Dry/Wet", k: "Lease Dry / Wet" }, { h: "Lse Type", k: "Lease Type" }, { h: "Delivery", k: "Delivery Date" }, { h: "In Service", k: "In Service Date" }],
-          value: [{ h: "Mkt Value $M", fn: r => r._val ? "$" + r._val.toFixed(1) + "M" : "-" }, { h: "Rate $M", fn: r => r._rate ? "$" + r._rate.toFixed(2) + "M" : "-" }, { h: "MTOW lbs", fn: r => r._mtow ? r._mtow.toLocaleString() : "-" }, { h: "Max Land lbs", fn: r => r["Max Landing Weight (lbs)"] ? parseInt(r["Max Landing Weight (lbs)"]).toLocaleString() : "-" }, { h: "Max Payload", fn: r => r["Max Payload (lbs)"] ? parseInt(r["Max Payload (lbs)"]).toLocaleString() : "-" }],
+          value: [
+            { h: "Mkt Value $M", fn: r => r._val ? "$" + r._val.toFixed(1) + "M" : "-", num: true },
+            { h: "Rate $M", fn: r => r._rate ? "$" + r._rate.toFixed(2) + "M" : "-", num: true },
+            { h: "MTOW lbs", fn: r => r._mtow ? r._mtow.toLocaleString() : "-", num: true },
+            { h: "Total Seats", fn: r => r._seats || 0, num: true },
+            { h: "FC", fn: r => r._fcSeats || 0, num: true },
+            { h: "Bus", fn: r => r._bcSeats || 0, num: true },
+            { h: "PE", fn: r => r._peSeats || 0, num: true },
+            { h: "Eco", fn: r => r._ecoSeats || 0, num: true },
+            { h: "Max Land lbs", fn: r => r["Max Landing Weight (lbs)"] ? parseInt(r["Max Landing Weight (lbs)"]).toLocaleString() : "-", num: true },
+            { h: "Max Payload", fn: r => r["Max Payload (lbs)"] ? parseInt(r["Max Payload (lbs)"]).toLocaleString() : "-", num: true }
+          ],
           seating: [{ h: "FC Seats", k: "First Class Number of Seats" }, { h: "BC Seats", k: "Business Class Number of Seats" }, { h: "PE Seats", k: "Premium Economy Number of Seats" }, { h: "Eco Seats", k: "Economy Class Number of Seats" }, { h: "Total Seats", fn: r => r._seats || "-" }]
         };
         function getActiveDDCols() { return Object.keys(ddColVis).filter(g => ddColVis[g]).flatMap(g => DD_COLS[g]); }
@@ -2564,13 +3401,17 @@
           const lim = gv("dd-rowlimit");
           const cols = getActiveDDCols();
           const thead = document.getElementById("dd-thead-row");
-          thead.innerHTML = `<th style="width:28px;"></th>` + cols.map(c => `<th>${c.h}</th>`).join("");
+          thead.innerHTML = `<th style="width:28px;"></th>` + cols.map(c => `<th class="${c.num ? "num" : ""}">${c.h}</th>`).join("");
           let d = q ? ddFiltered.filter(r => JSON.stringify(Object.values(r)).toLowerCase().includes(q)) : ddFiltered;
           const total = d.length;
           d = lim === "all" ? d : d.slice(0, parseInt(lim) || 100);
           document.getElementById("dd-table-info").textContent = `${d.length.toLocaleString()} of ${total.toLocaleString()}`;
           document.getElementById("dd-tbody").innerHTML = d.map((r, i) => {
-            const rowCells = cols.map(c => { const val = c.fn ? c.fn(r) : (r[c.k] || "-"); return `<td ${c.mono ? 'class="mono"' : ""}>${val}</td>`; }).join("");
+            const rowCells = cols.map(c => {
+              const val = c.fn ? c.fn(r) : (r[c.k] || "-");
+              const cls = [c.mono ? "mono" : "", c.num ? "num" : ""].filter(Boolean).join(" ");
+              return `<td ${cls ? `class="${cls}"` : ""}>${val}</td>`;
+            }).join("");
             const idx = allData.indexOf(r);
             return `<tr onclick="showAcDetail(${idx})" style="cursor:pointer;transition:background .12s;" onmouseenter="this.style.background='#0d1e35'" onmouseleave="this.style.background=''">
           <td style="text-align:center;padding:4px 6px;"><svg style="width:11px;height:11px;color:#1e3a5f;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></td>
@@ -3092,6 +3933,11 @@
           </div>
         </div>
       </div>
+      <div id="tab-lopa" class="hidden p-4 flex flex-col gap-4"></div>
+      <div id="tab-placement" class="hidden p-4 flex flex-col gap-4"></div>
+      <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
+      <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
+      <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
       <!-- ==================== TATS PROSPECTING TAB ==================== -->
       <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
 
@@ -3642,7 +4488,7 @@ function renderSunburst(topN){
         }
 
         function updatePL(id, field, val) { const i = pipelineData.findIndex(p => p.id === id); if (i >= 0) { pipelineData[i][field] = val; savePipeline(); renderTATSKPIs(); } }
-        async function savePipeline() { try { await localforage.setItem("tats_pipeline", pipelineData); } catch (e) { } }
+        async function savePipeline() { return; }
         async function clearPipeline() { if (confirm("Clear all pipeline entries?")) { pipelineData = []; await localforage.removeItem("tats_pipeline"); renderPipelineTable(); renderTATSKPIs(); } }
 
         function exportPipeline() {
@@ -3653,8 +4499,8 @@ function renderSunburst(topN){
         // Auto-load pipeline on init
         const _origInitDash = typeof initDash === "function" ? initDash : null;
         document.addEventListener("DOMContentLoaded", async () => {
-          try { const pl = await localforage.getItem("tats_pipeline"); if (pl && pl.length) { pipelineData = pl; renderPipelineTable(); } } catch (e) { }
-          // TATS loading from file has been completely phased out in favor of dynamic resolution
+          pipelineData = [];
+          // Legacy manual TATS pipeline persistence is disabled. The active TATS tab is now rendered directly from allData.
         });
       </script>
       <script>
