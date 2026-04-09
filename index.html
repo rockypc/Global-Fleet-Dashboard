@@ -1017,15 +1017,20 @@
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>TATS Prospect</button>
         <button class="tab-btn" id="tbtn-usm" title="MRO & USM" onclick="switchTab('usm')"><svg
-            style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>MRO &amp; USM</button>
+              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>MRO &amp; USM</button>
+        <button class="tab-btn" id="tbtn-creditrisk" title="Counterparty Risk" onclick="switchTab('creditrisk')"><svg
+              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 3l7 4v5c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4zm0 5v4m0 4h.01" />
+            </svg>Counterparty Risk</button>
         <button class="tab-btn" id="tbtn-exposure" title="Lessor Exposure" onclick="switchTab('exposure')"><svg
-            style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>Exposure</button>
+              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>Exposure</button>
         <button class="tab-btn" id="tbtn-historical" title="History" onclick="switchTab('historical')"><svg
             style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -3069,27 +3074,64 @@
           const mxRules = {
             "A320_CFM56-5B": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 18000, engLlpFc: 20000 },
             "A320_IAE V2500": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 16000, engLlpFc: 20000 },
+            "A321_CFM56-5B": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 15000, engLlpFc: 20000 },
             "A320neo_CFM LEAP-1A": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 20000, engLlpFc: 17500 },
             "A321neo_CFM LEAP-1A": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 18000, engLlpFc: 17500 },
             "A320neo_PW1100G": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 14000, engLlpFc: 15000 },
-            "737-800_CFM56-7B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 20000, engLlpFc: 20000 },
-            "737-8_CFM LEAP-1B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 22000, engLlpFc: 20000 }
+            "737-800_CFM56-7B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 18000, engLlpFc: 20000 },
+            "737-700_CFM56-7B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 20000, engLlpFc: 20000 },
+            "737-8_CFM LEAP-1B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 22000, engLlpFc: 20000 },
+            "777_GE90": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 15000, engPrFh: 15000, engLlpFc: 15000 },
+            "787_GEnx": { cCheckMo: 36, heavyMo: 144, gearMo: 144, gearFc: 20000, engPrFh: 24000, engLlpFc: 20000 },
+            "A330_CF6-80E1": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 15000, engLlpFc: 20000 },
+            "A330_Trent 700": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 14000, engLlpFc: 15000 },
+            "747_CF6-80C2": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 12000, engLlpFc: 15000 },
+            "E190_CF34-10E": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 25000, engPrFh: 12500, engLlpFc: 25000 },
+            "E175_CF34-8E": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 25000, engPrFh: 14000, engLlpFc: 25000 },
+            "CRJ900_CF34-8C": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 12000, engLlpFc: 20000 }
           };
           const overlayId = "mx-detail-overlay";
 
           function normalizeType(type) {
-            return String(type || "")
-              .replace(/^(Airbus|Boeing)\s+/i, "")
-              .replace(/\s*-200\b/gi, "")
-              .replace(/-200\b/gi, "")
+            const raw = String(type || "")
+              .replace(/^(Airbus|Boeing|Embraer|Bombardier)\s+/i, "")
+              .trim();
+
+            if (/^777/i.test(raw)) return "777";
+            if (/^A330/i.test(raw)) return "A330";
+            if (/^747/i.test(raw)) return "747";
+            if (/^787/i.test(raw)) return "787";
+            if (/^A321neo/i.test(raw)) return "A321neo";
+            if (/^A320neo/i.test(raw)) return "A320neo";
+            if (/^A321/i.test(raw)) return "A321";
+            if (/^A320/i.test(raw)) return "A320";
+            if (/^737-800/i.test(raw)) return "737-800";
+            if (/^737-700/i.test(raw)) return "737-700";
+            if (/^737-8\b|^737 MAX 8/i.test(raw)) return "737-8";
+            if (/^E190/i.test(raw)) return "E190";
+            if (/^E175/i.test(raw)) return "E175";
+            if (/^CRJ900/i.test(raw)) return "CRJ900";
+
+            return raw
+              .replace(/ -[0-9]{3}ER/gi, "")
+              .replace(/ -[0-9]{3}/gi, "")
+              .replace(/-[0-9]{3}ER/gi, "")
+              .replace(/-[0-9]{3}/gi, "")
               .replace(/\s+/g, " ")
               .trim();
           }
 
-          function ragMeta(value, redThreshold, amberThreshold) {
-            if (value < redThreshold) return { bg: "#3f0d14", border: "#be123c", color: "#fda4af" };
-            if (value < amberThreshold) return { bg: "#3f2a05", border: "#b45309", color: "#fcd34d" };
-            return { bg: "#052e16", border: "#166534", color: "#86efac" };
+          function getStatusMeta(value, redThreshold, amberThreshold) {
+            if (value < redThreshold) return { label: "Critical", bg: "#3f0d14", border: "#be123c", color: "#fda4af" };
+            if (value < amberThreshold) return { label: "Warning", bg: "#3f2a05", border: "#b45309", color: "#fcd34d" };
+            return { label: "Healthy", bg: "#052e16", border: "#166534", color: "#86efac" };
+          }
+
+          function getGearStatus(mx) {
+            const monthsMeta = getStatusMeta(mx.gearMonths, 12, 24);
+            const cyclesMeta = getStatusMeta(mx.gearCycles, 1000, 2500);
+            const rank = { Critical: 0, Warning: 1, Healthy: 2 };
+            return rank[monthsMeta.label] <= rank[cyclesMeta.label] ? monthsMeta : cyclesMeta;
           }
 
           function metricCard(label, value, note, meta) {
@@ -3101,6 +3143,18 @@
               </div>`;
           }
 
+          function formatLlpValue(mx) {
+            return mx ? `${Math.round(mx.llpCycles).toLocaleString()} cyc` : "Rules N/A";
+          }
+
+          function llpBadgeHtml(mx) {
+            if (!mx) {
+              return `<span style="display:inline-flex;align-items:center;justify-content:flex-end;padding:2px 8px;border-radius:999px;background:#111827;border:1px solid #374151;color:#94a3b8;font-size:10px;font-weight:700;">N/A</span>`;
+            }
+            const meta = getStatusMeta(mx.llpCycles, 1000, 2500);
+            return `<span title="Remaining LLP life" style="display:inline-flex;align-items:center;justify-content:flex-end;padding:2px 8px;border-radius:999px;background:${meta.bg};border:1px solid ${meta.border};color:${meta.color};font-size:10px;font-weight:700;">${formatLlpValue(mx)}</span>`;
+          }
+
           function closeOverlay() {
             const existing = document.getElementById(overlayId);
             if (existing) existing.remove();
@@ -3108,21 +3162,22 @@
           }
 
           function calculateExposure(aircraft) {
-            const rawType = normalizeType(aircraft["Type"]);
+            const normalizedType = normalizeType(aircraft["Type"]);
             const rawEng = String(aircraft["Engine Family"] || "").trim();
-            const key = `${rawType}_${rawEng}`;
+            const key = `${normalizedType}_${rawEng}`;
             const rule = mxRules[key];
             if (!rule) return null;
 
-            const age = (parseFloat(aircraft._age) || 0) * 12;
-            const cycles = aircraft._cycles || (age * 120);
+            const ageInMonths = (parseFloat(aircraft._age) || 0) * 12;
+            const cycles = aircraft._cycles || (ageInMonths * 120);
 
             return {
               key,
+              normalizedType,
               rule,
-              heavyMonths: Math.max(0, rule.heavyMo - (age % rule.heavyMo)),
-              gearLifeMonths: Math.max(0, rule.gearMo - (age % rule.gearMo)),
-              gearLifeCycles: Math.max(0, rule.gearFc - (cycles % rule.gearFc)),
+              heavyMonths: Math.max(0, rule.heavyMo - (ageInMonths % rule.heavyMo)),
+              gearMonths: Math.max(0, rule.gearMo - (ageInMonths % rule.gearMo)),
+              gearCycles: Math.max(0, rule.gearFc - (cycles % rule.gearFc)),
               llpCycles: Math.max(0, rule.engLlpFc - (cycles % rule.engLlpFc))
             };
           }
@@ -3144,17 +3199,28 @@
             const matchedConfig = `${normalizeType(aircraft["Type"] || "")} / ${escapeHtml(aircraft["Engine Family"] || "Unknown Engine")}`;
 
             const detailHtml = mx
-              ? `
-                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px;">
-                  ${metricCard("Next Heavy Check", `${Math.round(mx.heavyMonths).toLocaleString()} mo`, "Airframe heavy visit timing", ragMeta(mx.heavyMonths, 12, 24))}
-                  ${metricCard("Gear Overhaul", `${Math.round(mx.gearLifeMonths).toLocaleString()} mo`, `${Math.round(mx.gearLifeCycles).toLocaleString()} cycles remaining`, ragMeta(mx.gearLifeMonths, 12, 24))}
-                  ${metricCard("Life Limited Parts", `${Math.round(mx.llpCycles).toLocaleString()} cyc`, "Remaining LLP cycle life", ragMeta(mx.llpCycles, 1000, 2500))}
-                </div>
-                <div style="margin-top:16px;padding:14px 16px;border-radius:14px;background:rgba(15,23,42,.72);border:1px solid rgba(51,65,85,.9);color:#cbd5e1;">
-                  <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#06b6d4;">Matched Rule</div>
-                  <div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-top:6px;">${escapeHtml(mx.key)}</div>
-                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Baseline intervals are embedded in the Maintenance module for this airframe and engine family pairing.</div>
-                </div>`
+              ? (() => {
+                const heavyMeta = getStatusMeta(mx.heavyMonths, 12, 24);
+                const gearMeta = getGearStatus(mx);
+                const llpMeta = getStatusMeta(mx.llpCycles, 1000, 2500);
+                const overallMeta = [heavyMeta, gearMeta, llpMeta].sort((a, b) => ({ Critical: 0, Warning: 1, Healthy: 2 }[a.label] - ({ Critical: 0, Warning: 1, Healthy: 2 }[b.label])))[0];
+                return `
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+                    <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:${overallMeta.bg};border:1px solid ${overallMeta.border};color:${overallMeta.color};font-size:11px;font-weight:800;">Overall: ${overallMeta.label}</span>
+                    <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:${gearMeta.bg};border:1px solid ${gearMeta.border};color:${gearMeta.color};font-size:11px;font-weight:800;">Gear: ${gearMeta.label}</span>
+                    <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:${llpMeta.bg};border:1px solid ${llpMeta.border};color:${llpMeta.color};font-size:11px;font-weight:800;">LLP: ${llpMeta.label}</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px;">
+                    ${metricCard("Next Heavy Check", `${Math.round(mx.heavyMonths).toLocaleString()} mo`, "Airframe heavy visit timing", heavyMeta)}
+                    ${metricCard("Gear Overhaul", `${Math.round(mx.gearMonths).toLocaleString()} mo`, `${Math.round(mx.gearCycles).toLocaleString()} cycles remaining`, gearMeta)}
+                    ${metricCard("Life Limited Parts", `${Math.round(mx.llpCycles).toLocaleString()} cyc`, "Remaining LLP cycle life", llpMeta)}
+                  </div>
+                  <div style="margin-top:16px;padding:14px 16px;border-radius:14px;background:rgba(15,23,42,.72);border:1px solid rgba(51,65,85,.9);color:#cbd5e1;">
+                    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#06b6d4;">Matched Rule</div>
+                    <div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-top:6px;">${escapeHtml(mx.key)}</div>
+                    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Intervals are based on the embedded 2025/2026 lessor maintenance handbook baselines for this airframe and engine family pairing.</div>
+                  </div>`;
+              })()
               : `
                 <div style="margin-top:18px;padding:18px;border-radius:16px;background:rgba(15,23,42,.78);border:1px solid rgba(239,68,68,.4);">
                   <div style="font-size:15px;font-weight:800;color:#fda4af;">Baseline maintenance rules not found for this configuration.</div>
@@ -3198,13 +3264,189 @@
           }
 
           return {
+            normalizeType,
             calculateExposure,
+            formatLlpValue,
+            llpBadgeHtml,
+            getStatusMeta,
+            getGearStatus,
             openDetail(aircraft) {
               const mxData = this.calculateExposure(aircraft);
               this.renderOverlay(aircraft, mxData);
             },
             renderOverlay,
             closeOverlay
+          };
+        });
+
+        ModuleSystem.register('CounterpartyRisk', () => {
+          const CATEGORY_META = {
+            "Critical (High Risk)": {
+              cardClass: "border-t-4 border-red-600",
+              scoreClass: "bg-red-950/70 text-red-300 border border-red-800"
+            },
+            "Speculative (Medium Risk)": {
+              cardClass: "border-t-4 border-amber-500",
+              scoreClass: "bg-amber-950/60 text-amber-300 border border-amber-800"
+            },
+            "Investment Grade (Low Risk)": {
+              cardClass: "border-t-4 border-emerald-500",
+              scoreClass: "bg-emerald-950/60 text-emerald-300 border border-emerald-800"
+            },
+            "Unrated": {
+              cardClass: "border-t-4 border-slate-500",
+              scoreClass: "bg-slate-800 text-slate-300 border border-slate-700"
+            }
+          };
+
+          function normalizeScore(score) {
+            return String(score || "NR").trim().toUpperCase() || "NR";
+          }
+
+          function riskPriority(category) {
+            return {
+              "Critical (High Risk)": 3,
+              "Speculative (Medium Risk)": 2,
+              "Investment Grade (Low Risk)": 1,
+              "Unrated": 0
+            }[category] || 0;
+          }
+
+          function formatMoneyM(value) {
+            return `$${(Number(value) || 0).toFixed(2)}M`;
+          }
+
+          return {
+            init() {
+              this.render();
+            },
+
+            categorizeRisk(score) {
+              const normalized = normalizeScore(score);
+              if (!normalized || normalized === "NR") return "Unrated";
+              if (normalized === "BBB+" || normalized === "BBB" || normalized === "BBB-" || /^A/.test(normalized)) {
+                return "Investment Grade (Low Risk)";
+              }
+              if (normalized.includes("BB") || normalized === "B+" || normalized === "B" || normalized === "B-") {
+                return "Speculative (Medium Risk)";
+              }
+              if (normalized.includes("C") || normalized.includes("D")) return "Critical (High Risk)";
+              return "Unrated";
+            },
+
+            render() {
+              const container = document.getElementById('tab-creditrisk');
+              if (!container) return;
+
+              let highRiskValue = 0;
+              let mediumRiskValue = 0;
+              let lowRiskValue = 0;
+              const operatorExposure = {};
+
+              (allData || []).forEach(ac => {
+                if ((ac["Status"] || ac["Order Status"] || "").toLowerCase().includes("unconfirmed")) return;
+
+                const score = String(ac._creditScore || ac["Credit Score"] || "NR").trim() || "NR";
+                const category = this.categorizeRisk(score);
+                const value = Number.isFinite(ac._val) ? ac._val : (parseFloat(ac["Indicative Market Value (US$m)"]) || 0);
+                const operator = String(ac["Operator"] || "Unknown").trim() || "Unknown";
+
+                if (category === "Critical (High Risk)") highRiskValue += value;
+                else if (category === "Speculative (Medium Risk)") mediumRiskValue += value;
+                else if (category === "Investment Grade (Low Risk)") lowRiskValue += value;
+
+                if (!operatorExposure[operator]) {
+                  operatorExposure[operator] = {
+                    score,
+                    category,
+                    aircraftCount: 0,
+                    totalValue: 0
+                  };
+                }
+
+                const current = operatorExposure[operator];
+                if (riskPriority(category) > riskPriority(current.category)) {
+                  current.score = score;
+                  current.category = category;
+                }
+                current.aircraftCount += 1;
+                current.totalValue += value;
+              });
+
+              const watchlist = Object.entries(operatorExposure)
+                .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
+                .sort((a, b) => b[1].totalValue - a[1].totalValue);
+
+              container.innerHTML = `
+                <div class="card" style="padding:20px 22px;">
+                  <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+                    <div>
+                      <div class="s-title">Counterparty Risk &amp; Exposure</div>
+                      <div class="s-sub" style="max-width:760px;">Financial exposure categorized by the consolidated credit scores merged into the live fleet dataset.</div>
+                    </div>
+                    <div class="badge" style="background:#111827;border-color:#334155;color:#cbd5e1;">${(allData || []).length.toLocaleString()} aircraft in clean fleet universe</div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="card ${CATEGORY_META["Critical (High Risk)"].cardClass}" style="padding:18px;">
+                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fca5a5;font-weight:700;">Critical Exposure (CCC &amp; Below)</div>
+                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(highRiskValue)}</div>
+                  </div>
+                  <div class="card ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}" style="padding:18px;">
+                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fcd34d;font-weight:700;">Speculative Exposure (B to BB+)</div>
+                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(mediumRiskValue)}</div>
+                  </div>
+                  <div class="card ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}" style="padding:18px;">
+                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#86efac;font-weight:700;">Investment Grade Exposure (BBB- &amp; Above)</div>
+                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(lowRiskValue)}</div>
+                  </div>
+                </div>
+
+                <div class="card" style="padding:20px 22px;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div>
+                      <div class="s-title" style="font-size:18px;color:#f87171;">High-Risk Operator Watchlist</div>
+                      <div class="s-sub">Operators rated speculative or critical, ranked by total indicative market value exposure.</div>
+                    </div>
+                    <div class="badge" style="background:#111827;border-color:#1f2937;color:#94a3b8;">${watchlist.length.toLocaleString()} operators flagged</div>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-300">
+                      <thead style="background:#0f172a;color:#94a3b8;text-transform:uppercase;font-size:11px;letter-spacing:.08em;">
+                        <tr>
+                          <th class="px-4 py-3">Operator</th>
+                          <th class="px-4 py-3">Credit Score</th>
+                          <th class="px-4 py-3 text-right">Aircraft Count</th>
+                          <th class="px-4 py-3 text-right">Total Value Exposure ($M)</th>
+                        </tr>
+                      </thead>
+                      <tbody id="risk-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              `;
+
+              const tbody = document.getElementById('risk-tbody');
+              if (!tbody) return;
+
+              if (!watchlist.length) {
+                tbody.innerHTML = `<tr><td colspan="4" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties in the current clean fleet universe.</td></tr>`;
+                return;
+              }
+
+              tbody.innerHTML = watchlist.map(([operator, data]) => {
+                const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
+                return `
+                  <tr style="border-bottom:1px solid #1f2937;">
+                    <td class="px-4 py-3 font-semibold text-slate-100">${escapeHtml(operator)}</td>
+                    <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
+                    <td class="px-4 py-3 text-right font-mono">${(data.aircraftCount || 0).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-mono">${formatMoneyM(data.totalValue)}</td>
+                  </tr>
+                `;
+              }).join("");
+            }
           };
         });
 
@@ -3241,6 +3483,7 @@
             { title: "Financials, Risk & Outreach", cards: [
               { tab: "tats", icon: "radar", title: "TATS Prospecting Engine", desc: "Outreach and pipeline management. Tracks High/Medium/Low transition risks and provides templated hooks for direct airline outreach and pipeline tracking." },
               { tab: "p5", icon: "chart", title: "TATS Risk Score Analytics", desc: "Macro view of TATS Tier distributions. Analyzes which operators and regions hold the highest aggregate transition and operational risks." },
+              { tab: "creditrisk", icon: "value", title: "Counterparty Risk", desc: "Standalone credit exposure view. Buckets fleet value by counterparty rating band and surfaces the highest-value speculative and critical operators in one watchlist." },
               { tab: "p8", icon: "value", title: "Market Value Distribution", desc: "Financial exposure tracking. Visualizes total market value by region and identifies the top 20 operators holding the highest asset values globally." },
               { tab: "gantt", icon: "transition", title: "Lease End Gantt Chart", desc: "A visual timeline of upcoming lease transitions plotted on a Gantt chart, color-coded by TATS risk tier. Highlights transition bottlenecks." },
               { tab: "lessors", icon: "database", title: "Lessors & Managers", desc: "Competitive intelligence. A treemap and tabular breakdown of global fleet managers, calculating average fleet age and high-risk exposure percentages per lessor." }
@@ -3839,7 +4082,7 @@
           fill("fe-region", regions); fill("fe-country", countries); fill("fe-opgroup", opGroups); fill("fe-operator", ops); fill("fe-mfg", mfgs); fill("fe-family", families); fill("fe-engine", engMfg); fill("fe-grouping", mktG); fill("fe-status", statuses); fill("fe-usage", usage);
         }
 
-        const ALL_TABS = ["home", "deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "lopa", "placement", "ccolopa", "engineintel", "transitionintel", "tats", "usm", "exposure", "historical", "acdetail"];
+        const ALL_TABS = ["home", "deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "lopa", "placement", "ccolopa", "engineintel", "transitionintel", "tats", "usm", "creditrisk", "exposure", "historical", "acdetail"];
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
@@ -3859,13 +4102,14 @@
             lopa: () => renderLopaModule("lopa", "ops"),
             placement: renderPlacementRadar,
             ccolopa: () => renderLopaModule("ccolopa", "cco"),
-            engineintel: renderEngineIntel,
-            transitionintel: renderTransitionIntel,
-            tats: renderTATS,
-            usm: () => { if (usm) setTimeout(usm, 50); },
-            exposure: () => { if (exp) setTimeout(exp, 50); },
-            historical: () => { if (hist) setTimeout(hist, 50); }
-          };
+              engineintel: renderEngineIntel,
+              transitionintel: renderTransitionIntel,
+              tats: renderTATS,
+              usm: () => { if (usm) setTimeout(usm, 50); },
+              creditrisk: () => ModuleSystem.get('CounterpartyRisk').init(),
+              exposure: () => { if (exp) setTimeout(exp, 50); },
+              historical: () => { if (hist) setTimeout(hist, 50); }
+            };
           if (rMap[id]) rMap[id]();
         }
 
@@ -4837,11 +5081,12 @@
                 <tr>
                   <th>Reg/SN</th>
                   <th>Engine Fam</th>
-                  <th>Age</th>
-                  <th class="num">Mo in Storage</th>
-                  <th class="num">Cum Cycles</th>
-                  <th class="num">Score</th>
-                  <th class="num">MRO Bow Wave Risk</th>
+                    <th>Age</th>
+                    <th class="num">Mo in Storage</th>
+                    <th class="num">Cum Cycles</th>
+                    <th class="num">LLP Remaining</th>
+                    <th class="num">Score</th>
+                    <th class="num">MRO Bow Wave Risk</th>
                 </tr>
               </thead>
               <tbody id="usm-tbody"></tbody>
@@ -4936,12 +5181,13 @@
         </div>
       </div>
       <div id="tab-lopa" class="hidden p-4 flex flex-col gap-4"></div>
-      <div id="tab-placement" class="hidden p-4 flex flex-col gap-4"></div>
-      <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
-      <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
-      <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
-      <!-- ==================== TATS PROSPECTING TAB ==================== -->
-      <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
+        <div id="tab-placement" class="hidden p-4 flex flex-col gap-4"></div>
+        <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
+        <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
+        <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
+        <div id="tab-creditrisk" class="hidden p-4 flex flex-col gap-4"></div>
+        <!-- ==================== TATS PROSPECTING TAB ==================== -->
+        <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
 
         <!-- AUTO-DERIVE BANNER -->
         <div id="tats-auto-banner" class="card"
@@ -5908,8 +6154,12 @@ function renderSunburst(topN){
 
           // Table
           document.getElementById("usm-table-count").textContent = d.length + " candidates";
+          const maintenance = ModuleSystem.get('Maintenance');
           const sorted = d.sort((a, b) => b._retireScore - a._retireScore).slice(0, 100);
-          document.getElementById("usm-tbody").innerHTML = sorted.map(r => `<tr><td class="mono">${r["Registration"] || r["Serial Number"] || "-"}</td><td>${r["Engine Family"] || "-"}</td><td>${r._age || "-"}</td><td class="num">${r._moInStor ? r._moInStor.toFixed(1) : "-"}</td><td class="num">${r._cumCyc ? r._cumCyc.toLocaleString() : "-"}</td><td class="num" style="font-weight:700;color:${r._retireScore >= 70 ? '#f43f5e' : r._retireScore >= 40 ? '#f59e0b' : '#10b981'};">${r._retireScore || 0}</td><td class="num"><span class="badge ${r._mroRisk === 'High Risk' ? 'bg-st' : r._mroRisk === 'Medium Risk' ? 'bg-or' : 'bg-is'}">${r._mroRisk || "-"}</span></td></tr>`).join("") || `<tr><td colspan="7" style="text-align:center;color:#334155;padding:16px;">No USM candidates found</td></tr>`;
+          document.getElementById("usm-tbody").innerHTML = sorted.map(r => {
+            const mx = maintenance.calculateExposure(r);
+            return `<tr onclick="ModuleSystem.get('Maintenance').openDetail(allData[${allData.indexOf(r)}])" style="cursor:pointer;transition:background .12s;" onmouseenter="this.style.background='#0d1e35'" onmouseleave="this.style.background=''"><td class="mono">${r["Registration"] || r["Serial Number"] || "-"}</td><td>${r["Engine Family"] || "-"}</td><td>${r._age || "-"}</td><td class="num">${r._moInStor ? r._moInStor.toFixed(1) : "-"}</td><td class="num">${r._cumCyc ? r._cumCyc.toLocaleString() : "-"}</td><td class="num">${maintenance.llpBadgeHtml(mx)}</td><td class="num" style="font-weight:700;color:${r._retireScore >= 70 ? '#f43f5e' : r._retireScore >= 40 ? '#f59e0b' : '#10b981'};">${r._retireScore || 0}</td><td class="num"><span class="badge ${r._mroRisk === 'High Risk' ? 'bg-st' : r._mroRisk === 'Medium Risk' ? 'bg-or' : 'bg-is'}">${r._mroRisk || "-"}</span></td></tr>`;
+          }).join("") || `<tr><td colspan="8" style="text-align:center;color:#334155;padding:16px;">No USM candidates found</td></tr>`;
         }
 
         // ===== LESSOR EXPOSURE TAB =====
