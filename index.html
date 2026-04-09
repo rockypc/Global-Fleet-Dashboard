@@ -828,7 +828,7 @@
     </div>
     <div class="flex items-center gap-3">
       <span id="banner-date" style="color:#475569;font-size:11px;"></span>
-      <button id="sync-data-btn" onclick="syncLatestData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
+      <button id="sync-data-btn" onclick="syncData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
         <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -2347,8 +2347,10 @@
         }
 
         // Persistence
-        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Consolidated%20Scores%20Sheet.csv";
+        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Aircraft%20Detail.csv";
+        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Consolidated%20Scores%20Sheet.csv";
+        const URL_MAIN_LOCAL = "./Aircraft%20Detail.csv";
+        const URL_CREDIT_LOCAL = "./Consolidated%20Scores%20Sheet.csv";
         // const URL_SUPPLY = "Remarketing%20Supply.csv";
 
         function setInitState(mode, msg, sub) {
@@ -2374,6 +2376,8 @@
           const date = document.getElementById("banner-date");
           const label = mode === "live"
             ? "Live Synced Data"
+            : mode === "local"
+              ? "Local Bundled Data"
             : mode === "cached"
               ? "Cached Offline Data"
               : "Manual Upload Data";
@@ -2414,6 +2418,11 @@
             badge.style.background = "#172554";
             badge.style.color = "#93c5fd";
             badge.style.borderColor = "#1d4ed8";
+          } else if (currentDataMode === "local") {
+            badge.textContent = "LOCAL FILE";
+            badge.style.background = "#0f172a";
+            badge.style.color = "#67e8f9";
+            badge.style.borderColor = "#0891b2";
           } else if (currentDataMode === "manual") {
             badge.textContent = "MANUAL LOAD";
             badge.style.background = "#3f1d12";
@@ -2555,10 +2564,10 @@
           }
         }
 
-        async function fetchCsvBundle() {
+        async function fetchCsvBundle(mainUrl = URL_MAIN, creditUrl = URL_CREDIT) {
           const [mainText, creditText] = await Promise.all([
-            fetchCsvText(URL_MAIN, { required: true }),
-            fetchCsvText(URL_CREDIT, { required: false })
+            fetchCsvText(mainUrl, { required: true }),
+            fetchCsvText(creditUrl, { required: false })
           ]);
 
           const [mainRows, creditRows] = await Promise.all([
@@ -2598,7 +2607,7 @@
           }
         }
 
-        async function syncLatestData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
+        async function syncData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
           if (showSpinner) {
             setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
           }
@@ -2612,6 +2621,17 @@
             return;
           } catch (err) {
             console.warn("Live sync unavailable, attempting cached data.", err);
+          }
+
+          try {
+            const localBundle = await fetchCsvBundle(URL_MAIN_LOCAL, URL_CREDIT_LOCAL);
+            const saved = await cacheDashboardData(localBundle.mainRows, { source: "local", name: "Local Fleet + Credit" });
+            lastDataAsOfLabel = formatHeaderTimestamp(new Date());
+            updateDataBanner("local", localBundle.mainRows.length, saved);
+            initDash(localBundle.mainRows, localBundle.lookups);
+            return;
+          } catch (err) {
+            console.warn("Local bundled CSV files unavailable, attempting cached data.", err);
           }
 
           try {
@@ -2635,9 +2655,13 @@
           }
         }
 
+        async function syncLatestData(options = {}) {
+          return syncData(options);
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
           setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
-          await syncLatestData({ showSpinner: true, allowUploadFallback: true });
+          await syncData({ showSpinner: true, allowUploadFallback: true });
         });
         // Drag/drop
         const dz = document.getElementById("dropzone");
