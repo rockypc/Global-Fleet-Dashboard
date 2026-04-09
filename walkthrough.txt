@@ -1,0 +1,208 @@
+# Global Fleet Dashboard — Application Index & Architecture
+
+## Overview
+
+The **Global Fleet Dashboard** is a **single-file, client-side aviation intelligence platform** built entirely within one 5,800-line `index.html` file (~359 KB). It serves as a centralized command center for **asset remarketing, RFP matching, fleet analytics, transition risk management, and competitive intelligence** across the global commercial aviation fleet.
+
+> [!IMPORTANT]
+> The entire application (HTML structure, CSS, and JavaScript) lives in **one monolithic `index.html`** — there is no build system, no framework, and no backend server. Everything runs in the browser.
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **UI Framework** | None — vanilla HTML + inline Tailwind CSS via CDN |
+| **Styling** | Tailwind CDN (`cdn.tailwindcss.com`) + ~800 lines of custom CSS |
+| **Font** | Google Fonts — Inter |
+| **Charts** | Chart.js + chartjs-chart-treemap plugin |
+| **CSV Parsing** | PapaParse |
+| **Data Visualization** | D3.js (Gantt/SVG), Chart.js (bar/doughnut/scatter/line) |
+| **Icons** | Lucide (CDN) + inline SVGs |
+| **Persistence** | localforage (IndexedDB/WebSQL/localStorage abstraction) |
+
+---
+
+## Data Sources
+
+### Primary: `Aircraft Detail.csv` (~35 MB)
+- Fetched **live from GitHub** at startup: `https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv`
+- Contains the complete global fleet database (Airbus & Boeing only, filtered at load)
+- Key fields: Serial Number, Operator, Type, Status, Lease End, Age, Market Value, Engine specs, Seating, MTOW, etc.
+
+### Supplementary: `Consolidated Scores Sheet.csv` (~16 KB)
+- **Airline credit ratings** — 196 airlines with Ishka Credit Scores (e.g., `BBB-`, `CCC`, `A-`)
+- Joined to the main dataset by operator name at load time
+- Contains: Business Model, Region, Financial/Traffic/Yield indicators, Credit Score, Outlook
+
+### Data Loading Waterfall
+```mermaid
+flowchart TD
+    A[App Loads] --> B{Fetch from GitHub}
+    B -->|Success| C[Parse CSV + Filter Airbus/Boeing]
+    B -->|Fail| D{Check localforage cache}
+    C --> E[Cache to IndexedDB]
+    E --> F[Initialize Dashboard]
+    D -->|Cache exists| G[Load cached data]
+    D -->|No cache| H[Show manual upload UI]
+    G --> F
+    H -->|User uploads CSV| I[Parse + cache + init]
+```
+
+---
+
+## Application Structure
+
+### Layout Architecture
+```
+┌────────────────────────────────────────────┐
+│ Update Banner (sync status)                │
+├────────────────────────────────────────────┤
+│ Header (logo + aircraft count + LIVE badge)│
+├────────────────────────────────────────────┤
+│ Tab Navigation (22 tabs, horizontally      │
+│ scrollable)                                │
+├────────────────────────────────────────────┤
+│                                            │
+│ Tab Content Area                           │
+│ (flex-grow, scrollable)                    │
+│                                            │
+└────────────────────────────────────────────┘
+```
+
+### Theme
+- **Dark mode** with deep navy/slate background (`#0a0f1e`)
+- Accent palette: Cyan (`#06b6d4`), Violet (`#8b5cf6`), Emerald (`#10b981`), Amber (`#f59e0b`), Rose (`#f43f5e`)
+- Custom scrollbars, glassmorphic cards, gradient KPI borders
+
+---
+
+## Tab Modules (22 Total)
+
+### Executive CCO & Remarketing Suite
+| Tab | ID | Purpose |
+|-----|----|---------|
+| 🏠 **Home** | `home` | Module launcher hub with categorized card grid |
+| **Placement Radar** | `placement` | CCO workflow — select aircraft type + operator, rank lowest-friction transition targets globally using match scoring (engine match, seat density, premium %) |
+| **Global LOPA** | `ccolopa` | Cabin layout benchmarking — premium density vs. capacity scatter, 100% stacked seat-class bars |
+| **Engine Market** | `engineintel` | Engine market share by aircraft type/family, operator engine selection analysis, engine benchmark table |
+| **Transitions & USM** | `transitionintel` | Transition wave bar chart, USM retirement radar (scatter), near-term watchlist |
+
+### Core Fleet & RFP Intelligence
+| Tab | ID | Purpose |
+|-----|----|---------|
+| **Deep Dive** | `deepdive` | Primary investigative tool — omni-search, accordion filter panel (Geographic, Aircraft Specs, Ownership, Engine, Temporal, Operator Detail, Identifiers, Numeric Ranges), KPI strip, mini charts, full sortable results table with CSV export. Click any row → Aircraft Detail. Quick Views: USM Prep, Upcoming Transitions, Active High-Risk |
+| **Fleet Explorer** | `fleet` | Broad filterable database view with manufacturer share, age distribution, status breakdown, market grouping charts |
+| **Inventory** | `p4` | Flat sortable ledger of all aircraft (region, operator, type, registration, serial, manager, status, lease end, market value, rate, age, TATS tier) |
+
+### Financials, Risk & Outreach
+| Tab | ID | Purpose |
+|-----|----|---------|
+| **TATS Prospecting** | `tats` | Automated pipeline — High Risk (<180 days / stored) and Medium Risk (<1 year) with copy-to-clipboard outreach hooks |
+| **TATS Score** | `p5` | Macro analytics — tier distribution charts, score-by-operator, upcoming lease ends table |
+| **Market Value** | `p8` | Total/avg market value by region, top 20 operators by portfolio value |
+| **Lease Gantt** | `gantt` | D3-rendered SVG Gantt timeline of lease ends, color-coded by TATS risk tier |
+| **Lessors** | `lessors` | Treemap of manager fleet sizes + tabular breakdown (avg age, high-risk %) |
+| **Exposure** | `exposure` | Lessor exposure analysis (lazy-loaded) |
+| **History** | `historical` | Historical analysis (lazy-loaded) |
+
+### Market & Geographic Analytics
+| Tab | ID | Purpose |
+|-----|----|---------|
+| **Fleet Growth** | `p9` | Cumulative fleet growth over time + growth by top aircraft families |
+| **Family Market** | `p3` | Cumulative aircraft by family, market share % by build year, family statistics table |
+| **Regional** | `p1` | Region-engine family stacked bars, aircraft count by region, top countries, market grouping mix |
+| **Mfg-Engine** | `p2` | Manufacturer → Engine Manufacturer supply chain flow, engine family distribution |
+| **Country** | `country` | Country report matrix — countries ranked by airlines and aircraft counts |
+| **LOPA & Cabin** | `lopa` | Operator-level seating layout benchmarking |
+
+### Aircraft Detail (Drill-Down)
+| Tab | ID | Purpose |
+|-----|----|---------|
+| **A/C Detail** | `acdetail` | Full spec sheet for a single aircraft — hero card with TATS ring gauge, 6-panel spec grid (Classification, Engine, Operations, Ownership, Lease, Financials), seating bar visualization, idle cost predictor (narrowbody/widebody auto-detect), lease pricing & yield with DCF calculator, 10-year value forecast chart, print-to-PDF support |
+
+---
+
+## Data Processing Pipeline
+
+The `initDash()` function runs a **5-step pipeline** on every data load:
+
+```mermaid
+flowchart LR
+    S1["Step 1<br/>Parse & Normalize"] --> S2["Step 2<br/>Operator Rollups"]
+    S2 --> S3["Step 3<br/>Top-25 Hit List"]
+    S3 --> S4["Step 4<br/>Score Pass 2 + TAM"]
+    S4 --> S5["Step 5<br/>Dynamic Hooks"]
+```
+
+### Step 1: Parse, Validate, Normalize
+- Lease End dates → robust parser (handles `MMM YYYY`, ISO, US formats)
+- Age → cascading: `Age` field → `Delivery Date` → `Build Year`
+- Market Value → strips `$`, commas, auto-detects scale ($M vs raw USD)
+- Status → normalized to: In Service, Storage, On Order, Other
+- Derived fields: age buckets, TATS scoring components, MRO risk, USM prime candidates, retirement probability score
+
+### Step 2: Operator Rollups & Tier Classification
+- Groups by operator, counts active/stored fleet
+- Top 10 operators by fleet size → **Tier 1** classification
+
+### Step 3: Top-25 Hit List
+- Filters to lease ends within `2025-11-30` to `2026-12-31`
+- Score Pass 1: storage bonus, age bonus, Tier 1 bonus, estimated lease penalty
+- Sorts by score → market value → days to lease end
+
+### Step 4: Opportunity Score + TAM
+- Full **TATS Opportunity Score** (0–100) combining:
+  - Days to lease end (30pts max)
+  - Storage status (20pts)
+  - Age tiers (25pts max)
+  - Operator tier (15pts)
+  - Top-25 membership (10pts)
+  - Estimated lease penalty (-15pts)
+- Risk tiers: ≥70 = High Risk, ≥40 = Medium Risk, else Low Risk
+- Estimated TATS USD = market value × 0.002
+
+### Step 5: Dynamic Hook Generation
+- Auto-generates personalized outreach text per aircraft for the TATS Prospecting pipeline
+
+---
+
+## Key Functions Reference
+
+| Function | Purpose |
+|----------|---------|
+| `syncLatestData()` | Orchestrates live fetch → cache fallback → upload fallback |
+| `initDash(data, supplemental)` | Master initialization — runs full pipeline + renders all tabs |
+| `switchTab(id)` | Tab routing — shows/hides panels, triggers lazy renders |
+| `runDD()` | Deep Dive master filter — filters `allData` → updates KPIs, charts, table |
+| `renderDDTable()` | Renders the Deep Dive results table from `ddFiltered` |
+| `showAcDetail(idx)` | Opens Aircraft Detail for row `idx` in `allData` |
+| `renderPlacementRadar()` | Placement Radar — match scoring algorithm |
+| `renderTATS()` | TATS Prospecting pipeline builder |
+| `renderGantt()` | D3-based SVG Gantt chart |
+| `renderLopaModule(tabId, mode)` | Shared LOPA/cabin benchmarking renderer |
+| `exportCurrentDD()` / `exportCurrentTATS()` | CSV export from current filtered view |
+| `calcTATS(r)` | Legacy TATS score calculator |
+| `calculateLeaseNPV(rate, months, discount)` | Discounted cash flow for lease pricing |
+
+---
+
+## File Inventory
+
+| File | Size | Description |
+|------|------|-------------|
+| [index.html](file:///c:/Users/rperez/Source/Global-Fleet-Dashboard/index.html) | 359 KB (5,824 lines) | **The entire application** — HTML + CSS + JS |
+| [Aircraft Detail.csv](file:///c:/Users/rperez/Source/Global-Fleet-Dashboard/Aircraft%20Detail.csv) | 35.4 MB | Primary fleet dataset (fallback if GitHub unavailable) |
+| [Consolidated Scores Sheet.csv](file:///c:/Users/rperez/Source/Global-Fleet-Dashboard/Consolidated%20Scores%20Sheet.csv) | 16 KB | Airline credit scores (196 airlines) |
+| `app-summary.pdf` | 8 KB | Project summary document |
+
+---
+
+## Architecture Observations
+
+> [!NOTE]
+> **Strengths**: Zero build complexity, fully offline-capable via localforage caching, GitHub-based live sync, comprehensive aviation domain coverage, print-to-PDF for IC tear sheets.
+
+> [!WARNING]
+> **Risks**: The single-file monolith at 5,800+ lines is approaching maintainability limits. Adding features like MRO & USM (`renderUSM`), Exposure (`renderExposure`), and History (`renderHistorical`) are referenced but appear to be stubs (`typeof renderUSM === "function"` guards). Splitting into modules or adopting a build system would improve development velocity.

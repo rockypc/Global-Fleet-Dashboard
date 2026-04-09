@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -2222,6 +2222,23 @@
             </div>
           </div>
 
+          <!-- Predictive Maintenance Forecast (Phase 8) -->
+          <div id="acd-mx-forecast" class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid #1a2234;background:linear-gradient(135deg,#0a1628,#0d1424);display:flex;align-items:center;gap:10px;">
+              <svg style="width:16px;height:16px;color:#f59e0b;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#f1f5f9;">Predictive Maintenance Forecast</div>
+                <div style="font-size:10px;color:#475569;margin-top:1px;">OEM MPD baseline intervals · Browser-computed remaining life</div>
+              </div>
+            </div>
+            <div id="acd-mx-body" style="padding:18px;">
+              <div style="font-size:12px;color:#334155;text-align:center;padding:20px;">Select an aircraft to view maintenance predictions.</div>
+            </div>
+          </div>
+
         </div><!-- end acd-content -->
       </div><!-- end tab-acdetail -->
 
@@ -2245,11 +2262,155 @@
           arr.forEach(v => { const o = new Option(v, v); if (cur.has(v)) o.selected = true; el.appendChild(o); });
         }
         Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
+
+        // ===== MODULE SYSTEM (Phase 1.1) =====
+        const ModuleSystem = (() => {
+          const modules = {};
+          return {
+            register(name, factory) {
+              if (modules[name]) console.warn(`[ModuleSystem] Overwriting: ${name}`);
+              modules[name] = typeof factory === 'function' ? factory() : factory;
+              console.log(`[ModuleSystem] Registered: ${name}`);
+            },
+            get(name) {
+              if (!modules[name]) throw new Error(`[ModuleSystem] Not found: ${name}`);
+              return modules[name];
+            },
+            has(name) { return !!modules[name]; },
+            list() { return Object.keys(modules); }
+          };
+        })();
+
+        // ===== DATA SCHEMA VALIDATION (Phase 1.2) =====
+        ModuleSystem.register('DataSchema', () => {
+          const schema = {
+            required: ['Serial Number', 'Type', 'Operator', 'Status', 'Manufacturer'],
+            numeric: ['Age', 'Cumulative Cycles', 'Cumulative Hours', 'Operating MTOW (lbs)'],
+            marketValue: 'Indicative Market Value (US$m)',
+            date: ['Lease End', 'Delivery Date'],
+            statusEnum: ['In Service', 'Storage', 'On Order']
+          };
+
+          function validate(record, idx) {
+            const errors = [];
+            schema.required.forEach(field => {
+              const val = (record[field] || '').trim();
+              if (!val) errors.push({ row: idx, field, issue: 'missing' });
+            });
+            schema.numeric.forEach(field => {
+              const raw = record[field];
+              if (raw !== undefined && raw !== null && raw !== '' && isNaN(parseFloat(raw))) {
+                errors.push({ row: idx, field, issue: 'not_numeric', value: String(raw).slice(0, 30) });
+              }
+            });
+            const status = (record['Status'] || '').trim();
+            if (status && !schema.statusEnum.some(s => status.includes(s))) {
+              errors.push({ row: idx, field: 'Status', issue: 'unknown_enum', value: status });
+            }
+            return errors;
+          }
+
+          function validateBatch(records) {
+            const allIssues = [];
+            records.forEach((r, i) => {
+              const issues = validate(r, i);
+              if (issues.length > 0) allIssues.push(...issues);
+            });
+            return allIssues;
+          }
+
+          return { validate, validateBatch, schema };
+        });
+
+        // ===== TATS SCORING MODULE (Phase 1.3) =====
+        ModuleSystem.register('TATS', () => {
+          /**
+           * calculateScore(params) — Pure function, no side effects.
+           * Replicates the Step 4 (_opportunityScore) algorithm exactly.
+           *
+           * @param {Object} params
+           * @param {number|null} params.daysToLeaseEnd
+           * @param {string} params.status  — normalized status
+           * @param {number|null} params.ageYears
+           * @param {string} params.operatorTier — 'Tier 1' or 'Standard'
+           * @param {boolean} params.isTop25
+           * @param {boolean} params.isLeaseEndEstimated
+           * @returns {number} score 0–100
+           */
+          function calculateScore({ daysToLeaseEnd, status, ageYears, operatorTier, isTop25, isLeaseEndEstimated }) {
+            let score = 0;
+
+            // Days to lease end: 0–30pts
+            if (daysToLeaseEnd !== null && daysToLeaseEnd !== undefined) {
+              if (daysToLeaseEnd <= 365) score += 30;
+              else if (daysToLeaseEnd <= 730) score += 20;
+              else if (daysToLeaseEnd <= 1095) score += 10;
+            } else {
+              score -= 10; // Unknown lease penalty
+            }
+
+            // Status: +20 Storage, +5 In Service
+            if (status === 'Storage') score += 20;
+            else if (status === 'In Service') score += 5;
+
+            // Age tiers: 0–25pts
+            if (ageYears !== null && ageYears !== undefined) {
+              if (ageYears >= 20) score += 25;
+              else if (ageYears >= 15) score += 15;
+              else if (ageYears >= 10) score += 10;
+              else if (ageYears >= 5) score += 5;
+            }
+
+            // Operator tier: +15 for Tier 1
+            if (operatorTier === 'Tier 1') score += 15;
+
+            // Top-25 membership: +10
+            if (isTop25) score += 10;
+
+            // Estimated lease penalty: -15
+            if (isLeaseEndEstimated) score -= 15;
+
+            return Math.max(0, Math.min(100, score));
+          }
+
+          function getTier(score) {
+            if (score >= 70) return 'High Risk';
+            if (score >= 40) return 'Medium Risk';
+            return 'Low Risk';
+          }
+
+          function estimateTAM(marketValueUSD) {
+            if (!Number.isFinite(marketValueUSD) || marketValueUSD <= 0) return null;
+            return marketValueUSD * 0.002;
+          }
+
+          function scoreBreakdown(params) {
+            const score = calculateScore(params);
+            return {
+              ...params,
+              score,
+              tier: getTier(score)
+            };
+          }
+
+          return { calculateScore, getTier, estimateTAM, scoreBreakdown };
+        });
+
         let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
+
+        // ===== PHASE 8: OEM MAINTENANCE RULES DICTIONARY (MPD Baseline) =====
+        const mxRules = {
+          "Airbus A320ceo_CFM56-5B":     { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 18000, engLlpFc: 20000 },
+          "Airbus A320ceo_IAE V2500":     { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 16000, engLlpFc: 20000 },
+          "Airbus A320neo_CFM LEAP-1A":   { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 20000, engLlpFc: 17500 },
+          "Airbus A320neo_PW1100G":       { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 14000, engLlpFc: 15000 },
+          "Boeing 737-800 NG_CFM56-7B":   { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 20000, engLlpFc: 20000 },
+          "Boeing 737-8 MAX_CFM LEAP-1B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 22000, engLlpFc: 20000 }
+        };
         function ic(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c.getContext("2d"), cfg); }
         function barO(h = false) { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: h }, border: { display: false } }, y: { grid: { display: !h }, border: { display: false } } }, indexAxis: h ? "y" : "x" }; }
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
@@ -2260,7 +2421,22 @@
         function resetF(ids) { ids.forEach(id => { const e = document.getElementById(id); if (e) e.value = "" }); }
         function sBadge(s) { const t = s.includes("Service") ? "bg-is" : s.includes("order") || s.includes("Order") ? "bg-or" : s.includes("Stor") ? "bg-st" : "bg-xx"; return `<span class="badge ${t}">${s || "-"}</span>`; }
         function tBadge(t) { return `<span class="badge ${{ ["High Risk"]: "bg-hr", ["Medium Risk"]: "bg-mr", ["Low Risk"]: "bg-lr" }[t] || "bg-xx"}">${t}</span>`; }
-        function calcTATS(r) { let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100); }
+        // DEPRECATED: Legacy calcTATS — scoring now handled by ModuleSystem.get('TATS').calculateScore()
+        // Kept as wrapper for backwards compatibility. Real scoring is in initDash() Step 4.
+        function calcTATS(r) {
+          if (ModuleSystem.has('TATS')) {
+            return ModuleSystem.get('TATS').calculateScore({
+              daysToLeaseEnd: r._daysToLeaseEnd != null ? r._daysToLeaseEnd : (r._leEnd ? (r._leEnd - new Date()) / 864e5 : null),
+              status: r._statusNormalized || '',
+              ageYears: r._ageYears != null ? r._ageYears : (r._age || null),
+              operatorTier: r._operatorTier || 'Standard',
+              isTop25: !!r._top25,
+              isLeaseEndEstimated: !!r._isLeaseEndEstimated
+            });
+          }
+          // Fallback: original inline logic
+          let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100);
+        }
         // --- Helper: Robust Date Parser ---
         function parseLeaseEndDate(s) {
           if (!s || s.trim().toLowerCase() === "unknown") return null;
@@ -2549,6 +2725,16 @@
             const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", bundle.mainRows.length, saved);
+            // Phase 1.2: Schema validation before init
+            if (ModuleSystem.has('DataSchema')) {
+              const issues = ModuleSystem.get('DataSchema').validateBatch(bundle.mainRows);
+              if (issues.length > 0) {
+                console.warn(`[DataSchema] Live sync: ${issues.length} field-level warnings across ${new Set(issues.map(i => i.row)).size} rows`);
+                console.table(issues.slice(0, 25));
+              } else {
+                console.log('[DataSchema] Live sync: all rows passed validation');
+              }
+            }
             initDash(bundle.mainRows, bundle.lookups);
             return;
           } catch (err) {
@@ -2596,6 +2782,14 @@
                 const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name });
                 updateDataBanner("manual", cleanedData.length, saved);
               } catch (e) { }
+              // Phase 1.2: Schema validation before init
+              if (ModuleSystem.has('DataSchema')) {
+                const issues = ModuleSystem.get('DataSchema').validateBatch(cleanedData);
+                if (issues.length > 0) {
+                  console.warn(`[DataSchema] Manual upload: ${issues.length} field-level warnings across ${new Set(issues.map(i => i.row)).size} rows`);
+                  console.table(issues.slice(0, 25));
+                }
+              }
               initDash(cleanedData);
             }, error: function (e) { alert("CSV parse error: " + e.message); location.reload(); }
           });
@@ -2834,43 +3028,24 @@
 
           const top25Keys = new Set(hitListCandidates.slice(0, 25).map(r => r._aircraftKey));
 
-          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM ---
+          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM (via TATS Module) ---
+          const _tatsModule = ModuleSystem.get('TATS');
           allData.forEach(r => {
             r._top25 = top25Keys.has(r._aircraftKey);
 
-            let oScore = 0;
-            if (r._daysToLeaseEnd !== null) {
-              if (r._daysToLeaseEnd <= 365) oScore += 30; // Within 1 year (or overdue)
-              else if (r._daysToLeaseEnd <= 730) oScore += 20;
-              else if (r._daysToLeaseEnd <= 1095) oScore += 10;
-            } else {
-              oScore -= 10; // Explicit unknown lease penalty
-            }
-
-            if (r._statusNormalized === "Storage") oScore += 20;
-            else if (r._statusNormalized === "In Service") oScore += 5;
-
-            if (r._ageYears !== null) {
-              if (r._ageYears >= 20) oScore += 25;
-              else if (r._ageYears >= 15) oScore += 15;
-              else if (r._ageYears >= 10) oScore += 10;
-              else if (r._ageYears >= 5) oScore += 5;
-            }
-
-            if (r._operatorTier === "Tier 1") oScore += 15;
-            if (r._top25) oScore += 10;
-
-            if (r._isLeaseEndEstimated) oScore -= 15;
-
-            r._opportunityScore = Math.max(0, Math.min(100, oScore));
+            // Delegate scoring to the extracted TATS module
+            r._opportunityScore = _tatsModule.calculateScore({
+              daysToLeaseEnd: r._daysToLeaseEnd,
+              status: r._statusNormalized,
+              ageYears: r._ageYears,
+              operatorTier: r._operatorTier,
+              isTop25: r._top25,
+              isLeaseEndEstimated: r._isLeaseEndEstimated
+            });
             r._tats = r._opportunityScore; // sync back to old refs
-            r._tatsTier = r._tats >= 70 ? "High Risk" : r._tats >= 40 ? "Medium Risk" : "Low Risk";
+            r._tatsTier = _tatsModule.getTier(r._tats);
 
-            if (r._mktValueUSDm !== null) {
-              r._estimatedTATSUSD = r._mktValueUSD * 0.002;
-            } else {
-              r._estimatedTATSUSD = null;
-            }
+            r._estimatedTATSUSD = _tatsModule.estimateTAM(r._mktValueUSD);
 
             // --- PIPELINE STEP 5: DYNAMIC HOOK GENERATION ---
             let hookStr = `Observational analysis indicates this ${r["Type"] || "aircraft"} (SN: ${r._aircraftKey === "Unknown" ? "N/A" : r._aircraftKey}) `;
@@ -4429,6 +4604,188 @@
             row('Storage Date', r['Storage Date']),
             row('Stor. Location', r['Storage Conversion Location Name'])
           ].join('');
+
+          // Phase 8: Predictive Maintenance Forecast
+          renderMxForecast(r);
+        }
+
+        // ===== PHASE 8: PREDICTIVE MAINTENANCE ENGINE =====
+
+        /**
+         * calculateMxExposure(aircraft)
+         * Matches the aircraft to the mxRules dictionary using Type + Engine Family.
+         * Returns an object with remaining-life calculations or null if no rule matched.
+         */
+        function calculateMxExposure(aircraft) {
+          const acType = (aircraft["Type"] || "").trim();
+          const engFam = (aircraft["Engine Family"] || "").trim();
+          const lookupKey = `${acType}_${engFam}`;
+          const rule = mxRules[lookupKey] || null;
+          if (!rule) return null;
+
+          // --- Variables ---
+          const ageYears = aircraft._age || 0;
+          const ageMonths = Math.round(ageYears * 12);
+          // Cumulative cycles: use parsed value, or estimate as age_months * 120 cycles/month
+          let cumCycles = parseFloat(aircraft["Cumulative Cycles"]) || 0;
+          if (cumCycles === 0 && ageYears > 0) {
+            cumCycles = ageMonths * 120;
+          }
+          // Cumulative flight hours: use parsed value, or estimate
+          let cumHours = parseFloat(aircraft["Cumulative Hours"]) || 0;
+          if (cumHours === 0 && ageYears > 0) {
+            cumHours = ageMonths * 250; // ~250 FH/month industry avg
+          }
+
+          // --- Calculations ---
+
+          // 1. Next C-Check (months remaining)
+          const cCheckRemMo = rule.cCheckMo - (ageMonths % rule.cCheckMo);
+
+          // 2. Next Heavy Check / D-Check (months remaining)
+          const heavyRemMo = rule.heavyMo - (ageMonths % rule.heavyMo);
+
+          // 3. Landing Gear Overhaul — lesser of calendar limit vs. cycle limit
+          const gearRemMo = rule.gearMo - (ageMonths % rule.gearMo);
+          const gearRemFc = rule.gearFc - (cumCycles % rule.gearFc);
+          // Convert gear cycle limit to approximate months for comparison
+          const monthlyFc = cumCycles > 0 && ageMonths > 0 ? cumCycles / ageMonths : 120;
+          const gearFcAsMonths = monthlyFc > 0 ? Math.round(gearRemFc / monthlyFc) : 9999;
+          const gearEffectiveMo = Math.min(gearRemMo, gearFcAsMonths);
+          const gearLimitedBy = gearFcAsMonths < gearRemMo ? "cycles" : "calendar";
+
+          // 4. Engine Performance Restoration (flight hours remaining)
+          const engPrRemFh = rule.engPrFh - (cumHours % rule.engPrFh);
+
+          // 5. Engine LLP Life (cycles remaining)
+          const engLlpRemFc = rule.engLlpFc - (cumCycles % rule.engLlpFc);
+
+          return {
+            lookupKey,
+            rule,
+            ageMonths,
+            cumCycles: Math.round(cumCycles),
+            cumHours: Math.round(cumHours),
+            cCheckRemMo,
+            heavyRemMo,
+            gearRemMo,
+            gearRemFc: Math.round(gearRemFc),
+            gearEffectiveMo,
+            gearLimitedBy,
+            engPrRemFh: Math.round(engPrRemFh),
+            engLlpRemFc: Math.round(engLlpRemFc)
+          };
+        }
+
+        /**
+         * RAG status helper: returns { color, bg, border, label } based on
+         * months-remaining or cycles-remaining thresholds.
+         */
+        function mxRagStatus(monthsOrCycles, unit) {
+          if (unit === "months") {
+            if (monthsOrCycles < 12) return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
+            if (monthsOrCycles < 24) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
+            return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
+          }
+          // unit === "cycles"
+          if (monthsOrCycles < 1000)  return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
+          if (monthsOrCycles < 2500) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
+          return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
+        }
+
+        /**
+         * Render a single MX metric card row.
+         */
+        function mxMetricHtml(icon, title, value, subtext, rag) {
+          return `
+            <div style="background:${rag.bg};border:1px solid ${rag.border};border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;">
+              <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${rag.color};">${icon}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(title)}</div>
+                <div style="font-size:24px;font-weight:900;color:${rag.color};line-height:1.15;margin-top:2px;">${value}</div>
+                <div style="font-size:11px;color:#64748b;margin-top:3px;">${subtext}</div>
+              </div>
+              <div style="padding:3px 9px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.06em;color:${rag.color};border:1px solid ${rag.border};background:rgba(0,0,0,.2);flex-shrink:0;">${rag.label}</div>
+            </div>`;
+        }
+
+        /**
+         * renderMxForecast(r) — called from showAcDetail.
+         * Populates the #acd-mx-body panel with predictive maintenance data.
+         */
+        function renderMxForecast(r) {
+          const body = document.getElementById('acd-mx-body');
+          if (!body) return;
+
+          const mx = calculateMxExposure(r);
+
+          if (!mx) {
+            const acType = (r["Type"] || "Unknown").trim();
+            const engFam = (r["Engine Family"] || "Unknown").trim();
+            body.innerHTML = `
+              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;text-align:center;">
+                <svg style="width:32px;height:32px;color:#334155;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div style="font-size:13px;font-weight:600;color:#94a3b8;">Maintenance baseline data unavailable for this variant</div>
+                <div style="font-size:11px;color:#475569;">Lookup key: <span class="mono" style="color:#64748b;">${escapeHtml(acType)}_${escapeHtml(engFam)}</span></div>
+                <div style="font-size:10px;color:#334155;max-width:420px;margin-top:4px;">The MPD rules dictionary currently covers A320ceo, A320neo, 737-800 NG, and 737-8 MAX variants. Other types will be added in future phases.</div>
+              </div>`;
+            return;
+          }
+
+          // Icon SVGs
+          const icoHeavy = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>';
+          const icoGear  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>';
+          const icoEng   = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
+          const icoCchk  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+          const icoEngPR = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+
+          const ragHeavy  = mxRagStatus(mx.heavyRemMo, "months");
+          const ragCchk   = mxRagStatus(mx.cCheckRemMo, "months");
+          const ragGear   = mxRagStatus(mx.gearEffectiveMo, "months");
+          const ragEngLlp = mxRagStatus(mx.engLlpRemFc, "cycles");
+          const ragEngPr  = mxRagStatus(mx.engPrRemFh, "cycles");
+
+          body.innerHTML = `
+            <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div>
+                <span style="font-size:11px;color:#64748b;">MPD Baseline Key:</span>
+                <span class="mono" style="font-size:11px;color:#06b6d4;margin-left:6px;">${escapeHtml(mx.lookupKey)}</span>
+              </div>
+              <div style="display:flex;gap:12px;">
+                <span style="font-size:10px;color:#475569;">Age: <strong style="color:#cbd5e1;">${mx.ageMonths.toLocaleString()} mo</strong></span>
+                <span style="font-size:10px;color:#475569;">Cycles: <strong style="color:#cbd5e1;">${mx.cumCycles.toLocaleString()} FC</strong></span>
+                <span style="font-size:10px;color:#475569;">Hours: <strong style="color:#cbd5e1;">${mx.cumHours.toLocaleString()} FH</strong></span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
+              ${mxMetricHtml(icoHeavy, 'Months to Heavy Check (D-Check)', mx.heavyRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.heavyMo + ' mo · ' + Math.round(mx.heavyRemMo / 12 * 10) / 10 + ' years remaining', ragHeavy)}
+              ${mxMetricHtml(icoCchk, 'Months to Next C-Check', mx.cCheckRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.cCheckMo + ' mo', ragCchk)}
+              ${mxMetricHtml(icoGear, 'Life to Gear Overhaul', mx.gearEffectiveMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Limited by ' + mx.gearLimitedBy + ' · Calendar: ' + mx.gearRemMo + ' mo · Cycles: ' + mx.gearRemFc.toLocaleString() + ' FC remaining', ragGear)}
+              ${mxMetricHtml(icoEng, 'Remaining Engine LLP Cycles', mx.engLlpRemFc.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FC</span>', 'LLP limit: ' + mx.rule.engLlpFc.toLocaleString() + ' FC per shop visit', ragEngLlp)}
+              ${mxMetricHtml(icoEngPR, 'Engine Perf. Restoration (FH)', mx.engPrRemFh.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FH</span>', 'PR interval: ' + mx.rule.engPrFh.toLocaleString() + ' FH', ragEngPr)}
+            </div>
+            <div style="margin-top:14px;padding:10px 14px;background:#0a0f1e;border:1px solid #1a2234;border-radius:8px;display:flex;align-items:center;gap:8px;">
+              <svg style="width:14px;height:14px;color:#334155;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div style="font-size:10px;color:#475569;line-height:1.5;">Predictions are browser-computed estimates using hardcoded OEM MPD intervals and the aircraft's current age and cumulative cycles/hours from the fleet dataset. Actual maintenance scheduling depends on operator-specific MPD approvals, AD compliance, and SB incorporation status. Where cumulative cycles were missing, an estimate of 120 FC/month was applied.</div>
+            </div>`;
+        }
+
+        /**
+         * openAircraftDetail(serialNumber)
+         * Convenience function to open the A/C Detail view by serial number.
+         * Called from external triggers or can replace showAcDetail in DD rows.
+         */
+        function openAircraftDetail(serialNumber) {
+          const sn = String(serialNumber || "").trim();
+          if (!sn) return;
+          const idx = allData.findIndex(r => (r["Serial Number"] || "").trim() === sn);
+          if (idx >= 0) {
+            showAcDetail(idx);
+          } else {
+            console.warn("openAircraftDetail: Serial Number not found:", sn);
+          }
         }
       </script>
       <script>
@@ -5818,6 +6175,116 @@ function renderSunburst(topN){
       </script>
     </div><!-- end tab-area -->
   </div><!-- end dashboard-section -->
+  <!-- Phase 1.4: Lightweight Test Harness -->
+  <script>
+    window.runTests = () => {
+      let pass = 0, fail = 0;
+      const assert = (cond, msg) => {
+        if (cond) { pass++; console.log(`%c✓ ${msg}`, 'color:#86efac'); }
+        else { fail++; console.error(`✗ FAIL: ${msg}`); }
+      };
+      const section = (name) => console.log(`%c\n─── ${name} ───`, 'color:#06b6d4;font-weight:bold');
+
+      // --- ModuleSystem ---
+      section('ModuleSystem');
+      assert(typeof ModuleSystem === 'object', 'ModuleSystem exists');
+      assert(ModuleSystem.has('TATS'), 'TATS module registered');
+      assert(ModuleSystem.has('DataSchema'), 'DataSchema module registered');
+      assert(ModuleSystem.list().length >= 2, 'At least 2 modules registered');
+      try { ModuleSystem.get('NonExistent'); assert(false, 'Missing module throws'); } catch (e) { assert(true, 'Missing module throws: ' + e.message); }
+
+      // --- TATS Scoring ---
+      section('TATS Scoring');
+      const tats = ModuleSystem.get('TATS');
+
+      // High Risk: stored, old, short lease, Tier 1, top-25
+      const hr = tats.calculateScore({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
+      assert(hr >= 70, `High Risk scenario score=${hr} (expected >=70)`);
+      assert(tats.getTier(hr) === 'High Risk', `High Risk tier correct`);
+
+      // Medium Risk: in service, middle age, 2-year lease
+      const mr = tats.calculateScore({ daysToLeaseEnd: 500, status: 'In Service', ageYears: 16, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
+      assert(mr >= 40 && mr < 70, `Medium Risk scenario score=${mr} (expected 40-69)`);
+      assert(tats.getTier(mr) === 'Medium Risk', `Medium Risk tier correct`);
+
+      // Low Risk: new, long lease, not top-25
+      const lr = tats.calculateScore({ daysToLeaseEnd: 2000, status: 'In Service', ageYears: 3, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
+      assert(lr < 40, `Low Risk scenario score=${lr} (expected <40)`);
+      assert(tats.getTier(lr) === 'Low Risk', `Low Risk tier correct`);
+
+      // Edge: unknown lease end
+      const unk = tats.calculateScore({ daysToLeaseEnd: null, status: 'In Service', ageYears: 8, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
+      assert(unk >= 0, `Unknown lease score=${unk} is non-negative`);
+
+      // Edge: estimated lease penalty
+      const estPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
+      const noEstPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
+      assert(estPen < noEstPen, `Estimated lease penalty: ${estPen} < ${noEstPen}`);
+
+      // Clamp: can't go below 0
+      const clampLow = tats.calculateScore({ daysToLeaseEnd: null, status: 'Other', ageYears: 1, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
+      assert(clampLow >= 0, `Score clamped to 0 minimum (got ${clampLow})`);
+
+      // TAM estimation
+      assert(tats.estimateTAM(50000000) === 100000, 'TAM: $50M market value → $100K TAM');
+      assert(tats.estimateTAM(null) === null, 'TAM: null input returns null');
+      assert(tats.estimateTAM(0) === null, 'TAM: zero input returns null');
+
+      // scoreBreakdown
+      const bd = tats.scoreBreakdown({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
+      assert(bd.score === hr, 'scoreBreakdown matches calculateScore');
+      assert(bd.tier === 'High Risk', 'scoreBreakdown tier matches');
+
+      // --- DataSchema ---
+      section('DataSchema');
+      const ds = ModuleSystem.get('DataSchema');
+
+      // Valid record
+      const validIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
+      assert(validIssues.length === 0, 'Valid record has 0 issues');
+
+      // Missing required
+      const missingIssues = ds.validate({ 'Serial Number': '', 'Type': '', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
+      assert(missingIssues.length >= 2, `Missing required fields detected: ${missingIssues.length} issues`);
+
+      // Invalid numeric
+      const numIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus', 'Age': 'abc' }, 0);
+      assert(numIssues.some(i => i.field === 'Age' && i.issue === 'not_numeric'), 'Non-numeric Age detected');
+
+      // Batch validation
+      const batchIssues = ds.validateBatch([
+        { 'Serial Number': '111', 'Type': 'A320', 'Operator': 'Test', 'Status': 'In Service', 'Manufacturer': 'Airbus' },
+        { 'Serial Number': '', 'Type': '', 'Operator': '', 'Status': 'Weird', 'Manufacturer': '' }
+      ]);
+      assert(batchIssues.length > 0, `Batch validation found ${batchIssues.length} issues in bad row`);
+
+      // --- MX Engine ---
+      section('MX Engine (Phase 8)');
+      if (typeof calculateMxExposure === 'function') {
+        const knownAc = { 'Type': 'Airbus A320ceo', 'Engine Family': 'CFM56-5B', _age: 10, 'Cumulative Cycles': '40000', 'Cumulative Hours': '60000' };
+        const mx = calculateMxExposure(knownAc);
+        assert(mx !== null, 'Known variant returns MX data');
+        assert(mx.heavyRemMo > 0 && mx.heavyRemMo <= 144, `Heavy check remaining: ${mx.heavyRemMo} mo`);
+        assert(mx.engLlpRemFc > 0, `Engine LLP remaining: ${mx.engLlpRemFc} FC`);
+        assert(mx.gearEffectiveMo > 0, `Gear overhaul remaining: ${mx.gearEffectiveMo} mo`);
+
+        const unknownAc = { 'Type': 'Boeing 747-400', 'Engine Family': 'CF6-80C2', _age: 25 };
+        const mxNull = calculateMxExposure(unknownAc);
+        assert(mxNull === null, 'Unknown variant returns null (fallback)');
+      } else {
+        assert(false, 'calculateMxExposure function not found');
+      }
+
+      // --- Summary ---
+      const total = pass + fail;
+      if (fail === 0) {
+        console.log(`%c\n✅ ALL ${total} TESTS PASSED`, 'color:#86efac;font-weight:bold;font-size:14px');
+      } else {
+        console.log(`%c\n⚠ ${total} tests: ${pass} passed, ${fail} FAILED`, 'color:#fca5a5;font-weight:bold;font-size:14px');
+      }
+      return { pass, fail, total };
+    };
+  </script>
 </body>
 
 </html>
