@@ -2347,9 +2347,10 @@
         }
 
         // Persistence
-        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Consolidated%20Scores%20Sheet.csv";
+        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Aircraft%20Detail.csv";
+        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Consolidated%20Scores%20Sheet.csv";
         // const URL_SUPPLY = "Remarketing%20Supply.csv";
+        const LIVE_FETCH_TIMEOUT_MS = 15000;
 
         function setInitState(mode, msg, sub) {
           const loading = document.getElementById("init-loading");
@@ -2385,6 +2386,22 @@
               <span style="display:block;color:#fca5a5;font-weight:700;margin-bottom:8px;">${escapeHtml(detail)}</span>
               <span style="color:#4b5563;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
             `;
+          }
+        }
+
+        async function fetchWithTimeout(url, options = {}, timeoutMs = LIVE_FETCH_TIMEOUT_MS) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            return response;
+          } catch (err) {
+            if (err && err.name === "AbortError") {
+              throw new Error(`Request timed out after ${timeoutMs}ms: ${url}`);
+            }
+            throw err;
+          } finally {
+            clearTimeout(timer);
           }
         }
         }
@@ -2566,7 +2583,7 @@
 
         async function fetchCsvText(url, { required = true } = {}) {
           try {
-            const res = await fetch(url, { cache: "no-store" });
+            const res = await fetchWithTimeout(url, { cache: "no-store" });
             if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
             return await res.text();
           } catch (err) {
@@ -2601,12 +2618,12 @@
             setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
           }
 
-          let syncErrorMessage = "";
-          try {
-            const [resFleet, resCredit] = await Promise.all([
-              fetch(URL_MAIN, { cache: "no-store" }),
-              fetch(URL_CREDIT, { cache: "no-store" })
-            ]);
+            let syncErrorMessage = "";
+            try {
+              const [resFleet, resCredit] = await Promise.all([
+              fetchWithTimeout(URL_MAIN, { cache: "no-store" }),
+              fetchWithTimeout(URL_CREDIT, { cache: "no-store" })
+              ]);
 
             if (!resFleet.ok) {
               throw new Error(`Fleet CSV fetch failed (${resFleet.status} ${resFleet.statusText || "Unknown"})`);
@@ -2684,7 +2701,7 @@ ${syncErrorMessage || "Unknown error"}`);
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-          setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
+          setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
           await syncData({ showSpinner: true, allowUploadFallback: true });
         });
         // Drag/drop
