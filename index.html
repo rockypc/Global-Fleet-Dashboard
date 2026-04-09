@@ -4006,6 +4006,8 @@
             d = d.filter(r => /stor/i.test(r["Status"] || ""));
           }
           ddFiltered = d;
+          // Cascading drill-through: refresh all DD filter options based on filtered data
+          refreshDDFilterOptions(d);
           // KPIs
           const ops = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean));
           const ages = d.map(r => r._age).filter(v => v !== null);
@@ -4032,6 +4034,35 @@
           const cb = document.getElementById("dd-chips");
           cb.innerHTML = chips.length ? chips.map(c => `<div class="chip">${c.label}<button onclick="${c.id === "__quickview__" ? "clearDDQuickView()" : `clearDDFilter('${c.id}')`}"></button></div>`).join("") : "<span style='font-size:10.5px;color:#1f2937;'>None  showing all ${allData.length.toLocaleString()} records</span>";
           renderDDTable();
+        }
+
+        /**
+         * refreshDDFilterOptions(filtered)
+         * Cascading drill-through: repopulate every DD filter dropdown with
+         * only the values present in the current filtered dataset. Preserves
+         * each dropdown's current selection via the existing fill() helper.
+         */
+        function refreshDDFilterOptions(filtered) {
+          const U = (k) => uniq(filtered.map(r => (r[k] || "").trim()));
+          const V = (k) => uniq(filtered.map(r => r[k] ? String(r[k]) : "").filter(Boolean));
+
+          // All standard DD_FILTERS (single-select dropdowns mapped to CSV columns)
+          DD_FILTERS.forEach(f => {
+            fill(f.id, U(f.k));
+          });
+
+          // Extra DD-specific filters not in DD_FILTERS array
+          fill("dd-buildyr", V("_buildYr"));
+          fill("dd-lsendyr", uniq(filtered.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
+          fill("dd-delyr", uniq(filtered.map(r => r._delYr ? String(r._delYr) : "").filter(Boolean)));
+
+          // TATS tier filter
+          const tiers = uniq(filtered.map(r => r._tatsTier || "").filter(Boolean));
+          fill("dd-tatstier", tiers);
+
+          // Lease end quarter — always 1-4 if any data has quarters
+          const quarters = uniq(filtered.map(r => r._leEndQ ? String(r._leEndQ) : "").filter(Boolean));
+          fill("dd-lsendq", quarters);
         }
         function clearDDFilter(id) { const e = document.getElementById(id); if (e) { e.value = ""; if (e.type === "number" || e.type === "text") e.value = ""; } runDD(); }
         function renderDDTable() {
@@ -4793,6 +4824,10 @@
         function renderP1() {
           const reg = gv("p1-region"), mfg = gv("p1-mfg"), st = gv("p1-status");
           const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg) && (st === "" || (r["Status"] || "").trim() === st));
+          // Cascading filters
+          fill("p1-region", uniq(d.map(r => (r["Operator Region"] || "").trim())));
+          fill("p1-mfg", uniq(d.map(r => (r["Manufacturer"] || "").trim())));
+          fill("p1-status", uniq(d.map(r => (r["Status"] || "").trim())));
           document.getElementById("p1-kpi-total").textContent = d.length.toLocaleString();
           document.getElementById("p1-kpi-regions").textContent = new Set(d.map(r => (r["Operator Region"] || "").trim())).size;
           document.getElementById("p1-kpi-countries").textContent = new Set(d.map(r => (r["Operator Country/Subregion"] || "").trim())).size;
@@ -4811,6 +4846,9 @@
         function renderP2() {
           const reg = gv("p2-region"), mfg = gv("p2-mfg");
           const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
+          // Cascading filters
+          fill("p2-region", uniq(d.map(r => (r["Operator Region"] || "").trim())));
+          fill("p2-mfg", uniq(d.map(r => (r["Manufacturer"] || "").trim())));
           const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
           const flow = {}; d.forEach(r => { const m = (r["Manufacturer"] || "?").trim(), e = (r["Engine Manufacturer"] || "?").trim(); if (!flow[m]) flow[m] = {}; flow[m][e] = (flow[m][e] || 0) + 1; });
           ic("chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
@@ -4827,6 +4865,11 @@
         function renderP3() {
           const typ = gv("p3-type"), yr = gv("p3-year"), fam = gv("p3-family");
           const d = allData.filter(r => (typ === "" || (r["Type"] || "").trim() === typ) && (yr === "" || String(r._buildYr) === yr) && (fam === "" || (r["Current Family"] || "").trim() === fam));
+          // Cascading filters
+          fill("p3-type", uniq(d.map(r => (r["Type"] || "").trim())));
+          fill("p3-year-from", uniq(d.map(r => r._buildYr ? String(r._buildYr) : "").filter(Boolean)));
+          fill("p3-year-to", uniq(d.map(r => r._buildYr ? String(r._buildYr) : "").filter(Boolean)));
+          fill("p3-family", uniq(d.map(r => (r["Current Family"] || "").trim())));
           const years = [...new Set(d.map(r => r._buildYr).filter(Boolean))].sort();
           const families = topN(cBy(d, "Current Family"), 8).map(e => e[0]);
           const cumD = {}; families.forEach(f => { let c = 0; cumD[f] = years.map(y => { c += d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
@@ -4844,6 +4887,11 @@
           const q = (gv("p4-search") || "").toLowerCase();
           let d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg) && (st === "" || (r["Status"] || "").trim() === st) && (mgr === "" || (r["Manager"] || "").trim() === mgr));
           if (q) d = d.filter(r => [(r["Operator"] || ""), (r["Registration"] || ""), (r["Serial Number"] || "")].join(" ").toLowerCase().includes(q));
+          // Cascading filters
+          fill("p4-region", uniq(d.map(r => (r["Operator Region"] || "").trim())));
+          fill("p4-mfg", uniq(d.map(r => (r["Manufacturer"] || "").trim())));
+          fill("p4-status", uniq(d.map(r => (r["Status"] || "").trim())));
+          fill("p4-manager", uniq(d.map(r => (r["Manager"] || "").trim()).filter(Boolean)));
           document.getElementById("p4-count").textContent = `${d.length.toLocaleString()} aircraft`;
           document.getElementById("p4-tbody").innerHTML = d.slice(0, 200).map(r => `<tr>
     <td>${r["Operator Region"] || "-"}</td><td>${r["Operator"] || "-"}</td><td>${r["Type"] || "-"}</td>
@@ -4858,6 +4906,9 @@
         function renderP5() {
           const tier = gv("p5-tier"), reg = gv("p5-region"), lyr = gv("p5-leaseyr");
           const d = allData.filter(r => (tier === "" || r._tatsTier === tier) && (reg === "" || (r["Operator Region"] || "").trim() === reg) && (lyr === "" || String(r._leEndYr) === lyr));
+          // Cascading filters
+          fill("p5-region", uniq(d.map(r => (r["Operator Region"] || "").trim())));
+          fill("p5-leaseyr", uniq(d.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
           document.getElementById("p5-kpi-high").textContent = d.filter(r => r._tatsTier === "High Risk").length.toLocaleString();
           document.getElementById("p5-kpi-med").textContent = d.filter(r => r._tatsTier === "Medium Risk").length.toLocaleString();
           document.getElementById("p5-kpi-low").textContent = d.filter(r => r._tatsTier === "Low Risk").length.toLocaleString();
@@ -4876,6 +4927,9 @@
         function renderP8() {
           const reg = gv("p8-region"), cty = gv("p8-country");
           const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
+          // Cascading filters
+          fill("p8-region", uniq(d.map(r => (r["Operator Region"] || "").trim())));
+          fill("p8-country", uniq(d.map(r => (r["Operator Country/Subregion"] || "").trim())));
           document.getElementById("p8-kpi-total").textContent = d.length.toLocaleString();
           const tv = d.reduce((s, r) => s + (r._val || 0), 0);
           document.getElementById("p8-kpi-value").textContent = "$" + (tv / 1000).toFixed(1) + "B";
@@ -4902,6 +4956,10 @@
         function renderGantt() {
           const mgr = gv("gantt-mgr"), yr = gv("gantt-yr");
           let d = allData.filter(r => r._leEnd && (mgr === "" || (r["Manager"] || "").trim() === mgr) && (yr === "" || String(r._leEndYr) === yr));
+          // Cascading filters
+          fill("gantt-mgr", uniq(d.map(r => (r["Manager"] || "").trim()).filter(Boolean)));
+          fill("gantt-yr-from", uniq(d.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
+          fill("gantt-yr-to", uniq(d.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
           const mgrMap = {};
           d.slice(0, 400).forEach(r => { const m = (r["Manager"] || "Unknown").trim(); if (!mgrMap[m]) mgrMap[m] = []; if (mgrMap[m].length < 25) mgrMap[m].push({ reg: r["Registration"] || r["Serial Number"] || "?", op: r["Operator"] || "", leEnd: r._leEnd, tier: r._tatsTier }); });
           const sortedM = Object.keys(mgrMap).sort((a, b) => mgrMap[b].length - mgrMap[a].length).slice(0, 18);
@@ -4955,6 +5013,8 @@
         function runFE() {
           const fMap = [{ id: "fe-region", k: "Operator Region" }, { id: "fe-country", k: "Operator Country/Subregion" }, { id: "fe-opgroup", k: "Operator Group" }, { id: "fe-operator", k: "Operator" }, { id: "fe-mfg", k: "Manufacturer" }, { id: "fe-family", k: "Current Family" }, { id: "fe-engine", k: "Engine Manufacturer" }, { id: "fe-grouping", k: "Market Grouping" }, { id: "fe-status", k: "Status" }, { id: "fe-usage", k: "Primary Usage" }];
           feFiltered = allData.filter(r => fMap.every(f => gv(f.id) === "" || (r[f.k] || "").trim() === gv(f.id)));
+          // Cascading filters
+          fMap.forEach(f => fill(f.id, uniq(feFiltered.map(r => (r[f.k] || "").trim()))));
           const ops = new Set(feFiltered.map(r => (r["Operator"] || "").trim()).filter(Boolean));
           const ages = feFiltered.map(r => r._age).filter(v => v !== null);
           document.getElementById("fe-kpi-total").textContent = feFiltered.length.toLocaleString();
