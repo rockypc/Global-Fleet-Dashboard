@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -472,7 +472,7 @@
     }
 
     .acc-body.open {
-      max-height: 1000px;
+      max-height: 2000px;
     }
 
     .acc-inner {
@@ -641,7 +641,7 @@
       padding: 6px 20px;
       display: flex;
       align-items: center;
-      justify-between;
+      justify-content: space-between;
       gap: 12px;
       font-size: 12px;
       color: #7dd3fc;
@@ -1413,15 +1413,20 @@
                   <span id="dd-table-info"
                     style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;"></span>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;position:relative;">
                   <input class="fi" id="dd-search" placeholder="Search within results..." oninput="renderDDTable()"
                     style="width:220px;">
+                  <button onclick="document.getElementById('col-toggles').classList.toggle('hidden')" class="btn btn-ghost" style="padding:6px 12px;font-size:11px;">Columns</button>
                   <select class="fs" id="dd-rowlimit" onchange="renderDDTable()" style="width:90px;">
                     <option value="100">100 rows</option>
                     <option value="250">250 rows</option>
                     <option value="500">500 rows</option>
-                    <option value="all">All rows</option>
+                    <option value="all">All</option>
                   </select>
+                  <div id="col-toggles" class="hidden" style="position:absolute;top:40px;right:0;z-index:100;background:#0d1424;border:1px solid #1e3a5f;padding:12px;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.5);min-width:240px;">
+                    <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#06b6d4;">Toggle Visibility</div>
+                    <div id="col-toggle-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+                  </div>
                   <button onclick="exportCurrentDD()" class="btn btn-ghost"
                     style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
                     <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2"
@@ -1501,6 +1506,16 @@
           <div class="card flex flex-col">
             <div class="s-title">Market Grouping Mix</div>
             <div class="flex-grow relative"><canvas id="chart-p1-mkt"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Regional airlines drill-down panel -->
+        <div id="p1-airlines-panel" class="hidden card" style="margin-top:12px;">
+          <div style="padding:10px 14px; border-bottom:1px solid #1a2234; background:#0a0f1e;">
+            <span id="p1-airlines-title" style="font-size:13px; font-weight:700; color:#06b6d4;"></span>
+          </div>
+          <div style="padding:10px 14px; max-height:300px; overflow-y:auto;">
+            <div id="p1-airlines-list" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
           </div>
         </div>
       </div>
@@ -2306,9 +2321,34 @@
           return null;
         }
 
+        // Line ~2307 — add after parseLeaseEndDate
+        function parseD(s) {
+          // Parse storage date in any reasonable format
+          if (!s || typeof s !== "string") return null;
+          const trimmed = s.trim();
+          if (!trimmed) return null;
+          
+          // Try parsing as ISO, US, or EU format
+          const d = new Date(trimmed);
+          if (isNaN(d.getTime())) {
+            // Try dd-mm-yyyy or mm-dd-yyyy manual parse
+            const parts = trimmed.split(/[-\/]/);
+            if (parts.length === 3) {
+              const y = parseInt(parts[2], 10);
+              const m = parseInt(parts[0], 10);
+              const day = parseInt(parts[1], 10);
+              if (y > 1900 && y < 2100 && m >= 1 && m <= 12 && day >= 1 && day <= 31) {
+                return new Date(y, m - 1, day);
+              }
+            }
+            return null;
+          }
+          return d;
+        }
+
         // Persistence
         const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "Consolidated%20Scores%20Sheet.csv";
+        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Consolidated%20Scores%20Sheet.csv";
         // const URL_SUPPLY = "Remarketing%20Supply.csv";
 
         function setInitState(mode, msg, sub) {
@@ -2621,6 +2661,13 @@
         });
 
         function initDash(data, supplemental = {}) {
+          // CLEAR OLD CACHED DATA (WARN-07)
+          allData = [];
+          ddFiltered = [];
+          feFiltered = [];
+          tatsVisibleRows = [];
+          ddVisibleRows = [];
+
           document.getElementById("init-loading").classList.add("hidden");
           document.getElementById("upload-section").classList.add("hidden");
           document.getElementById("dashboard-section").classList.remove("hidden");
@@ -2712,30 +2759,38 @@
             else if (r._ageYears <= 25) r._ageBucket = "21-25";
             else r._ageBucket = "26+";
 
-            // Market Value Normalization (strip $ and commas)
+            // Market Value Normalization (WARN-05)
             r._mktValueUSDm = null;
             r._mktValueUSD = null;
-            let rawMkt = String(r["Indicative Market Value (US$m)"] || "").replace(/[^0-9.]/g, '');
-            if (rawMkt !== "") {
-              let valMts = parseFloat(rawMkt);
-              if (!isNaN(valMts)) {
-                // Some rows might have value in fully expanded USD (e.g. 15,500,000)
-                if (valMts > 1000) valMts = valMts / 1000000;
-
-                if (valMts < 1000) { // arbitrary bound, max value ~300m usually
-                  r._mktValueUSDm = valMts;
-                  r._mktValueUSD = valMts * 1000000;
-                  qStats.valParsed++;
-                  qStats.values.push(valMts);
-                  r._val = valMts; // backwards comp
-                }
+            let rawMktVal = r["Indicative Market Value (US$m)"];
+            if (rawMktVal) {
+              let valMts = parseFloat(rawMktVal.toString().replace(/[^0-9.]/g, '')) || 0;
+              
+              // Heuristic: if value is > 5000 it's probably in full USD, not $M
+              if (valMts > 5000) {
+                valMts = valMts / 1000000;
+              } else if (valMts > 0 && valMts < 0.1) {
+                console.warn(`Suspicious market value: ${r["Serial Number"]} = ${valMts}M`);
+              }
+              
+              if (valMts > 0) {
+                r._mktValueUSDm = valMts;
+                r._mktValueUSD = valMts * 1000000;
+                qStats.valParsed++;
+                qStats.values.push(valMts);
+                r._val = valMts; // backwards comp
               }
             }
 
             r._isLeaseEndEstimated = (String(r["Is Lease End Estimated"] || "").toLowerCase() === "yes" || String(r["Is Lease End Estimated"] || "").toLowerCase() === "true");
 
             // Retaining backward compat parsed fields
-            r._rate = parseFloat(r["Indicative Market Lease Rate (US$m)"]) || null;
+            // Lease Rate Persistence (UI-02)
+            const leaseRateRaw = parseFloat(r["Indicative Market Lease Rate (US$m)"] || r["Monthly Lease Rate"] || "0");
+            const msnKey = (r["Serial Number"] || r["Registration"] || "").trim();
+            const savedLease = msnKey ? sessionStorage.getItem("lease_" + msnKey) : null;
+            r._rate = savedLease ? (parseFloat(savedLease) / 1000000) : (leaseRateRaw > 10000 ? leaseRateRaw / 1000000 : leaseRateRaw);
+
             r._buildYr = parseInt(r["Build Year"]) || null;
             r._fcSeats = parseInt(r["First Class Number of Seats"]) || 0;
             r._bcSeats = parseInt(r["Business Class Number of Seats"]) || 0;
@@ -2746,7 +2801,10 @@
             r._leEnd = r._leaseEndDate;
             r._leEndYr = r._leEnd ? r._leEnd.getFullYear() : null;
             r._leEndQ = r._leEnd ? Math.ceil((r._leEnd.getMonth() + 1) / 3) : null;
-            r._delYr = r["Delivery Date"] ? (() => { const p = r["Delivery Date"].split("-"); return p.length === 3 ? parseInt(p[2]) || null : null; })() : null;
+            r._delYr = r["Delivery Date"] ? (() => { 
+                const d = parseD(r["Delivery Date"]); 
+                return d ? d.getFullYear() : null; 
+              })() : null;
             r._premiumDensity = r._seats ? (((r._fcSeats + r._bcSeats + r._peSeats) / r._seats) * 100) : 0;
 
             // --- Industry proxy calculated fields ---
@@ -2775,6 +2833,13 @@
             // 4. Financial Exposure at Transition (Next 12M)
             r._finExp = 0;
             if (r._leEnd) { const mo = (r._leEnd - new Date()) / (864e5 * 30); if (mo >= 0 && mo <= 12) r._finExp = r._val || 0; }
+
+            // Pre-compute search index (UI-04)
+            r._searchStr = [
+              r["Registration"], r["Serial Number"], r["Type"], r["Operator"], r["Status"],
+              r["Lease End"], r["Engine Manufacturer"], r["Engine Type"], r["Operator Country/Subregion"],
+              r["Manager"], r["Owner"]
+            ].filter(Boolean).join(" ").toLowerCase();
 
             return r;
           });
@@ -2913,8 +2978,9 @@
           buildCountry();
           rebuildOperatorTypeConfigs();
           fillAllSelects();
-          renderP1(); renderCountryTab(); renderLessors(); renderP9();
-          runDD();
+          initColToggles();
+          validateNav();
+          // Eager renders removed to fix WARN-09. Tabs render on switch.
           renderHome();
           switchTab("home");
         }
@@ -3234,7 +3300,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     ${idx >= 0 ? '<button type="button" data-open-spec class="btn btn-ghost" style="padding:8px 14px;">Open Full A/C Detail</button>' : ''}
-                    <button type="button" data-close class="btn btn-primary" style="padding:8px 14px;">Close</button>
+                    <button type="button" data-close class="btn btn-cyan" style="padding:8px 14px;">Close</button>
                   </div>
                 </div>
                 ${detailHtml}
@@ -3963,71 +4029,8 @@
           }
         }
 
-        function renderTATS() {
-          const tab = document.getElementById("tab-tats");
-          if (!tab) return;
-          const pipeline = allData.map(r => {
-            let riskTier = "Low Risk";
-            if ((r._daysToLeaseEnd !== null && r._daysToLeaseEnd < 180) || /stor/i.test(r["Status"] || "")) riskTier = "High Risk";
-            else if (r._daysToLeaseEnd !== null && r._daysToLeaseEnd >= 180 && r._daysToLeaseEnd <= 365) riskTier = "Medium Risk";
-            return { ...r, _tatsAutoRisk: riskTier };
-          }).filter(r => r._tatsAutoRisk === "High Risk" || r._tatsAutoRisk === "Medium Risk")
-            .sort((a, b) => {
-              const scoreA = a._tatsAutoRisk === "High Risk" ? 0 : 1;
-              const scoreB = b._tatsAutoRisk === "High Risk" ? 0 : 1;
-              if (scoreA !== scoreB) return scoreA - scoreB;
-              return (a._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER) - (b._daysToLeaseEnd ?? Number.MAX_SAFE_INTEGER);
-            });
-          tatsVisibleRows = pipeline.slice();
+        // Dead code renderTATS removed (WARN-06)
 
-          const high = pipeline.filter(r => r._tatsAutoRisk === "High Risk").length;
-          const medium = pipeline.filter(r => r._tatsAutoRisk === "Medium Risk").length;
-
-          tab.innerHTML = `
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-              <div class="kpi kpi-accent kpi-rose"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">High Risk (&lt; 180 Days / Stored)</div><div style="font-size:28px;font-weight:800;color:#f43f5e;">${high.toLocaleString()}</div></div>
-              <div class="kpi kpi-accent kpi-amber"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Medium Risk (&lt; 1 Year)</div><div style="font-size:28px;font-weight:800;color:#f59e0b;">${medium.toLocaleString()}</div></div>
-              <div class="kpi kpi-accent kpi-cyan"><div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Pipeline</div><div style="font-size:28px;font-weight:800;color:#06b6d4;">${pipeline.length.toLocaleString()}</div></div>
-            </div>
-            <div class="card flex flex-col overflow-hidden" style="padding:0;">
-              <div style="padding:12px 16px;border-bottom:1px solid #1a2234;background:#0d1424;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                <div>
-                  <span class="s-title">Automated TATS Prospecting Pipeline</span>
-                  <span style="font-size:11px;color:#475569;margin-left:8px;">Live from uploaded fleet data</span>
-                </div>
-                <button onclick="exportCurrentTATS()" class="btn btn-ghost" style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
-                  <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
-                  </svg>
-                  Export to CSV
-                </button>
-              </div>
-              <div class="overflow-auto">
-                <table style="width:100%;border-collapse:collapse;min-width:1180px;">
-                  <thead><tr><th>Risk Tier</th><th>Operator</th><th>Registration / Serial Number</th><th>Aircraft Type</th><th>Engine Family</th><th>Status</th><th>Lease End</th><th>Action</th></tr></thead>
-                  <tbody id="tats-tbody">
-                    ${pipeline.map(r => {
-            const reg = r["Registration"] || r["Serial Number"] || "-";
-            const pitch = `Hi team, noticed the ${(r["Type"] || "aircraft")} (Reg: ${reg}) operated by ${(r["Operator"] || "Unknown")} is showing a status of ${(r["Status"] || "Unknown")} with a lease transition date around ${(r["Lease End"] || "Unknown")}. Let's connect to discuss placement options.`;
-            return `
-                        <tr>
-                          <td>${tBadge(r._tatsAutoRisk)}</td>
-                          <td>${operatorWithCreditHtml(r["Operator"] || "-", r._creditScore, r._creditOutlook)}</td>
-                          <td class="mono">${escapeHtml(reg)}</td>
-                          <td>${escapeHtml(r["Type"] || "-")}</td>
-                          <td>${escapeHtml(r["Engine Family"] || "-")}</td>
-                          <td>${sBadge(r["Status"] || "-")}</td>
-                          <td>${escapeHtml(r["Lease End"] || "-")}</td>
-                          <td><button class="btn btn-ghost" onclick="copyTatsHook(decodeURIComponent('${encodeURIComponent(pitch)}'))">Copy Hook</button></td>
-                        </tr>
-                      `;
-          }).join("") || `<tr><td colspan="8" style="text-align:center;color:#475569;padding:18px;">No high- or medium-risk aircraft were found in the current fleet.</td></tr>`}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          `;
-        }
 
         function exportCurrentTATS() {
           const exportRows = tatsVisibleRows.map(r => ({
@@ -4074,23 +4077,27 @@
           const rMap = {
             home: renderHome,
             deepdive: runDD,
+            p1: renderP1,
             p2: renderP2,
             p3: renderP3,
             p4: renderP4,
             p5: renderP5,
             p8: renderP8,
+            p9: renderP9,
+            lessors: renderLessors,
+            country: renderCountryTab,
             gantt: renderGantt,
             fleet: runFE,
             lopa: () => renderLopaModule("lopa", "ops"),
             placement: renderPlacementRadar,
             ccolopa: () => renderLopaModule("ccolopa", "cco"),
-              engineintel: renderEngineIntel,
-              transitionintel: renderTransitionIntel,
-              tats: renderTATS,
-              usm: () => { if (usm) setTimeout(usm, 50); },
-              exposure: () => { if (exp) setTimeout(exp, 50); },
-              historical: () => { if (hist) setTimeout(hist, 50); }
-            };
+            engineintel: renderEngineIntel,
+            transitionintel: renderTransitionIntel,
+            tats: () => { refreshTATSVisuals(); renderTATSKPIs(); },
+            usm: () => { if (usm) setTimeout(usm, 50); },
+            exposure: () => { if (exp) setTimeout(exp, 50); },
+            historical: () => { if (hist) setTimeout(hist, 50); }
+          };
           if (rMap[id]) rMap[id]();
           if (id === 'creditrisk') {
             ModuleSystem.get('CounterpartyRisk').init();
@@ -4135,7 +4142,18 @@
           seating: [{ h: "FC Seats", k: "First Class Number of Seats" }, { h: "BC Seats", k: "Business Class Number of Seats" }, { h: "PE Seats", k: "Premium Economy Number of Seats" }, { h: "Eco Seats", k: "Economy Class Number of Seats" }, { h: "Total Seats", fn: r => r._seats || "-" }]
         };
         function getActiveDDCols() { return Object.keys(ddColVis).filter(g => ddColVis[g]).flatMap(g => DD_COLS[g]); }
-        function toggleCols(g) { const cbs = document.querySelectorAll("#col-toggles input"); cbs.forEach(cb => { if (cb.getAttribute("onchange") && cb.getAttribute("onchange").includes("'" + g + "'")) { ddColVis[g] = cb.checked; } }); renderDDTable(); }
+        function initColToggles() {
+          const list = document.getElementById("col-toggle-list");
+          if (!list) return;
+          const groups = Object.keys(DD_COLS);
+          list.innerHTML = groups.map(g => `
+            <label style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:#94a3b8;cursor:pointer;padding:2px 0;">
+              <input type="checkbox" onchange="toggleCols('${g}')" ${ddColVis[g] ? 'checked' : ''} style="accent-color:#06b6d4;">
+              ${g.charAt(0).toUpperCase() + g.slice(1)}
+            </label>
+          `).join("");
+        }
+        function toggleCols(g) { ddColVis[g] = !ddColVis[g]; renderDDTable(); }
         function updateDDQuickViewNote() {
           const note = document.getElementById("dd-quickview-note");
           if (!note) return;
@@ -4210,6 +4228,17 @@
           const smin = parseInt(document.getElementById("dd-seatsmin").value) || null; const smax = parseInt(document.getElementById("dd-seatsmax").value) || null;
           if (smin !== null) d = d.filter(r => r._seats !== null && r._seats >= smin);
           if (smax !== null) d = d.filter(r => r._seats !== null && r._seats <= smax);
+
+          // Omni-search (Consolidated from WARN-01)
+          const omniEl = document.getElementById("dd-omni");
+          if (omniEl && omniEl.value.trim()) {
+            const terms = omniEl.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+            if (terms.length) {
+              const OMNI_KEYS = ["Operator", "Registration", "Serial Number", "Type", "Engine Type", "Engine Sub Series", "Current Family", "Manufacturer", "Engine Manufacturer", "Manager", "Owner"];
+              d = d.filter(r => terms.every(t => OMNI_KEYS.some(k => (r[k] || "").toLowerCase().includes(t))));
+            }
+          }
+
           if (ddQuickView === "transitions") {
             const currentYear = new Date().getFullYear();
             const nextYear = currentYear + 1;
@@ -4221,6 +4250,7 @@
             d = d.filter(r => /stor/i.test(r["Status"] || ""));
           }
           ddFiltered = d;
+
           // KPIs
           const ops = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean));
           const ages = d.map(r => r._age).filter(v => v !== null);
@@ -4255,7 +4285,10 @@
           const cols = getActiveDDCols();
           const thead = document.getElementById("dd-thead-row");
           thead.innerHTML = `<th style="width:28px;"></th>` + cols.map(c => `<th class="${c.num ? "num" : ""}">${c.h}</th>`).join("");
-          let d = q ? ddFiltered.filter(r => JSON.stringify(Object.values(r)).toLowerCase().includes(q)) : ddFiltered;
+          
+          // Optimized search using pre-computed index (UI-04)
+          let d = q ? ddFiltered.filter(r => r._searchStr.includes(q)) : ddFiltered;
+
           const total = d.length;
           d = lim === "all" ? d : d.slice(0, parseInt(lim) || 100);
           ddVisibleRows = d.slice();
@@ -4542,7 +4575,10 @@
           const leaseInput = document.getElementById("acd-lease-rate-input");
           if (leaseInput) {
             leaseInput.addEventListener("input", function () {
-              acDetailState.monthlyLeaseRateUsd = Math.max(0, parseFloat(this.value) || 0);
+              const val = Math.max(0, parseFloat(this.value) || 0);
+              acDetailState.monthlyLeaseRateUsd = val;
+              const msn = (r["Serial Number"] || r["Registration"] || "").trim();
+              if (msn) sessionStorage.setItem("lease_" + msn, val);
               updateAcDetailValuationOutputs(r);
             });
           }
@@ -4616,7 +4652,10 @@
           if (!r) return;
           acDetailState.idx = idx;
           acDetailState.marketCondition = "half";
-          acDetailState.monthlyLeaseRateUsd = getAcDetailMonthlyLeaseDefault(r);
+          const msn = (r["Serial Number"] || r["Registration"] || "").trim();
+          const saved = sessionStorage.getItem("lease_" + msn);
+          acDetailState.monthlyLeaseRateUsd = saved ? parseFloat(saved) : getAcDetailMonthlyLeaseDefault(r);
+
           switchTab('acdetail');
           document.getElementById('acd-empty').style.display = 'none';
           document.getElementById('acd-content').style.display = 'flex';
@@ -4821,200 +4860,6 @@
           ].join('');
         }
       </script>
-      <script>
-        // ===== PAGE 1: REGIONAL =====
-        function renderP1() {
-          const reg = gv("p1-region"), mfg = gv("p1-mfg"), st = gv("p1-status");
-          const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg) && (st === "" || (r["Status"] || "").trim() === st));
-          document.getElementById("p1-kpi-total").textContent = d.length.toLocaleString();
-          document.getElementById("p1-kpi-regions").textContent = new Set(d.map(r => (r["Operator Region"] || "").trim())).size;
-          document.getElementById("p1-kpi-countries").textContent = new Set(d.map(r => (r["Operator Country/Subregion"] || "").trim())).size;
-          document.getElementById("p1-kpi-operators").textContent = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size;
-          const rMap = cBy(d, "Operator Region"); const rTop = topN(rMap, 10);
-          ic("chart-p1-region", { type: "bar", data: { labels: rTop.map(e => e[0]), datasets: [{ data: rTop.map(e => e[1]), backgroundColor: C, borderRadius: 6 }] }, options: { ...barO(true), plugins: { legend: { display: false } } } });
-          const topRegs = topN(rMap, 6).map(e => e[0]); const topEFs = topN(cBy(d, "Engine Family"), 5).map(e => e[0]);
-          const em = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(), ef = (r["Engine Family"] || "?").trim(); if (!em[rg]) em[rg] = {}; em[rg][ef] = (em[rg][ef] || 0) + 1; });
-          ic("chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
-          const cTop = topN(cBy(d, "Operator Country/Subregion"), 10);
-          ic("chart-p1-countries", { type: "bar", data: { labels: cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), datasets: [{ data: cTop.map(e => e[1]), backgroundColor: "#06b6d4", borderRadius: 5 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          const mgTop = topN(cBy(d, "Market Grouping"), 8);
-          ic("chart-p1-mkt", { type: "doughnut", data: { labels: mgTop.map(e => e[0]), datasets: [{ data: mgTop.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO("right") });
-        }
-        // ===== PAGE 2: MFG-ENGINE =====
-        function renderP2() {
-          const reg = gv("p2-region"), mfg = gv("p2-mfg");
-          const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
-          const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
-          const flow = {}; d.forEach(r => { const m = (r["Manufacturer"] || "?").trim(), e = (r["Engine Manufacturer"] || "?").trim(); if (!flow[m]) flow[m] = {}; flow[m][e] = (flow[m][e] || 0) + 1; });
-          ic("chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
-          const emD = topN(cBy(d, "Engine Manufacturer"), 8);
-          ic("chart-p2-share", { type: "doughnut", data: { labels: emD.map(e => e[0]), datasets: [{ data: emD.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO() });
-          const efD = topN(cBy(d, "Engine Family"), 8);
-          ic("chart-p2-engfam", { type: "doughnut", data: { labels: efD.map(e => e[0]), datasets: [{ data: efD.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO("bottom") });
-          const etD = topN(cBy(d, "Engine Type"), 8);
-          ic("chart-p2-engtype", { type: "bar", data: { labels: etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), datasets: [{ data: etD.map(e => e[1]), backgroundColor: C, borderRadius: 4 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          const neD = topN(cBy(d, "Number Of Engines"), 5);
-          ic("chart-p2-numeng", { type: "pie", data: { labels: neD.map(e => e[0] + " engines"), datasets: [{ data: neD.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO("bottom") });
-        }
-        // ===== PAGE 3: FAMILY MARKET =====
-        function renderP3() {
-          const typ = gv("p3-type"), yr = gv("p3-year"), fam = gv("p3-family");
-          const d = allData.filter(r => (typ === "" || (r["Type"] || "").trim() === typ) && (yr === "" || String(r._buildYr) === yr) && (fam === "" || (r["Current Family"] || "").trim() === fam));
-          const years = [...new Set(d.map(r => r._buildYr).filter(Boolean))].sort();
-          const families = topN(cBy(d, "Current Family"), 8).map(e => e[0]);
-          const cumD = {}; families.forEach(f => { let c = 0; cumD[f] = years.map(y => { c += d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
-          ic("chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
-          const total = d.length || 1;
-          ic("chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
-          const famStats = families.map(f => { const fd = d.filter(r => (r["Current Family"] || "").trim() === f); const ages = fd.map(r => r._age).filter(Boolean); const inSvc = fd.filter(r => (r["Status"] || "").includes("Service")).length; return { f, count: fd.length, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", share: ((fd.length / total) * 100).toFixed(1), inSvcPct: fd.length ? ((inSvc / fd.length) * 100).toFixed(0) + "%" : "-" }; });
-          document.getElementById("p3-family-table").innerHTML = famStats.map((s, i) => `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${C[i]};margin-right:6px;"></span>${s.f}</td><td>${s.count.toLocaleString()}</td><td>${s.avgAge}</td><td>${s.share}%</td><td>${s.inSvcPct}</td></tr>`).join("");
-          const regD = topN(cBy(d, "Operator Region"), 8);
-          document.getElementById("p3-region-table").innerHTML = regD.map(e => `<tr><td>${e[0]}</td><td>${e[1].toLocaleString()}</td></tr>`).join("");
-        }
-        // ===== PAGE 4: INVENTORY =====
-        function renderP4() {
-          const reg = gv("p4-region"), mfg = gv("p4-mfg"), st = gv("p4-status"), mgr = gv("p4-manager");
-          const q = (gv("p4-search") || "").toLowerCase();
-          let d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg) && (st === "" || (r["Status"] || "").trim() === st) && (mgr === "" || (r["Manager"] || "").trim() === mgr));
-          if (q) d = d.filter(r => [(r["Operator"] || ""), (r["Registration"] || ""), (r["Serial Number"] || "")].join(" ").toLowerCase().includes(q));
-          document.getElementById("p4-count").textContent = `${d.length.toLocaleString()} aircraft`;
-          document.getElementById("p4-tbody").innerHTML = d.slice(0, 200).map(r => `<tr>
-    <td>${r["Operator Region"] || "-"}</td><td>${r["Operator"] || "-"}</td><td>${r["Type"] || "-"}</td>
-    <td class="mono">${r["Registration"] || "-"}</td><td class="mono">${r["Serial Number"] || "-"}</td>
-    <td>${r["Manager"] || "-"}</td><td>${sBadge(r["Status"] || "")}</td><td>${r["Lease End"] || "-"}</td>
-    <td>${r._val ? "$" + r._val.toFixed(1) + "M" : "-"}</td><td>${r._rate ? "$" + r._rate.toFixed(2) + "M" : "-"}</td>
-    <td style="color:${r._age > 20 ? "#f43f5e" : r._age > 15 ? "#f59e0b" : "#6b7280"}">${r._age || "-"}</td>
-    <td>${tBadge(r._tatsTier)}</td>
-  </tr>`).join("") || `<tr><td colspan="12" style="text-align:center;color:#334155;padding:24px;">No results</td></tr>`;
-        }
-        // ===== PAGE 5: TATS =====
-        function renderP5() {
-          const tier = gv("p5-tier"), reg = gv("p5-region"), lyr = gv("p5-leaseyr");
-          const d = allData.filter(r => (tier === "" || r._tatsTier === tier) && (reg === "" || (r["Operator Region"] || "").trim() === reg) && (lyr === "" || String(r._leEndYr) === lyr));
-          document.getElementById("p5-kpi-high").textContent = d.filter(r => r._tatsTier === "High Risk").length.toLocaleString();
-          document.getElementById("p5-kpi-med").textContent = d.filter(r => r._tatsTier === "Medium Risk").length.toLocaleString();
-          document.getElementById("p5-kpi-low").textContent = d.filter(r => r._tatsTier === "Low Risk").length.toLocaleString();
-          const ages = d.map(r => r._age).filter(Boolean);
-          document.getElementById("p5-kpi-age").textContent = ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "N/A";
-          const opMap = {}; d.forEach(r => { const op = (r["Operator"] || "?").trim(); opMap[op] = (opMap[op] || 0) + r._tats; });
-          const opTop = topN(opMap, 15);
-          ic("chart-p5-op", { type: "bar", data: { labels: opTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), datasets: [{ data: opTop.map(e => e[1]), backgroundColor: opTop.map((_, i) => C[i % C.length]), borderRadius: 5 }] }, options: { ...barO(true), plugins: { legend: { display: false } } } });
-          ic("chart-p5-tier", { type: "doughnut", data: { labels: ["High Risk", "Medium Risk", "Low Risk"], datasets: [{ data: [d.filter(r => r._tatsTier === "High Risk").length, d.filter(r => r._tatsTier === "Medium Risk").length, d.filter(r => r._tatsTier === "Low Risk").length], backgroundColor: ["#f43f5e", "#f59e0b", "#10b981"], borderWidth: 1 }] }, options: dO() });
-          const sorted = d.slice().sort((a, b) => b._tats - a._tats).slice(0, 50);
-          document.getElementById("p5-score-tbody").innerHTML = sorted.map(r => `<tr><td>${r["Operator"] || "-"}</td><td class="mono">${r["Registration"] || r["Serial Number"] || "-"}</td><td>${r._age || "-"}</td><td style="font-weight:700;color:${r._tats >= 70 ? "#f43f5e" : r._tats >= 40 ? "#f59e0b" : "#10b981"}">${r._tats}</td><td>${tBadge(r._tatsTier)}</td><td>${r["Lease End"] || "-"}</td></tr>`).join("");
-          const leases = d.filter(r => r._leEnd).sort((a, b) => a._leEnd - b._leEnd).slice(0, 30);
-          document.getElementById("p5-lease-tbody").innerHTML = leases.map(r => `<tr><td>${r["Operator"] || "-"}</td><td class="mono">${r["Registration"] || "-"}</td><td>${r["Lease End"] || "-"}</td><td>${tBadge(r._tatsTier)}</td></tr>`).join("");
-        }
-        // ===== PAGE 8: MARKET VALUE =====
-        function renderP8() {
-          const reg = gv("p8-region"), cty = gv("p8-country");
-          const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
-          document.getElementById("p8-kpi-total").textContent = d.length.toLocaleString();
-          const tv = d.reduce((s, r) => s + (r._val || 0), 0);
-          document.getElementById("p8-kpi-value").textContent = "$" + (tv / 1000).toFixed(1) + "B";
-          document.getElementById("p8-kpi-avg").textContent = d.length ? "$" + (tv / d.length).toFixed(1) + "M" : "-";
-          const opMap = {}; d.forEach(r => { const op = (r["Operator"] || "?").trim(); opMap[op] = (opMap[op] || 0) + (r._val || 0); });
-          const opTop = topN(opMap, 20);
-          ic("chart-p8-ops", { type: "bar", data: { labels: opTop.map(e => e[0].length > 13 ? e[0].slice(0, 12) + "" : e[0]), datasets: [{ data: opTop.map(e => +e[1].toFixed(1)), backgroundColor: C, borderRadius: 5 }] }, options: { ...barO(true), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => "$" + c.raw.toFixed(1) + "M" } } } } });
-          const rgMap = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(); rgMap[rg] = (rgMap[rg] || 0) + (r._val || 0); });
-          const rgTop = topN(rgMap, 8);
-          ic("chart-p8-region", { type: "doughnut", data: { labels: rgTop.map(e => e[0]), datasets: [{ data: rgTop.map(e => +e[1].toFixed(0)), backgroundColor: C, borderWidth: 1 }] }, options: { ...dO(), plugins: { legend: { position: "right" }, tooltip: { callbacks: { label: c => `${c.label}: $${(c.raw / 1000).toFixed(1)}B` } } } } });
-        }
-        // ===== PAGE 9: FLEET GROWTH =====
-        function renderP9() {
-          document.getElementById("p9-kpi-total").textContent = allData.length.toLocaleString();
-          document.getElementById("p9-kpi-active").textContent = allData.filter(r => (r["Status"] || "").includes("Service")).length.toLocaleString();
-          const years = [...new Set(allData.map(r => r._buildYr).filter(Boolean))].sort();
-          let cum = 0; const cumData = years.map(y => { cum += allData.filter(r => r._buildYr === y).length; return cum; });
-          ic("chart-p9-growth", { type: "line", data: { labels: years, datasets: [{ label: "Cumulative Fleet", data: cumData, borderColor: "#06b6d4", backgroundColor: "rgba(6,182,212,.1)", fill: true, tension: .3, pointRadius: 0, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
-          const families = topN(cBy(allData, "Current Family"), 6).map(e => e[0]);
-          const famCum = {}; families.forEach(f => { let c = 0; famCum[f] = years.map(y => { c += allData.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
-          ic("chart-p9-families", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: famCum[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 1.5 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
-        }
-        // ===== GANTT =====
-        function renderGantt() {
-          const mgr = gv("gantt-mgr"), yr = gv("gantt-yr");
-          let d = allData.filter(r => r._leEnd && (mgr === "" || (r["Manager"] || "").trim() === mgr) && (yr === "" || String(r._leEndYr) === yr));
-          const mgrMap = {};
-          d.slice(0, 400).forEach(r => { const m = (r["Manager"] || "Unknown").trim(); if (!mgrMap[m]) mgrMap[m] = []; if (mgrMap[m].length < 25) mgrMap[m].push({ reg: r["Registration"] || r["Serial Number"] || "?", op: r["Operator"] || "", leEnd: r._leEnd, tier: r._tatsTier }); });
-          const sortedM = Object.keys(mgrMap).sort((a, b) => mgrMap[b].length - mgrMap[a].length).slice(0, 18);
-          const now = new Date(), minYr = now.getFullYear(), maxYr = minYr + 10, yrW = 72, rowH = 20, lblW = 150;
-          const W = lblW + (maxYr - minYr) * yrW;
-          let rows = 0; sortedM.forEach(m => { rows += mgrMap[m].length + 1; });
-          const H = rows * rowH + 40;
-          let svg = `<svg width="${W}" height="${H}" style="font-family:Inter,sans-serif;" xmlns="http://www.w3.org/2000/svg">`;
-          for (let y = minYr; y <= maxYr; y++) { const x = lblW + (y - minYr) * yrW; svg += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#1a2234" stroke-width="1"/><text x="${x + 3}" y="14" font-size="10" fill="#334155">${y}</text>`; }
-          let gy = 30;
-          sortedM.forEach(m => {
-            svg += `<rect x="0" y="${gy}" width="${W}" height="${rowH}" fill="#0d1424"/><text x="6" y="${gy + 13}" font-size="10" font-weight="700" fill="#475569">${m.length > 18 ? m.slice(0, 17) + "" : m} (${mgrMap[m].length})</text>`;
-            gy += rowH;
-            mgrMap[m].forEach(ac => {
-              const leYr = ac.leEnd.getFullYear() + (ac.leEnd.getMonth() / 12);
-              const cx = lblW + (Math.min(leYr, maxYr) - minYr) * yrW;
-              const col = ac.tier === "High Risk" ? "#f43f5e" : ac.tier === "Medium Risk" ? "#f59e0b" : "#10b981";
-              svg += `<rect x="${cx - 10}" y="${gy + 3}" width="20" height="${rowH - 7}" fill="${col}" rx="3" opacity=".85"><title>${ac.reg} | ${ac.op} | ${ac.tier} | ${ac.leEnd.toLocaleDateString()}</title></rect><text x="${cx - 8}" y="${gy + 12}" font-size="8" fill="#fff">${ac.reg.slice(0, 4)}</text>`;
-              gy += rowH;
-            });
-          });
-          svg += "</svg>";
-          document.getElementById("gantt-svg").innerHTML = svg;
-        }
-        // ===== LESSORS =====
-        function renderLessors() {
-          const mgrMap = {};
-          allData.forEach(r => { const m = (r["Manager"] || "").trim(); if (!m) return; if (!mgrMap[m]) mgrMap[m] = { count: 0, ages: [], country: r["Manager Country/Subregion"] || "", highRisk: 0 }; mgrMap[m].count++; if (r._age) mgrMap[m].ages.push(r._age); if (r._tatsTier === "High Risk") mgrMap[m].highRisk++; });
-          const sorted = Object.entries(mgrMap).sort((a, b) => b[1].count - a[1].count).slice(0, 30);
-          document.getElementById("lessors-tbody").innerHTML = sorted.map(([m, v]) => `<tr><td>${m}</td><td>${v.country}</td><td>${v.count.toLocaleString()}</td><td>${v.ages.length ? (v.ages.reduce((a, b) => a + b, 0) / v.ages.length).toFixed(1) : "-"}</td><td style="color:${v.count > 0 && (v.highRisk / v.count) > .3 ? "#f43f5e" : "#4b5563"}">${v.count > 0 ? ((v.highRisk / v.count) * 100).toFixed(0) + "%" : "-"}</td></tr>`).join("");
-          const tm = sorted.slice(0, 20).map(([m, v]) => ({ g: m, v: v.count }));
-          try { ic("chart-lessors-tm", { type: "treemap", data: { datasets: [{ label: "Fleet Size", tree: tm, key: "v", groups: ["g"], backgroundColor: (c) => C[c.dataIndex % C.length] + "cc", borderColor: "#060d1a", borderWidth: 1, labels: { display: true, formatter: c => c.raw._data.g.slice(0, 12), color: "#f1f5f9", font: { size: 10, weight: "600" } } }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { title: ([c]) => c.raw._data.g, label: c => `Aircraft: ${c.raw.v}` } } } } }); } catch (e) { console.warn("Treemap:", e); }
-        }
-        // ===== COUNTRY =====
-        function renderCountryTab() {
-          const sorted = [...countryReport].sort((a, b) => b.airlineCount - a.airlineCount).slice(0, 10);
-          const byAC = [...countryReport].sort((a, b) => b.aircraftCount - a.aircraftCount).slice(0, 10);
-          ic("chart-co-airlines", { type: "bar", data: { labels: sorted.map(d => d.country.length > 13 ? d.country.slice(0, 12) + "" : d.country), datasets: [{ data: sorted.map(d => d.airlineCount), backgroundColor: "#8b5cf6", borderRadius: 5 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          ic("chart-co-aircraft", { type: "bar", data: { labels: byAC.map(d => d.country.length > 13 ? d.country.slice(0, 12) + "" : d.country), datasets: [{ data: byAC.map(d => d.aircraftCount), backgroundColor: "#10b981", borderRadius: 5 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          renderCountryTable();
-        }
-        function sortCO(col) { if (coSort.col === col) coSort.dir = coSort.dir === "asc" ? "desc" : "asc"; else { coSort.col = col; coSort.dir = col === "country" || col === "region" ? "asc" : "desc"; } renderCountryTable(); }
-        function renderCountryTable() {
-          const q = (document.getElementById("co-search").value || "").toLowerCase();
-          let d = [...countryReport].filter(r => r.country.toLowerCase().includes(q) || r.region.toLowerCase().includes(q));
-          d.sort((a, b) => { let va = a[coSort.col], vb = b[coSort.col]; if (typeof va === "string") { va = va.toLowerCase(); vb = vb.toLowerCase(); } return coSort.dir === "asc" ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0); });
-          document.getElementById("co-tbody").innerHTML = d.map(r => `<tr><td style="font-weight:600;">${r.country}</td><td>${r.region}</td><td style="color:#8b5cf6;font-weight:700;">${r.airlineCount}</td><td style="font-weight:600;">${r.aircraftCount.toLocaleString()}</td><td>${r.airlineCount > 0 ? (r.aircraftCount / r.airlineCount).toFixed(1) : "-"}</td><td style="font-size:11px;">${r.airlinesList.slice(0, 4).join(", ")}${r.airlinesList.length > 4 ? ` <span class="badge bg-or">+${r.airlinesList.length - 4}</span>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:#334155;padding:16px;">No results</td></tr>`;
-        }
-        // ===== FLEET EXPLORER =====
-        function resetFE() { ["fe-region", "fe-country", "fe-opgroup", "fe-operator", "fe-mfg", "fe-family", "fe-engine", "fe-grouping", "fe-status", "fe-usage"].forEach(id => { const e = document.getElementById(id); if (e) e.value = ""; }); }
-        function runFE() {
-          const fMap = [{ id: "fe-region", k: "Operator Region" }, { id: "fe-country", k: "Operator Country/Subregion" }, { id: "fe-opgroup", k: "Operator Group" }, { id: "fe-operator", k: "Operator" }, { id: "fe-mfg", k: "Manufacturer" }, { id: "fe-family", k: "Current Family" }, { id: "fe-engine", k: "Engine Manufacturer" }, { id: "fe-grouping", k: "Market Grouping" }, { id: "fe-status", k: "Status" }, { id: "fe-usage", k: "Primary Usage" }];
-          feFiltered = allData.filter(r => fMap.every(f => gv(f.id) === "" || (r[f.k] || "").trim() === gv(f.id)));
-          const ops = new Set(feFiltered.map(r => (r["Operator"] || "").trim()).filter(Boolean));
-          const ages = feFiltered.map(r => r._age).filter(v => v !== null);
-          document.getElementById("fe-kpi-total").textContent = feFiltered.length.toLocaleString();
-          document.getElementById("fe-kpi-ops").textContent = ops.size.toLocaleString();
-          document.getElementById("fe-kpi-age").textContent = ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "N/A";
-          const mfgD = topN(cBy(feFiltered, "Manufacturer"), 8);
-          ic("fe-chart-mfg", { type: "doughnut", data: { labels: mfgD.map(e => e[0]), datasets: [{ data: mfgD.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO() });
-          const stD = topN(cBy(feFiltered, "Status"), 6);
-          ic("fe-chart-status", { type: "pie", data: { labels: stD.map(e => e[0]), datasets: [{ data: stD.map(e => e[1]), backgroundColor: C, borderWidth: 1 }] }, options: dO() });
-          const grD = topN(cBy(feFiltered, "Market Grouping"), 6);
-          ic("fe-chart-grouping", { type: "bar", data: { labels: grD.map(e => e[0].length > 15 ? e[0].slice(0, 14) + "" : e[0]), datasets: [{ data: grD.map(e => e[1]), backgroundColor: C, borderRadius: 5 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          const bk = { "0-5": 0, "6-10": 0, "11-15": 0, "16-20": 0, "21-25": 0, "26+": 0 }; feFiltered.forEach(r => { const a = r._age; if (a === null) return; if (a <= 5) bk["0-5"]++; else if (a <= 10) bk["6-10"]++; else if (a <= 15) bk["11-15"]++; else if (a <= 20) bk["16-20"]++; else if (a <= 25) bk["21-25"]++; else bk["26+"]++; });
-          ic("fe-chart-age", { type: "bar", data: { labels: Object.keys(bk), datasets: [{ data: Object.values(bk), backgroundColor: ["#4ade80", "#a3e635", "#fbbf24", "#fb923c", "#ef4444", "#9f1239"], borderRadius: 5 }] }, options: { ...barO(), plugins: { legend: { display: false } } } });
-          const lim = 100; const show = feFiltered.slice(0, lim);
-          document.getElementById("fe-limit-note").textContent = feFiltered.length > lim ? `Showing 100 of ${feFiltered.length.toLocaleString()}` : "";
-          document.getElementById("fe-tbody").innerHTML = show.map(r => `<tr>
-    <td><div class="mono">${r["Registration"] || "-"}</div><div style="font-size:10px;color:#334155;">SN: ${r["Serial Number"] || "-"}</div></td>
-    <td><div style="font-weight:500;">${r["Operator"] || "-"}</div><div style="font-size:10px;color:#334155;">${r["Operator Group"] || "-"}</div></td>
-    <td><div style="font-weight:600;">${r["Manufacturer"] || "-"}</div><div style="font-size:10px;color:#4b5563;">${r["Current Family"] || "-"}  ${r["Type"] || "-"}</div></td>
-    <td><div style="font-size:11px;">${r["Market Grouping"] || "-"}</div><div style="font-size:10px;color:#334155;">${r["Primary Usage"] || "-"}</div></td>
-    <td><div style="font-size:11px;">${r["Engine Manufacturer"] || "-"}</div><div style="font-size:10px;color:#334155;">${r["Engine Type"] || "-"} ${r["Number Of Engines"] || "?"}</div></td>
-    <td><div>${sBadge(r["Status"] || "")}</div><div style="font-size:10px;color:${r._age > 20 ? "#f43f5e" : "#334155"};margin-top:3px;">Age: ${r._age || "-"} (${r._buildYr || "-"})</div></td>
-    <td style="font-size:11px;">${r._mtow ? r._mtow.toLocaleString() : "-"}</td>
-    <td style="font-size:10px;color:#4b5563;"><div>Del: ${r["Delivery Date"] || "-"}</div><div>IS: ${r["In Service Date"] || "-"}</div></td>
-  </tr>`).join("") || `<tr><td colspan="8" style="text-align:center;color:#334155;padding:24px;">No aircraft match filters</td></tr>`;
-        }
-      </script>
 
       <!-- ==================== USM & MRO PIPELINE TAB ==================== -->
       <div id="tab-usm" class="hidden p-4 flex flex-col gap-4">
@@ -5169,7 +5014,7 @@
         <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
         <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
         <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-creditrisk" class="hidden p-4 flex-col gap-4"></div>
+        <div id="tab-creditrisk" class="hidden p-4 flex flex-col gap-4"></div>
         <!-- ==================== TATS PROSPECTING TAB ==================== -->
         <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
 
@@ -5376,6 +5221,54 @@
         let pipelineData = [];
         let tatsMaster = [];
         let sunburstSelected = null;
+
+        function addPipelineRow() {
+          const table = document.getElementById("tp-action-tbody");
+          if (!table) return;
+          const tr = document.createElement("tr");
+          const dateStr = new Date().toISOString().split('T')[0];
+          tr.innerHTML = `
+            <td><input class="fi" style="width:100px" placeholder="Reg/MSN..."></td>
+            <td><input class="fi" style="width:120px" placeholder="Operator..."></td>
+            <td><input type="date" class="fi" value="${dateStr}"></td>
+            <td>
+              <select class="fs">
+                <option>Email</option>
+                <option>Phone</option>
+                <option>LinkedIn</option>
+                <option>Meeting</option>
+              </select>
+            </td>
+            <td><input class="fi" style="width:150px" placeholder="Response notes..."></td>
+            <td><button class="btn btn-ghost" onclick="this.closest('tr').remove()" style="color:#f43f5e">Delete</button></td>
+          `;
+          table.appendChild(tr);
+        }
+
+        function clearPipeline() {
+          if (confirm("Clear all manual pipeline entries?")) {
+            const table = document.getElementById("tp-action-tbody");
+            if (table) table.innerHTML = "";
+          }
+        }
+
+        function exportPipeline() {
+          const table = document.getElementById("tp-action-tbody");
+          if (!table) return;
+          const rows = Array.from(table.querySelectorAll("tr"));
+          const data = rows.map(tr => {
+            const inputs = tr.querySelectorAll("input, select");
+            return {
+              "Prospect": inputs[0] ? inputs[0].value : "",
+              "Company": inputs[1] ? inputs[1].value : "",
+              "Date": inputs[2] ? inputs[2].value : "",
+              "Channel": inputs[3] ? inputs[3].value : "",
+              "Response": inputs[4] ? inputs[4].value : ""
+            };
+          });
+          if (data.length === 0) { alert("No entries to export."); return; }
+          exportTableToCSV(data, buildExportFilename("Pipeline_Tracker"));
+        }
 
         function refreshTATSVisuals() {
           // tatsMaster is populated directly in initDash now but we'll bind it here for safety.
@@ -5809,6 +5702,7 @@ function renderSunburst(topN){
         // PATCH: P8 region doughnut to horizontal bar
         const _origRenderP8 = typeof renderP8 === "function" ? renderP8 : null;
         const _p8Override = function () {
+          if (document.getElementById("tab-p8").classList.contains("hidden")) return;
           if (_origRenderP8) _origRenderP8();
           setTimeout(() => {
             const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
@@ -5828,44 +5722,16 @@ function renderSunburst(topN){
           if (typeof renderP8 === "function") window.renderP8 = _p8Override;
         });
 
-        // Integrate omni-search into runDD filter chain
-        const _origRunDDFilters = runDD;
-        // Omni-search: patch getOmniTerms to be read by runDD
-        window.getOmniTerms = function () {
-          const el = document.getElementById("dd-omni");
-          if (!el || !el.value.trim()) return [];
-          return el.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-        };
+        // Integrated omni-search logic moved to main runDD function (WARN-01)
+        function validateNav() {
+          const syncBtn = document.getElementById("sync-btn");
+          if (syncBtn && allData.length > 0) {
+             syncBtn.classList.remove("btn-ghost");
+             syncBtn.classList.add("btn-cyan");
+             syncBtn.innerHTML = '<svg style="width:14px;height:14px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Refresh Data';
+          }
+        }
 
-        // Patch the omni-search into the filter - read omni terms in runDD
-        // We do this by overriding after page load
-        document.addEventListener("DOMContentLoaded", () => {
-          setTimeout(() => {
-            if (typeof runDD === "function") {
-              const orig = runDD;
-              window.runDD = function () {
-                orig();
-                // Apply omni-search as a secondary post-filter
-                const terms = getOmniTerms();
-                if (!terms.length) return;
-                const OMNI_KEYS = ["Operator", "Registration", "Serial Number", "Type", "Engine Type", "Engine Sub Series", "Current Family", "Manufacturer", "Engine Manufacturer", "Manager", "Owner"];
-                ddFiltered = ddFiltered.filter(r => terms.every(t => OMNI_KEYS.some(k => (r[k] || "").toLowerCase().includes(t))));
-                // Update KPIs + table with omni-filtered results
-                const ops = new Set(ddFiltered.map(r => (r["Operator"] || "").trim()).filter(Boolean));
-                const ages = ddFiltered.map(r => r._age).filter(v => v !== null);
-                const mtows = ddFiltered.map(r => r._mtow).filter(v => v !== null);
-                document.getElementById("dd-kpi-total").textContent = ddFiltered.length.toLocaleString();
-                document.getElementById("dd-kpi-ops").textContent = ops.size.toLocaleString();
-                document.getElementById("dd-kpi-age").textContent = ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "N/A";
-                document.getElementById("dd-kpi-inservice").textContent = ddFiltered.filter(r => (r["Status"] || "").includes("Service")).length.toLocaleString();
-                document.getElementById("dd-kpi-highrisk").textContent = ddFiltered.filter(r => r._tatsTier === "High Risk").length.toLocaleString();
-                document.getElementById("dd-kpi-mtow").textContent = mtows.length ? ((mtows.reduce((a, b) => a + b, 0) / mtows.length) / 1000).toFixed(0) + "k" : "N/A";
-                document.getElementById("dd-result-count").textContent = ddFiltered.length.toLocaleString() + " aircraft";
-                renderDDTable();
-              };
-            }
-          }, 500);
-        });
 
         // Apply .num class to all numerical th/td on table render
         const _origRenderDDTable = typeof renderDDTable === "function" ? renderDDTable : null;
@@ -5915,7 +5781,9 @@ function renderSunburst(topN){
 
         // REGIONAL: rewrite with multi-select + airlines per region
         function renderP1() {
+          if (document.getElementById("tab-p1").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+
           fillYearSlicers('p3-year-from', 'p3-year-to', allData);
           const regs = gvMulti('p1-region'), mfgs = gvMulti('p1-mfg'), sts = gvMulti('p1-status');
           const d = allData.filter(r => mf(r["Operator Region"], regs) && mf(r["Manufacturer"], mfgs) && mf(r["Status"], sts));
@@ -5957,7 +5825,9 @@ function renderSunburst(topN){
 
         // MFG-ENGINE: multi-select
         function renderP2() {
+          if (document.getElementById("tab-p2").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+​
           const regs = gvMulti('p2-region'), mfgs = gvMulti('p2-mfg');
           const d = allData.filter(r => mf(r["Operator Region"], regs) && mf(r["Manufacturer"], mfgs));
           const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
@@ -5992,7 +5862,9 @@ function renderSunburst(topN){
 
         // FLEET GROWTH: year slicer + family multi-select
         function renderP9() {
+          if (document.getElementById("tab-p9").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+
           fillYearSlicers('p9-year-from', 'p9-year-to', allData);
           // Fill family multi-select
           const famEl = document.getElementById('p9-family');
@@ -6080,7 +5952,40 @@ function renderSunburst(topN){
         // COUNTRY: click row  show all airlines
         let coDrillCountry = null;
         const _origRenderCountryTable_v2 = typeof renderCountryTable === "function" ? renderCountryTable : null;
+        function renderLessors() {
+          const tab = document.getElementById("tab-lessors");
+          if (!tab || tab.classList.contains("hidden")) return;
+          if (!allData || !allData.length) return;
+          const mgrs = cBy(allData, "Manager");
+          const topMgrs = topN(mgrs, 15);
+          ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
+          const mgrList = Object.entries(mgrs).map(([m, count]) => {
+            const d = allData.filter(r => (r["Manager"] || "").trim() === m);
+            const ages = d.map(r => r._age).filter(v => v !== null);
+            const highRisk = d.filter(r => r._mroRisk === "High Risk").length;
+            const hrPct = d.length ? (highRisk / d.length * 100).toFixed(0) : 0;
+            return { m, count, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", hrPct: hrPct + "%", region: d[0]._region || "-" };
+          }).sort((a, b) => b.count - a.count).slice(0, 50);
+          document.getElementById("lessors-tbody").innerHTML = mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("");
+        }
+​
+        function renderCountryTab() {
+          const tab = document.getElementById("tab-country");
+          if (!tab || tab.classList.contains("hidden")) return;
+          if (!countryReport || !countryReport.length) buildCountry();
+          document.getElementById("co-kpi-cty").textContent = countryReport.length.toLocaleString();
+          document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
+          document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
+          const topCtyAl = topN(countryReport.map(r => [r.country, r.airlineCount]), 10);
+          ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
+          const topCtyAc = topN(countryReport.map(r => [r.country, r.aircraftCount]), 10);
+          ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
+          renderCountryTable();
+        }
+​
         function renderCountryTable() {
+          if (document.getElementById("tab-country").classList.contains("hidden")) return;
+
           const q = (document.getElementById("co-search").value || "").toLowerCase();
           let d = [...countryReport].filter(r => r.country.toLowerCase().includes(q) || r.region.toLowerCase().includes(q));
           d.sort((a, b) => { let va = a[coSort.col], vb = b[coSort.col]; if (typeof va === "string") { va = va.toLowerCase(); vb = vb.toLowerCase(); } return coSort.dir === "asc" ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0); });
@@ -6117,7 +6022,9 @@ function renderSunburst(topN){
       <script>
         // ===== USM & MRO PIPELINE TAB =====
         function renderUSM() {
+          if (document.getElementById("tab-usm").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+
           const d = allData.filter(r => r._usmPrime === true);
           document.getElementById("usm-kpi-total").textContent = d.length.toLocaleString();
           const ages = d.map(r => r._age).filter(Boolean);
@@ -6148,7 +6055,9 @@ function renderSunburst(topN){
 
         // ===== LESSOR EXPOSURE TAB =====
         function renderExposure() {
+          if (document.getElementById("tab-exposure").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+
           const d = allData.filter(r => r._finExp > 0);
           const totalVal = d.reduce((s, r) => s + r._finExp, 0);
           document.getElementById("exp-kpi-val").textContent = "$" + (totalVal / 1000).toFixed(1) + "B";
@@ -6178,7 +6087,9 @@ function renderSunburst(topN){
 
         // ===== HISTORICAL STORAGE TAB =====
         function renderHistorical() {
+          if (document.getElementById("tab-historical").classList.contains("hidden")) return;
           if (!allData || !allData.length) return;
+
           const stored = allData.filter(r => (r["Status"] || "").toLowerCase().includes("stor"));
           document.getElementById("hst-kpi-total").textContent = stored.length.toLocaleString();
           const sdOverYr = stored.filter(r => { if (!r["Storage Date"]) return false; const sd = r["Storage Date"]; try { const d = parseD(sd); if (!d) return false; return ((new Date() - d) / (864e5 * 30)) > 12; } catch (e) { return false; } });
