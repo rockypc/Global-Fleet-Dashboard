@@ -2347,10 +2347,8 @@
         }
 
         // Persistence
-        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Consolidated%20Scores%20Sheet.csv";
-        const URL_MAIN_LOCAL = "./Aircraft%20Detail.csv";
-        const URL_CREDIT_LOCAL = "./Consolidated%20Scores%20Sheet.csv";
+        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
+        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Consolidated%20Scores%20Sheet.csv";
         // const URL_SUPPLY = "Remarketing%20Supply.csv";
 
         function setInitState(mode, msg, sub) {
@@ -2368,6 +2366,26 @@
           }
           if (msg) document.getElementById("init-msg").textContent = msg;
           if (sub) document.getElementById("init-sub").textContent = sub;
+        }
+
+        function getErrorMessage(error) {
+          if (!error) return "Unknown error";
+          if (typeof error === "string") return error;
+          return error.message || String(error);
+        }
+
+        function showSyncError(message) {
+          const detail = `Fetch error: ${message}`;
+          setInitState("loading", "Live sync failed", detail);
+          const uploadTitle = document.getElementById("upload-title");
+          const uploadDesc = document.getElementById("upload-desc");
+          if (uploadTitle) uploadTitle.textContent = "Live Sync Failed";
+          if (uploadDesc) {
+            uploadDesc.innerHTML = `
+              <span style="display:block;color:#fca5a5;font-weight:700;margin-bottom:8px;">${escapeHtml(detail)}</span>
+              <span style="color:#4b5563;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
+            `;
+          }
         }
 
         function updateDataBanner(mode, count, savedAt) {
@@ -2565,9 +2583,21 @@
         }
 
         async function fetchCsvBundle(mainUrl = URL_MAIN, creditUrl = URL_CREDIT) {
+          const [resFleet, resCredit] = await Promise.all([
+            fetch(mainUrl, { cache: "no-store" }),
+            fetch(creditUrl, { cache: "no-store" })
+          ]);
+
+          if (!resFleet.ok) {
+            throw new Error(`Fleet CSV fetch failed (${resFleet.status} ${resFleet.statusText || "Unknown"})`);
+          }
+          if (!resCredit.ok) {
+            throw new Error(`Credit CSV fetch failed (${resCredit.status} ${resCredit.statusText || "Unknown"})`);
+          }
+
           const [mainText, creditText] = await Promise.all([
-            fetchCsvText(mainUrl, { required: true }),
-            fetchCsvText(creditUrl, { required: false })
+            resFleet.text(),
+            resCredit.text()
           ]);
 
           const [mainRows, creditRows] = await Promise.all([
@@ -2612,6 +2642,7 @@
             setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
           }
 
+          let syncErrorMessage = "";
           try {
             const bundle = await fetchCsvBundle();
             const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit" });
@@ -2620,18 +2651,9 @@
             initDash(bundle.mainRows, bundle.lookups);
             return;
           } catch (err) {
-            console.warn("Live sync unavailable, attempting cached data.", err);
-          }
-
-          try {
-            const localBundle = await fetchCsvBundle(URL_MAIN_LOCAL, URL_CREDIT_LOCAL);
-            const saved = await cacheDashboardData(localBundle.mainRows, { source: "local", name: "Local Fleet + Credit" });
-            lastDataAsOfLabel = formatHeaderTimestamp(new Date());
-            updateDataBanner("local", localBundle.mainRows.length, saved);
-            initDash(localBundle.mainRows, localBundle.lookups);
-            return;
-          } catch (err) {
-            console.warn("Local bundled CSV files unavailable, attempting cached data.", err);
+            syncErrorMessage = getErrorMessage(err);
+            console.warn("Remote sync unavailable, attempting cached fallback.", err);
+            showSyncError(syncErrorMessage);
           }
 
           try {
@@ -2639,7 +2661,7 @@
             if (cached) {
               updateDataBanner("cached", cached.data.length, cached.meta.saved);
               if (showSpinner) {
-                setInitState("loading", "Using cached offline data...", "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
+                setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
               }
               initDash(cached.data);
               return;
@@ -2649,9 +2671,10 @@
           }
 
           if (allowUploadFallback) {
+            if (syncErrorMessage) showSyncError(syncErrorMessage);
             showUpload();
           } else if (fromUser) {
-            alert("Live sync failed and no cached dataset is available yet.");
+            alert(`Live sync failed and no cached dataset is available yet.\n\n${syncErrorMessage || "Unknown error"}`);
           }
         }
 
