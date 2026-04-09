@@ -3378,47 +3378,36 @@
                 .sort((a, b) => b[1].totalValue - a[1].totalValue);
 
               container.innerHTML = `
-                <div class="card" style="padding:20px 22px;">
-                  <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-                    <div>
-                      <div class="s-title">Counterparty Risk &amp; Exposure</div>
-                      <div class="s-sub" style="max-width:760px;">Financial exposure categorized by the consolidated credit scores merged into the live fleet dataset.</div>
-                    </div>
-                    <div class="badge" style="background:#111827;border-color:#334155;color:#cbd5e1;">${(allData || []).length.toLocaleString()} aircraft in clean fleet universe</div>
+                <div class="header-section mb-6">
+                  <h2 class="text-2xl font-bold text-white">Counterparty Risk &amp; Exposure</h2>
+                  <p class="text-gray-400">Financial exposure categorized by Ishka Credit Ratings</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Critical Exposure (CCC &amp; Below)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(highRiskValue)}</div>
+                  </div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Speculative Exposure (B to BB+)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(mediumRiskValue)}</div>
+                  </div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Investment Grade Exposure (BBB- &amp; Above)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(lowRiskValue)}</div>
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div class="card ${CATEGORY_META["Critical (High Risk)"].cardClass}" style="padding:18px;">
-                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fca5a5;font-weight:700;">Critical Exposure (CCC &amp; Below)</div>
-                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(highRiskValue)}</div>
-                  </div>
-                  <div class="card ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}" style="padding:18px;">
-                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#fcd34d;font-weight:700;">Speculative Exposure (B to BB+)</div>
-                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(mediumRiskValue)}</div>
-                  </div>
-                  <div class="card ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}" style="padding:18px;">
-                    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#86efac;font-weight:700;">Investment Grade Exposure (BBB- &amp; Above)</div>
-                    <div style="font-size:28px;font-weight:800;color:#f8fafc;margin-top:8px;">${formatMoneyM(lowRiskValue)}</div>
-                  </div>
-                </div>
-
-                <div class="card" style="padding:20px 22px;">
-                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
-                    <div>
-                      <div class="s-title" style="font-size:18px;color:#f87171;">High-Risk Operator Watchlist</div>
-                      <div class="s-sub">Operators rated speculative or critical, ranked by total indicative market value exposure.</div>
-                    </div>
-                    <div class="badge" style="background:#111827;border-color:#1f2937;color:#94a3b8;">${watchlist.length.toLocaleString()} operators flagged</div>
-                  </div>
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-300">
-                      <thead style="background:#0f172a;color:#94a3b8;text-transform:uppercase;font-size:11px;letter-spacing:.08em;">
+                <div class="bg-gray-800 rounded p-4 flex-grow flex flex-col min-h-0">
+                  <h3 class="text-lg font-bold text-white mb-4 text-red-400 flex-shrink-0">High-Risk Operator Watchlist</h3>
+                  <div class="overflow-y-auto flex-grow custom-scrollbar">
+                    <table class="w-full text-left text-sm text-gray-300">
+                      <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
                         <tr>
-                          <th class="px-4 py-3">Operator</th>
-                          <th class="px-4 py-3">Credit Score</th>
-                          <th class="px-4 py-3 text-right">Aircraft Count</th>
-                          <th class="px-4 py-3 text-right">Total Value Exposure ($M)</th>
+                          <th class="px-4 py-2">Operator</th>
+                          <th class="px-4 py-2">Credit Score</th>
+                          <th class="px-4 py-2">Aircraft Count</th>
+                          <th class="px-4 py-2">Total Value Exposure ($M)</th>
                         </tr>
                       </thead>
                       <tbody id="risk-tbody"></tbody>
@@ -3438,11 +3427,11 @@
               tbody.innerHTML = watchlist.map(([operator, data]) => {
                 const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
                 return `
-                  <tr style="border-bottom:1px solid #1f2937;">
-                    <td class="px-4 py-3 font-semibold text-slate-100">${escapeHtml(operator)}</td>
-                    <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
-                    <td class="px-4 py-3 text-right font-mono">${(data.aircraftCount || 0).toLocaleString()}</td>
-                    <td class="px-4 py-3 text-right font-mono">${formatMoneyM(data.totalValue)}</td>
+                  <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
+                    <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
+                    <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
+                    <td class="px-4 py-3">${(data.aircraftCount || 0).toLocaleString()}</td>
+                    <td class="px-4 py-3 font-mono text-[#06b6d4]">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
                   </tr>
                 `;
               }).join("");
@@ -4106,11 +4095,13 @@
               transitionintel: renderTransitionIntel,
               tats: renderTATS,
               usm: () => { if (usm) setTimeout(usm, 50); },
-              creditrisk: () => ModuleSystem.get('CounterpartyRisk').init(),
               exposure: () => { if (exp) setTimeout(exp, 50); },
               historical: () => { if (hist) setTimeout(hist, 50); }
             };
           if (rMap[id]) rMap[id]();
+          if (id === 'creditrisk') {
+            ModuleSystem.get('CounterpartyRisk').init();
+          }
         }
 
 
@@ -5185,7 +5176,7 @@
         <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
         <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
         <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-creditrisk" class="hidden p-4 flex flex-col gap-4"></div>
+        <div id="tab-creditrisk" class="hidden p-4 flex-col gap-4"></div>
         <!-- ==================== TATS PROSPECTING TAB ==================== -->
         <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
 
