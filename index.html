@@ -2394,8 +2394,6 @@
           const date = document.getElementById("banner-date");
           const label = mode === "live"
             ? "Live Synced Data"
-            : mode === "local"
-              ? "Local Bundled Data"
             : mode === "cached"
               ? "Cached Offline Data"
               : "Manual Upload Data";
@@ -2436,11 +2434,6 @@
             badge.style.background = "#172554";
             badge.style.color = "#93c5fd";
             badge.style.borderColor = "#1d4ed8";
-          } else if (currentDataMode === "local") {
-            badge.textContent = "LOCAL FILE";
-            badge.style.background = "#0f172a";
-            badge.style.color = "#67e8f9";
-            badge.style.borderColor = "#0891b2";
           } else if (currentDataMode === "manual") {
             badge.textContent = "MANUAL LOAD";
             badge.style.background = "#3f1d12";
@@ -2582,41 +2575,6 @@
           }
         }
 
-        async function fetchCsvBundle(mainUrl = URL_MAIN, creditUrl = URL_CREDIT) {
-          const [resFleet, resCredit] = await Promise.all([
-            fetch(mainUrl, { cache: "no-store" }),
-            fetch(creditUrl, { cache: "no-store" })
-          ]);
-
-          if (!resFleet.ok) {
-            throw new Error(`Fleet CSV fetch failed (${resFleet.status} ${resFleet.statusText || "Unknown"})`);
-          }
-          if (!resCredit.ok) {
-            throw new Error(`Credit CSV fetch failed (${resCredit.status} ${resCredit.statusText || "Unknown"})`);
-          }
-
-          const [mainText, creditText] = await Promise.all([
-            resFleet.text(),
-            resCredit.text()
-          ]);
-
-          const [mainRows, creditRows] = await Promise.all([
-            parseCsvText(mainText, { clean: true }),
-            creditText ? parseCsvText(creditText) : Promise.resolve([])
-          ]);
-
-          const byKey = {
-            main: mainRows,
-            credit: creditRows,
-            supply: []
-          };
-          const lookups = buildSupplementalLookups(byKey.credit || [], byKey.supply || []);
-          return {
-            mainRows: applySupplementalJoins(byKey.main || [], lookups),
-            lookups
-          };
-        }
-
         async function tryLoadCachedData() {
           const stored = await localforage.getItem("gfd_data");
           const meta = await localforage.getItem("gfd_meta");
@@ -2644,11 +2602,34 @@
 
           let syncErrorMessage = "";
           try {
-            const bundle = await fetchCsvBundle();
-            const saved = await cacheDashboardData(bundle.mainRows, { source: "live", name: "Fleet + Credit" });
+            const [resFleet, resCredit] = await Promise.all([
+              fetch(URL_MAIN, { cache: "no-store" }),
+              fetch(URL_CREDIT, { cache: "no-store" })
+            ]);
+
+            if (!resFleet.ok) {
+              throw new Error(`Fleet CSV fetch failed (${resFleet.status} ${resFleet.statusText || "Unknown"})`);
+            }
+            if (!resCredit.ok) {
+              throw new Error(`Credit CSV fetch failed (${resCredit.status} ${resCredit.statusText || "Unknown"})`);
+            }
+
+            const [fleetText, creditText] = await Promise.all([
+              resFleet.text(),
+              resCredit.text()
+            ]);
+
+            const [mainRows, creditRows] = await Promise.all([
+              parseCsvText(fleetText, { clean: true }),
+              parseCsvText(creditText)
+            ]);
+
+            const lookups = buildSupplementalLookups(creditRows || [], []);
+            const mergedRows = applySupplementalJoins(mainRows || [], lookups);
+            const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
-            updateDataBanner("live", bundle.mainRows.length, saved);
-            initDash(bundle.mainRows, bundle.lookups);
+            updateDataBanner("live", mergedRows.length, saved);
+            initDash(mergedRows, lookups);
             return;
           } catch (err) {
             syncErrorMessage = getErrorMessage(err);
