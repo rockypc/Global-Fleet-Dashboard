@@ -2375,7 +2375,7 @@
         }
 
         function showSyncError(message) {
-          const detail = /^(Fetch error:|Render error)/.test(String(message || "")) ? String(message) : `Fetch error: ${message}`;
+          const detail = `Fetch error: ${message}`;
           setInitState("loading", "Live sync failed", detail);
           const uploadTitle = document.getElementById("upload-title");
           const uploadDesc = document.getElementById("upload-desc");
@@ -2386,7 +2386,6 @@
               <span style="color:#4b5563;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
             `;
           }
-        }
         }
 
         function updateDataBanner(mode, count, savedAt) {
@@ -2598,7 +2597,7 @@
 
         async function syncData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
           if (showSpinner) {
-            setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
+            setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
           }
 
           let syncErrorMessage = "";
@@ -2630,21 +2629,12 @@
             const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", mergedRows.length, saved);
-
-            try {
-              initDash(mergedRows, lookups);
-            } catch (renderErr) {
-              const renderMessage = `Render error after successful fetch: ${getErrorMessage(renderErr)}`;
-              console.error("Dashboard render failed after live sync.", renderErr);
-              showSyncError(renderMessage);
-              throw new Error(renderMessage);
-            }
+            initDash(mergedRows, lookups);
             return;
           } catch (err) {
             syncErrorMessage = getErrorMessage(err);
-            const isRenderError = syncErrorMessage.startsWith("Render error after successful fetch:") || /render/i.test(syncErrorMessage);
-            console.warn(isRenderError ? "Live fetch succeeded but dashboard rendering failed." : "Remote sync unavailable, attempting cached fallback.", err);
-            showSyncError(isRenderError ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
+            console.warn("Remote sync unavailable, attempting cached fallback.", err);
+            showSyncError(syncErrorMessage);
           }
 
           try {
@@ -2662,12 +2652,10 @@
           }
 
           if (allowUploadFallback) {
-            if (syncErrorMessage) showSyncError(/^(Fetch error:|Render error)/.test(syncErrorMessage) ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
+            if (syncErrorMessage) showSyncError(syncErrorMessage);
             showUpload();
           } else if (fromUser) {
-            alert(`Live sync failed and no cached dataset is available yet.
-
-${syncErrorMessage || "Unknown error"}`);
+            alert(`Live sync failed and no cached dataset is available yet.\n\n${syncErrorMessage || "Unknown error"}`);
           }
         }
 
@@ -4111,38 +4099,34 @@ ${syncErrorMessage || "Unknown error"}`);
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
+          const usm = typeof renderUSM === "function" ? renderUSM : null;
+          const exp = typeof renderExposure === "function" ? renderExposure : null;
+          const hist = typeof renderHistorical === "function" ? renderHistorical : null;
           const rMap = {
-            home: () => { if (typeof renderHome === "function") renderHome(); },
-            deepdive: () => { if (typeof runDD === "function") runDD(); },
-            p1: () => { if (typeof renderP1 === "function") renderP1(); },
-            p2: () => { if (typeof renderP2 === "function") renderP2(); },
-            p3: () => { if (typeof renderP3 === "function") renderP3(); },
-            p4: () => { if (typeof renderP4 === "function") renderP4(); },
-            p5: () => { if (typeof renderP5 === "function") renderP5(); },
-            p8: () => { if (typeof renderP8 === "function") renderP8(); },
-            p9: () => { if (typeof renderP9 === "function") renderP9(); },
-            lessors: () => { if (typeof renderLessors === "function") renderLessors(); },
-            country: () => { if (typeof renderCountryTab === "function") renderCountryTab(); },
-            gantt: () => { if (typeof renderGantt === "function") renderGantt(); },
-            fleet: () => { if (typeof runFE === "function") runFE(); },
-            lopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("lopa", "ops"); },
-            placement: () => { if (typeof renderPlacementRadar === "function") renderPlacementRadar(); },
-            ccolopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("ccolopa", "cco"); },
-            engineintel: () => { if (typeof renderEngineIntel === "function") renderEngineIntel(); },
-            transitionintel: () => { if (typeof renderTransitionIntel === "function") renderTransitionIntel(); },
-            tats: () => { if (typeof refreshTATSVisuals === "function") refreshTATSVisuals(); if (typeof renderTATSKPIs === "function") renderTATSKPIs(); },
-            usm: () => { if (typeof renderUSM === "function") setTimeout(renderUSM, 50); },
-            exposure: () => { if (typeof renderExposure === "function") setTimeout(renderExposure, 50); },
-            historical: () => { if (typeof renderHistorical === "function") setTimeout(renderHistorical, 50); }
+            home: renderHome,
+            deepdive: runDD,
+            p1: renderP1,
+            p2: renderP2,
+            p3: renderP3,
+            p4: renderP4,
+            p5: renderP5,
+            p8: renderP8,
+            p9: renderP9,
+            lessors: renderLessors,
+            country: renderCountryTab,
+            gantt: renderGantt,
+            fleet: runFE,
+            lopa: () => renderLopaModule("lopa", "ops"),
+            placement: renderPlacementRadar,
+            ccolopa: () => renderLopaModule("ccolopa", "cco"),
+            engineintel: renderEngineIntel,
+            transitionintel: renderTransitionIntel,
+            tats: () => { refreshTATSVisuals(); renderTATSKPIs(); },
+            usm: () => { if (usm) setTimeout(usm, 50); },
+            exposure: () => { if (exp) setTimeout(exp, 50); },
+            historical: () => { if (hist) setTimeout(hist, 50); }
           };
-          if (rMap[id]) {
-            try {
-              rMap[id]();
-            } catch (err) {
-              console.error(`Tab render failed for ${id}:`, err);
-              throw err;
-            }
-          }
+          if (rMap[id]) rMap[id]();
           if (id === 'creditrisk') {
             ModuleSystem.get('CounterpartyRisk').init();
           }
