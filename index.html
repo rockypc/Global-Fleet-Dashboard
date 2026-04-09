@@ -1021,11 +1021,7 @@
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>MRO &amp; USM</button>
-        <button class="tab-btn" id="tbtn-creditrisk" title="Counterparty Risk" onclick="switchTab('creditrisk')"><svg
-              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 3l7 4v5c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4zm0 5v4m0 4h.01" />
-            </svg>Counterparty Risk</button>
+        <button class="tab-btn" id="tbtn-creditrisk" onclick="switchTab('creditrisk')">Counterparty Risk</button>
         <button class="tab-btn" id="tbtn-exposure" title="Lessor Exposure" onclick="switchTab('exposure')"><svg
               style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
@@ -3377,6 +3373,23 @@
                 .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
                 .sort((a, b) => b[1].totalValue - a[1].totalValue);
 
+              let tableRowsHTML = "";
+              if (!watchlist.length) {
+                tableRowsHTML = `<tr><td colspan="4" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties in the current clean fleet universe.</td></tr>`;
+              } else {
+                watchlist.forEach(([operator, data]) => {
+                  const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
+                  tableRowsHTML += `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
+                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
+                      <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
+                      <td class="px-4 py-3">${(data.aircraftCount || 0).toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-[#06b6d4]">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
+                    </tr>
+                  `;
+                });
+              }
+
               container.innerHTML = `
                 <div class="header-section mb-6">
                   <h2 class="text-2xl font-bold text-white">Counterparty Risk &amp; Exposure</h2>
@@ -3410,31 +3423,11 @@
                           <th class="px-4 py-2">Total Value Exposure ($M)</th>
                         </tr>
                       </thead>
-                      <tbody id="risk-tbody"></tbody>
+                      <tbody>${tableRowsHTML}</tbody>
                     </table>
                   </div>
                 </div>
               `;
-
-              const tbody = document.getElementById('risk-tbody');
-              if (!tbody) return;
-
-              if (!watchlist.length) {
-                tbody.innerHTML = `<tr><td colspan="4" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties in the current clean fleet universe.</td></tr>`;
-                return;
-              }
-
-              tbody.innerHTML = watchlist.map(([operator, data]) => {
-                const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
-                return `
-                  <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
-                    <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
-                    <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
-                    <td class="px-4 py-3">${(data.aircraftCount || 0).toLocaleString()}</td>
-                    <td class="px-4 py-3 font-mono text-[#06b6d4]">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
-                  </tr>
-                `;
-              }).join("");
             }
           };
         });
