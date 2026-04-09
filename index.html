@@ -2642,23 +2642,31 @@
             return;
           } catch (err) {
             syncErrorMessage = getErrorMessage(err);
-            const isRenderError = syncErrorMessage.startsWith("Render error after successful fetch:") || /render/i.test(syncErrorMessage);
+            const isRenderError = syncErrorMessage.startsWith("Render error after successful fetch:");
             console.warn(isRenderError ? "Live fetch succeeded but dashboard rendering failed." : "Remote sync unavailable, attempting cached fallback.", err);
             showSyncError(isRenderError ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
           }
 
+          let cached = null;
           try {
-            const cached = await tryLoadCachedData();
-            if (cached) {
-              updateDataBanner("cached", cached.data.length, cached.meta.saved);
-              if (showSpinner) {
-                setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
-              }
-              initDash(cached.data);
-              return;
-            }
+            cached = await tryLoadCachedData();
           } catch (err) {
             console.warn("Cached data unavailable.", err);
+          }
+
+          if (cached) {
+            updateDataBanner("cached", cached.data.length, cached.meta.saved);
+            if (showSpinner) {
+              setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
+            }
+            try {
+              initDash(cached.data);
+            } catch (renderErr) {
+              const renderMessage = `Render error from cached data: ${getErrorMessage(renderErr)}`;
+              console.error("Dashboard render failed while using cached data.", renderErr);
+              showSyncError(renderMessage);
+            }
+            return;
           }
 
           if (allowUploadFallback) {
@@ -2695,7 +2703,13 @@ ${syncErrorMessage || "Unknown error"}`);
                 const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name });
                 updateDataBanner("manual", cleanedData.length, saved);
               } catch (e) { }
-              initDash(cleanedData);
+              try {
+                initDash(cleanedData);
+              } catch (renderErr) {
+                const renderMessage = `Render error after manual upload: ${getErrorMessage(renderErr)}`;
+                console.error("Dashboard render failed after manual upload.", renderErr);
+                showSyncError(renderMessage);
+              }
             }, error: function (e) { alert("CSV parse error: " + e.message); location.reload(); }
           });
         });
@@ -4108,6 +4122,22 @@ ${syncErrorMessage || "Unknown error"}`);
         }
 
         const ALL_TABS = ["home", "deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "lopa", "placement", "ccolopa", "engineintel", "transitionintel", "tats", "usm", "creditrisk", "exposure", "historical", "acdetail"];
+        function renderCounterpartyRiskTab() {
+          if (typeof ModuleSystem !== "undefined" && ModuleSystem && typeof ModuleSystem.get === "function") {
+            try {
+              const module = ModuleSystem.get("CounterpartyRisk");
+              if (module && typeof module.init === "function") {
+                module.init();
+                return;
+              }
+            } catch (err) {
+              console.warn("CounterpartyRisk module unavailable.", err);
+            }
+          }
+          if (typeof renderCounterpartyRisk === "function") {
+            renderCounterpartyRisk();
+          }
+        }
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
@@ -4132,6 +4162,7 @@ ${syncErrorMessage || "Unknown error"}`);
             transitionintel: () => { if (typeof renderTransitionIntel === "function") renderTransitionIntel(); },
             tats: () => { if (typeof refreshTATSVisuals === "function") refreshTATSVisuals(); if (typeof renderTATSKPIs === "function") renderTATSKPIs(); },
             usm: () => { if (typeof renderUSM === "function") setTimeout(renderUSM, 50); },
+            creditrisk: () => { renderCounterpartyRiskTab(); },
             exposure: () => { if (typeof renderExposure === "function") setTimeout(renderExposure, 50); },
             historical: () => { if (typeof renderHistorical === "function") setTimeout(renderHistorical, 50); }
           };
@@ -4142,9 +4173,6 @@ ${syncErrorMessage || "Unknown error"}`);
               console.error(`Tab render failed for ${id}:`, err);
               throw err;
             }
-          }
-          if (id === 'creditrisk') {
-            ModuleSystem.get('CounterpartyRisk').init();
           }
         }
 
