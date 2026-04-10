@@ -4423,10 +4423,16 @@
 
         // Some legacy tabs render charts after the tab becomes visible; this
         // helper gives them one safe second pass without changing the router model.
-        function scheduleTabRerender(tabId, fnName, delayMs = 60) {
+        function resolveRenderer(fnName, directFn) {
+          if (typeof window[fnName] === "function") return window[fnName];
+          if (typeof directFn === "function") return directFn;
+          return null;
+        }
+
+        function scheduleTabRerender(tabId, fnName, directFn, delayMs = 60) {
           setTimeout(() => {
             const tab = document.getElementById(`tab-${tabId}`);
-            const fn = typeof window[fnName] === "function" ? window[fnName] : null;
+            const fn = resolveRenderer(fnName, directFn);
             if (!tab || tab.classList.contains("hidden") || !fn) return;
             try {
               fn();
@@ -4443,17 +4449,59 @@
           const rMap = {
             home: () => { if (typeof renderHome === "function") renderHome(); },
             deepdive: () => { if (typeof runDD === "function") runDD(); },
-            p1: () => { if (typeof window.renderP1 === "function") window.renderP1(); scheduleTabRerender("p1", "renderP1"); },
-            p2: () => { if (typeof window.renderP2 === "function") window.renderP2(); scheduleTabRerender("p2", "renderP2"); },
-            p3: () => { if (typeof window.renderP3 === "function") window.renderP3(); scheduleTabRerender("p3", "renderP3"); },
+              // These legacy analytics tabs are more reliable when called directly.
+              // The extra resolve/schedule indirection was leaving the live app with blank shells.
+              p1: () => {
+                if (typeof renderP1 === "function") renderP1();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-p1");
+                  if (tab && !tab.classList.contains("hidden") && typeof renderP1 === "function") renderP1();
+                }, 80);
+              },
+              p2: () => {
+                const fn = typeof window.renderP2 === "function" ? window.renderP2 : (typeof renderP2 === "function" ? renderP2 : null);
+                if (fn) fn();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-p2");
+                  const delayed = typeof window.renderP2 === "function" ? window.renderP2 : (typeof renderP2 === "function" ? renderP2 : null);
+                  if (tab && !tab.classList.contains("hidden") && delayed) delayed();
+                }, 80);
+              },
+              p3: () => {
+                if (typeof renderP3 === "function") renderP3();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-p3");
+                  if (tab && !tab.classList.contains("hidden") && typeof renderP3 === "function") renderP3();
+                }, 80);
+              },
             p4: () => { if (typeof renderP4 === "function") renderP4(); },
             p5: () => { if (typeof renderP5 === "function") renderP5(); },
             p8: () => { if (typeof renderP8 === "function") renderP8(); },
             p9: () => { if (typeof renderP9 === "function") renderP9(); },
-            lessors: () => { if (typeof window.renderLessors === "function") window.renderLessors(); scheduleTabRerender("lessors", "renderLessors"); },
-            country: () => { if (typeof window.renderCountryTab === "function") window.renderCountryTab(); scheduleTabRerender("country", "renderCountryTab"); },
-            gantt: () => { if (typeof renderGantt === "function") renderGantt(); },
-            fleet: () => { if (typeof window.runFE === "function") window.runFE(); scheduleTabRerender("fleet", "runFE"); },
+              lessors: () => {
+                if (typeof renderLessors === "function") renderLessors();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-lessors");
+                  if (tab && !tab.classList.contains("hidden") && typeof renderLessors === "function") renderLessors();
+                }, 80);
+              },
+              country: () => {
+                if (typeof renderCountryTab === "function") renderCountryTab();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-country");
+                  if (tab && !tab.classList.contains("hidden") && typeof renderCountryTab === "function") renderCountryTab();
+                }, 80);
+              },
+              gantt: () => { if (typeof renderGantt === "function") renderGantt(); },
+              fleet: () => {
+                const fn = typeof window.runFE === "function" ? window.runFE : (typeof runFE === "function" ? runFE : null);
+                if (fn) fn();
+                setTimeout(() => {
+                  const tab = document.getElementById("tab-fleet");
+                  const delayed = typeof window.runFE === "function" ? window.runFE : (typeof runFE === "function" ? runFE : null);
+                  if (tab && !tab.classList.contains("hidden") && delayed) delayed();
+                }, 80);
+              },
             lopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("lopa", "ops"); },
             placement: () => { if (typeof renderPlacementRadar === "function") renderPlacementRadar(); },
             ccolopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("ccolopa", "cco"); },
