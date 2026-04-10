@@ -6116,11 +6116,11 @@ function renderSunburst(topN){
             try {
               const d = feFiltered; if (!d || !d.length) return;
               const mfgD = topN(cBy(d, "Manufacturer"), 10);
-              ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+              safeChart("fleet", "fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
               const stD = topN(cBy(d, "Status"), 8);
-              ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+              safeChart("fleet", "fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
               const grD = topN(cBy(d, "Market Grouping"), 8);
-              ic("fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
+              safeChart("fleet", "fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
             } catch (err) {
               console.error("Deferred Fleet Explorer render failed:", err);
               showModuleError("fleet", (document.getElementById("tbtn-fleet") || {}).textContent || "Fleet Explorer", err);
@@ -6139,9 +6139,9 @@ function renderSunburst(topN){
               if (!allData || !allData.length) return;
               const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
               const emD = topN(cBy(d, "Engine Manufacturer"), 10);
-              ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+              safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
               const efD = topN(cBy(d, "Engine Family"), 10);
-              ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
+              safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
             } catch (err) {
               console.error("Deferred MFG-ENGINE render failed:", err);
               showModuleError("p2", (document.getElementById("tbtn-p2") || {}).textContent || "MFG-ENGINE", err);
@@ -6693,6 +6693,7 @@ function renderSunburst(topN){
         function renderCountryTab() {
           const tab = document.getElementById("tab-country");
           if (!tab || tab.classList.contains("hidden")) return;
+          if (!allData || !allData.length) return;
           if (!countryReport || !countryReport.length) buildCountry();
           document.getElementById("co-kpi-cty").textContent = countryReport.length.toLocaleString();
           document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
