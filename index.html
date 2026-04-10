@@ -2330,7 +2330,16 @@
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
         function uniq(a) { return [...new Set(a.filter(v => v && v.trim()))].sort(); }
         function cBy(arr, k) { const m = {}; arr.forEach(r => { const v = (r[k] || "N/A").trim() || "N/A"; m[v] = (m[v] || 0) + 1; }); return m; }
-        function topN(m, n = 10) { return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, n); }
+        // Accept either an object map or a pre-built array of [label, value] pairs.
+        function topN(source, n = 10) {
+          const entries = Array.isArray(source)
+            ? source.filter(entry => Array.isArray(entry) && entry.length >= 2)
+            : Object.entries(source || {});
+          return entries
+            .map(([label, value]) => [label, Number(value) || 0])
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, n);
+        }
         function gv(id) { const e = document.getElementById(id); return e ? e.value : ""; }
         function resetF(ids) { ids.forEach(id => { const e = document.getElementById(id); if (e) e.value = "" }); }
         function sBadge(s) { const t = s.includes("Service") ? "bg-is" : s.includes("order") || s.includes("Order") ? "bg-or" : s.includes("Stor") ? "bg-st" : "bg-xx"; return `<span class="badge ${t}">${s || "-"}</span>`; }
@@ -4412,23 +4421,39 @@
           else tab.insertAdjacentHTML("afterbegin", html);
         }
 
+        // Some legacy tabs render charts after the tab becomes visible; this
+        // helper gives them one safe second pass without changing the router model.
+        function scheduleTabRerender(tabId, fnName, delayMs = 60) {
+          setTimeout(() => {
+            const tab = document.getElementById(`tab-${tabId}`);
+            const fn = typeof window[fnName] === "function" ? window[fnName] : null;
+            if (!tab || tab.classList.contains("hidden") || !fn) return;
+            try {
+              fn();
+            } catch (err) {
+              console.error(`Deferred tab render failed for ${tabId}:`, err);
+              showModuleError(tabId, (document.getElementById(`tbtn-${tabId}`) || {}).textContent || tabId, err);
+            }
+          }, delayMs);
+        }
+
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
           const rMap = {
             home: () => { if (typeof renderHome === "function") renderHome(); },
             deepdive: () => { if (typeof runDD === "function") runDD(); },
-            p1: () => { if (typeof renderP1 === "function") renderP1(); },
-            p2: () => { if (typeof renderP2 === "function") renderP2(); },
-            p3: () => { if (typeof renderP3 === "function") renderP3(); },
+            p1: () => { if (typeof window.renderP1 === "function") window.renderP1(); scheduleTabRerender("p1", "renderP1"); },
+            p2: () => { if (typeof window.renderP2 === "function") window.renderP2(); scheduleTabRerender("p2", "renderP2"); },
+            p3: () => { if (typeof window.renderP3 === "function") window.renderP3(); scheduleTabRerender("p3", "renderP3"); },
             p4: () => { if (typeof renderP4 === "function") renderP4(); },
             p5: () => { if (typeof renderP5 === "function") renderP5(); },
             p8: () => { if (typeof renderP8 === "function") renderP8(); },
             p9: () => { if (typeof renderP9 === "function") renderP9(); },
-            lessors: () => { if (typeof renderLessors === "function") renderLessors(); },
-            country: () => { if (typeof renderCountryTab === "function") renderCountryTab(); },
+            lessors: () => { if (typeof window.renderLessors === "function") window.renderLessors(); scheduleTabRerender("lessors", "renderLessors"); },
+            country: () => { if (typeof window.renderCountryTab === "function") window.renderCountryTab(); scheduleTabRerender("country", "renderCountryTab"); },
             gantt: () => { if (typeof renderGantt === "function") renderGantt(); },
-            fleet: () => { if (typeof runFE === "function") runFE(); },
+            fleet: () => { if (typeof window.runFE === "function") window.runFE(); scheduleTabRerender("fleet", "runFE"); },
             lopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("lopa", "ops"); },
             placement: () => { if (typeof renderPlacementRadar === "function") renderPlacementRadar(); },
             ccolopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("ccolopa", "cco"); },
@@ -6007,29 +6032,39 @@ function renderSunburst(topN){
           if (_origRunDD) _origRunDD();
           // Re-render mini charts as horizontal sorted bars
           setTimeout(() => {
-            const d = ddFiltered;
-            if (!d || !d.length) return;
-            const mfgD = topN(cBy(d, "Manufacturer"), 8);
-            ic("dd-mini-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
-            const stD = topN(cBy(d, "Status"), 6);
-            ic("dd-mini-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
-            // Age dist stays as vertical bar - already good
+            try {
+              const d = ddFiltered;
+              if (!d || !d.length) return;
+              const mfgD = topN(cBy(d, "Manufacturer"), 8);
+              ic("dd-mini-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+              const stD = topN(cBy(d, "Status"), 6);
+              ic("dd-mini-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+              // Age dist stays as vertical bar - already good
+            } catch (err) {
+              console.error("Deferred Deep Dive mini-chart render failed:", err);
+              showModuleError("deepdive", (document.getElementById("tbtn-deepdive") || {}).textContent || "Deep Dive", err);
+            }
           }, 50);
         };
 
         // PATCH: Fleet Explorer charts to horizontal sorted bars
         const _origRunFE = typeof runFE === "function" ? runFE : null;
-          const _feOverride = function () {
-            const base = typeof window._runFEBase === "function" ? window._runFEBase : _origRunFE;
-            if (base) base();
-            setTimeout(() => {
+        const _feOverride = function () {
+          const base = typeof window._runFEBase === "function" ? window._runFEBase : _origRunFE;
+          if (base) base();
+          setTimeout(() => {
+            try {
               const d = feFiltered; if (!d || !d.length) return;
               const mfgD = topN(cBy(d, "Manufacturer"), 10);
-            ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
-            const stD = topN(cBy(d, "Status"), 8);
-            ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
-            const grD = topN(cBy(d, "Market Grouping"), 8);
-            ic("fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
+              ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+              const stD = topN(cBy(d, "Status"), 8);
+              ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+              const grD = topN(cBy(d, "Market Grouping"), 8);
+              ic("fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
+            } catch (err) {
+              console.error("Deferred Fleet Explorer render failed:", err);
+              showModuleError("fleet", (document.getElementById("tbtn-fleet") || {}).textContent || "Fleet Explorer", err);
+            }
           }, 80);
         };
 
@@ -6039,13 +6074,18 @@ function renderSunburst(topN){
           const base = typeof window._renderP2Base === "function" ? window._renderP2Base : _origRenderP2;
           if (base) base();
           setTimeout(() => {
-            const reg = typeof gv === "function" ? gv("p2-region") : ""; const mfg = typeof gv === "function" ? gv("p2-mfg") : "";
-            if (!allData || !allData.length) return;
-            const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
-            const emD = topN(cBy(d, "Engine Manufacturer"), 10);
-            ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
-            const efD = topN(cBy(d, "Engine Family"), 10);
-            ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
+            try {
+              const reg = typeof gv === "function" ? gv("p2-region") : ""; const mfg = typeof gv === "function" ? gv("p2-mfg") : "";
+              if (!allData || !allData.length) return;
+              const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
+              const emD = topN(cBy(d, "Engine Manufacturer"), 10);
+              ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+              const efD = topN(cBy(d, "Engine Family"), 10);
+              ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
+            } catch (err) {
+              console.error("Deferred MFG-ENGINE render failed:", err);
+              showModuleError("p2", (document.getElementById("tbtn-p2") || {}).textContent || "MFG-ENGINE", err);
+            }
           }, 80);
         };
 
@@ -6056,12 +6096,17 @@ function renderSunburst(topN){
           const base = typeof window._renderP8Base === "function" ? window._renderP8Base : _origRenderP8;
           if (base) base();
           setTimeout(() => {
-            const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
-            if (!allData || !allData.length) return;
-            const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
-            const rgMap = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(); rgMap[rg] = (rgMap[rg] || 0) + (r._val || 0); });
-            const rgTop = topN(rgMap, 10);
-            ic("chart-p8-region", { ...hBar(rgTop.map(e => e[0]), rgTop.map(e => +e[1].toFixed(0))), options: { ...hBar([], []).options, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${(c.raw / 1000).toFixed(1)}B` } } } } });
+            try {
+              const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
+              if (!allData || !allData.length) return;
+              const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
+              const rgMap = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(); rgMap[rg] = (rgMap[rg] || 0) + (r._val || 0); });
+              const rgTop = topN(rgMap, 10);
+              ic("chart-p8-region", { ...hBar(rgTop.map(e => e[0]), rgTop.map(e => +e[1].toFixed(0))), options: { ...hBar([], []).options, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${(c.raw / 1000).toFixed(1)}B` } } } } });
+            } catch (err) {
+              console.error("Deferred Market Value render failed:", err);
+              showModuleError("p8", (document.getElementById("tbtn-p8") || {}).textContent || "Market Value", err);
+            }
           }, 80);
         };
 
@@ -6555,7 +6600,9 @@ function renderSunburst(topN){
           if (!allData || !allData.length) return;
           const mgrs = cBy(allData, "Manager");
           const topMgrs = topN(mgrs, 15);
-          ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
+          if (topMgrs.length) {
+            ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
+          }
           const mgrList = Object.entries(mgrs).map(([m, count]) => {
             const d = allData.filter(r => (r["Manager"] || "").trim() === m);
             const ages = d.map(r => r._age).filter(v => v !== null);
@@ -6563,7 +6610,9 @@ function renderSunburst(topN){
             const hrPct = d.length ? (highRisk / d.length * 100).toFixed(0) : 0;
             return { m, count, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", hrPct: hrPct + "%", region: d[0]._region || "-" };
           }).sort((a, b) => b.count - a.count).slice(0, 50);
-          document.getElementById("lessors-tbody").innerHTML = mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("");
+          document.getElementById("lessors-tbody").innerHTML = mgrList.length
+            ? mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("")
+            : `<tr><td colspan="5" style="text-align:center;color:#475569;padding:18px;">No manager exposure records available for the current fleet.</td></tr>`;
         }
 ​
         function renderCountryTab() {
@@ -6574,9 +6623,13 @@ function renderSunburst(topN){
           document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
           document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
           const topCtyAl = topN(countryReport.map(r => [r.country, r.airlineCount]), 10);
-          ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
+          if (topCtyAl.length) {
+            ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
+          }
           const topCtyAc = topN(countryReport.map(r => [r.country, r.aircraftCount]), 10);
-          ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
+          if (topCtyAc.length) {
+            ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
+          }
           renderCountryTable();
         }
 ​
