@@ -2260,7 +2260,41 @@
           if (first) el.appendChild(first);
           arr.forEach(v => { const o = new Option(v, v); if (cur.has(v)) o.selected = true; el.appendChild(o); });
         }
-        Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
+        function escapeBootHtml(value) {
+          return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+        function showBootError(message) {
+          const detail = String(message || "Unknown boot error");
+          const loading = document.getElementById("init-loading");
+          const upload = document.getElementById("upload-section");
+          const initMsg = document.getElementById("init-msg");
+          const initSub = document.getElementById("init-sub");
+          if (loading) loading.classList.remove("hidden");
+          if (upload) upload.classList.add("hidden");
+          if (initMsg) initMsg.textContent = "Application failed to initialize";
+          if (initSub) initSub.innerHTML = `<span style="color:#fca5a5;font-weight:700;">${escapeBootHtml(detail)}</span>`;
+        }
+        window.addEventListener("error", function (event) {
+          const msg = event && (event.message || (event.error && event.error.message));
+          if (msg) showBootError(`Boot error: ${msg}`);
+        });
+        window.addEventListener("unhandledrejection", function (event) {
+          const reason = event && event.reason;
+          const msg = reason && reason.message ? reason.message : String(reason || "Unknown promise rejection");
+          showBootError(`Unhandled initialization error: ${msg}`);
+        });
+        if (typeof window.Chart !== "undefined" && Chart.defaults) {
+          Chart.defaults.font.family = "'Inter',sans-serif";
+          Chart.defaults.color = "#4b5563";
+          Chart.defaults.scale.grid.color = "#111827";
+        } else {
+          console.warn("Chart.js failed to load. Chart rendering will be skipped.");
+        }
         let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
@@ -2284,7 +2318,13 @@
         })();
         window.ModuleSystem = ModuleSystem;
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
-        function ic(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c.getContext("2d"), cfg); }
+        function ic(id, cfg) {
+          if (typeof window.Chart === "undefined") return;
+          if (charts[id]) charts[id].destroy();
+          const c = document.getElementById(id);
+          if (!c) return;
+          charts[id] = new Chart(c.getContext("2d"), cfg);
+        }
         function barO(h = false) { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: h }, border: { display: false } }, y: { grid: { display: !h }, border: { display: false } } }, indexAxis: h ? "y" : "x" }; }
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
         function uniq(a) { return [...new Set(a.filter(v => v && v.trim()))].sort(); }
@@ -2529,13 +2569,18 @@
 
         async function cacheDashboardData(data, meta = {}) {
           const saved = Date.now();
-          await localforage.setItem("gfd_data", data);
-          await localforage.setItem("gfd_meta", {
-            saved,
-            count: data.length,
-            source: meta.source || "live",
-            name: meta.name || "Aircraft Detail.csv"
-          });
+          if (typeof localforage === "undefined") return saved;
+          try {
+            await localforage.setItem("gfd_data", data);
+            await localforage.setItem("gfd_meta", {
+              saved,
+              count: data.length,
+              source: meta.source || "live",
+              name: meta.name || "Aircraft Detail.csv"
+            });
+          } catch (err) {
+            console.warn("Cache save failed.", err);
+          }
           return saved;
         }
 
@@ -2593,6 +2638,7 @@
         }
 
         async function tryLoadCachedData() {
+          if (typeof localforage === "undefined") return null;
           const stored = await localforage.getItem("gfd_data");
           const meta = await localforage.getItem("gfd_meta");
           const cleaned = cleanFleetRows(stored || []);
@@ -2606,8 +2652,10 @@
 
         async function clearData() {
           if (confirm("Clear saved data and cached sync history?")) {
-            await localforage.removeItem("gfd_data");
-            await localforage.removeItem("gfd_meta");
+            if (typeof localforage !== "undefined") {
+              await localforage.removeItem("gfd_data");
+              await localforage.removeItem("gfd_meta");
+            }
             location.reload();
           }
         }
@@ -2700,8 +2748,16 @@ ${syncErrorMessage || "Unknown error"}`);
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+          if (typeof Papa === "undefined") {
+            showBootError("Required library failed to load: Papa Parse.");
+            return;
+          }
           setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
-          await syncData({ showSpinner: true, allowUploadFallback: true });
+          try {
+            await syncData({ showSpinner: true, allowUploadFallback: true });
+          } catch (err) {
+            showBootError(`Unexpected startup error: ${getErrorMessage(err)}`);
+          }
         });
         // Drag/drop
         const dz = document.getElementById("dropzone");
