@@ -2588,15 +2588,53 @@
           return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
         }
 
+        function normalizeCreditJoinKeys(value) {
+          const raw = String(value || "").trim();
+          if (!raw) return [];
+          const variants = new Set();
+          variants.add(normalizeJoinKey(raw));
+          variants.add(normalizeJoinKey(raw.replace(/\s*\([^)]*\)\s*/g, " ")));
+          variants.add(normalizeJoinKey(raw.replace(/\s*-\s*.*$/, "")));
+          return [...variants].filter(Boolean);
+        }
+
+        function lookupCreditRecord(creditLookup, operatorName) {
+          const keys = normalizeCreditJoinKeys(operatorName);
+          for (const key of keys) {
+            if (creditLookup[key]) return creditLookup[key];
+          }
+          return null;
+        }
+
         function buildSupplementalLookups(creditRows = [], supplyRows = []) {
           const creditLookup = {};
           (creditRows || []).forEach(row => {
-            const operatorKey = normalizeJoinKey(row["Airlines"] || row["Airline"] || row["Operator"]);
-            if (!operatorKey) return;
-            creditLookup[operatorKey] = {
-              score: String(row["Credit Score"] || row["Score"] || row["Rating"] || "").trim(),
-              outlook: String(row["Credit Outlook"] || row["Outlook"] || row["Status"] || "").trim()
+            const keys = normalizeCreditJoinKeys(row["Airlines"] || row["Airline"] || row["Operator"]);
+            if (!keys.length) return;
+            const record = {
+              score: String(
+                row["Credit Score"] ||
+                row["Ishka Credit Score"] ||
+                row["Score"] ||
+                row["Rating"] ||
+                row["Ishka Credit Score Outlook or Proxy Score"] ||
+                ""
+              ).trim(),
+              outlook: String(
+                row["Credit Outlook"] ||
+                row["Ishka Credit Score Outlook or Proxy Score"] ||
+                row["Outlook"] ||
+                row["Overall credit quality"] ||
+                row["Status"] ||
+                ""
+              ).trim(),
+              overallQuality: String(row["Overall credit quality"] || "").trim(),
+              businessModel: String(row["Business Model"] || "").trim(),
+              region: String(row["Region"] || "").trim()
             };
+            keys.forEach(operatorKey => {
+              creditLookup[operatorKey] = record;
+            });
           });
 
           const supplyLookup = {};
@@ -2613,9 +2651,8 @@
           const creditLookup = lookups.creditLookup || {};
           const supplyLookup = lookups.supplyLookup || {};
           return (rows || []).map(row => {
-            const operatorKey = normalizeJoinKey(row["Operator"]);
+            const credit = lookupCreditRecord(creditLookup, row["Operator"]) || {};
             const typeKey = normalizeJoinKey(row["Type"]);
-            const credit = creditLookup[operatorKey] || {};
             return {
               ...row,
               _creditScore: String(row._creditScore || credit.score || "").trim(),
@@ -2828,7 +2865,7 @@ ${syncErrorMessage || "Unknown error"}`);
             r._operatorClean = r["Operator"] ? String(r["Operator"]).trim() : "Unknown";
             r._country = r["Operator Country/Subregion"] ? String(r["Operator Country/Subregion"]).trim() : "Unknown";
             r._region = r["Operator Region"] ? String(r["Operator Region"]).trim() : "Unknown";
-            const joinedCredit = (supplemental.creditLookup || {})[normalizeJoinKey(r["Operator"])] || null;
+            const joinedCredit = lookupCreditRecord((supplemental.creditLookup || {}), r["Operator"]) || null;
             r._creditScore = String(r._creditScore || (joinedCredit && joinedCredit.score) || "").trim();
             r._creditOutlook = String(r._creditOutlook || (joinedCredit && joinedCredit.outlook) || "").trim();
             r._competingSupplyCount = Number.isFinite(+r._competingSupplyCount) ? +r._competingSupplyCount : ((supplemental.supplyLookup || {})[normalizeJoinKey(r["Type"])] || 0);
@@ -3529,6 +3566,7 @@ ${syncErrorMessage || "Unknown error"}`);
               let highRiskValue = 0;
               let mediumRiskValue = 0;
               let lowRiskValue = 0;
+              let unratedValue = 0;
               const operatorExposure = {};
 
               (allData || []).forEach(ac => {
@@ -3538,15 +3576,20 @@ ${syncErrorMessage || "Unknown error"}`);
                 const category = this.categorizeRisk(score);
                 const value = Number.isFinite(ac._val) ? ac._val : (parseFloat(ac["Indicative Market Value (US$m)"]) || 0);
                 const operator = String(ac["Operator"] || "Unknown").trim() || "Unknown";
+                const region = String(ac["Operator Region"] || "Unknown").trim() || "Unknown";
+                const companyType = String(ac["Operator Company Type"] || "Unknown").trim() || "Unknown";
 
                 if (category === "Critical (High Risk)") highRiskValue += value;
                 else if (category === "Speculative (Medium Risk)") mediumRiskValue += value;
                 else if (category === "Investment Grade (Low Risk)") lowRiskValue += value;
+                else unratedValue += value;
 
                 if (!operatorExposure[operator]) {
                   operatorExposure[operator] = {
                     score,
                     category,
+                    region,
+                    companyType,
                     aircraftCount: 0,
                     totalValue: 0
                   };
@@ -3561,22 +3604,67 @@ ${syncErrorMessage || "Unknown error"}`);
                 current.totalValue += value;
               });
 
-              const watchlist = Object.entries(operatorExposure)
-                .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
-                .sort((a, b) => b[1].totalValue - a[1].totalValue);
+              const filters = {
+                category: (document.getElementById('cr-filter-category') || {}).value || "",
+                region: (document.getElementById('cr-filter-region') || {}).value || "",
+                companyType: (document.getElementById('cr-filter-companytype') || {}).value || "",
+                ratingState: (document.getElementById('cr-filter-ratingstate') || {}).value || ""
+              };
 
-              let tableRowsHTML = "";
+              const allOperators = Object.entries(operatorExposure)
+                .sort((a, b) => b[1].totalValue - a[1].totalValue || a[0].localeCompare(b[0]));
+
+              const filteredOperators = allOperators.filter(([, data]) => {
+                if (filters.category && data.category !== filters.category) return false;
+                if (filters.region && data.region !== filters.region) return false;
+                if (filters.companyType && data.companyType !== filters.companyType) return false;
+                if (filters.ratingState === "rated" && (!data.score || data.score === "NR")) return false;
+                if (filters.ratingState === "unrated" && data.score && data.score !== "NR") return false;
+                return true;
+              });
+
+              const watchlist = filteredOperators
+                .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
+                .slice(0, 25);
+
+              const categoryOptions = uniq(allOperators.map(([, data]) => data.category));
+              const regionOptions = uniq(allOperators.map(([, data]) => data.region));
+              const companyTypeOptions = uniq(allOperators.map(([, data]) => data.companyType));
+
+              let watchlistRowsHTML = "";
               if (!watchlist.length) {
-                tableRowsHTML = `<tr><td colspan="4" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties in the current clean fleet universe.</td></tr>`;
+                watchlistRowsHTML = `<tr><td colspan="6" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties match the current filters.</td></tr>`;
               } else {
                 watchlist.forEach(([operator, data]) => {
                   const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
-                  tableRowsHTML += `
+                  watchlistRowsHTML += `
                     <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
                       <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
+                      <td class="px-4 py-3">${escapeHtml(data.region)}</td>
+                      <td class="px-4 py-3">${escapeHtml(data.companyType)}</td>
                       <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
-                      <td class="px-4 py-3">${(data.aircraftCount || 0).toLocaleString()}</td>
-                      <td class="px-4 py-3 font-mono text-[#06b6d4]">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
+                      <td class="px-4 py-3 text-right">${(data.aircraftCount || 0).toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-[#06b6d4] text-right">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
+                    </tr>
+                  `;
+                });
+              }
+
+              let allRowsHTML = "";
+              if (!filteredOperators.length) {
+                allRowsHTML = `<tr><td colspan="7" style="padding:22px;text-align:center;color:#64748b;">No operators match the current filters.</td></tr>`;
+              } else {
+                filteredOperators.forEach(([operator, data]) => {
+                  const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
+                  allRowsHTML += `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
+                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
+                      <td class="px-4 py-3">${escapeHtml(data.region)}</td>
+                      <td class="px-4 py-3">${escapeHtml(data.companyType)}</td>
+                      <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
+                      <td class="px-4 py-3">${escapeHtml(data.category)}</td>
+                      <td class="px-4 py-3 text-right">${(data.aircraftCount || 0).toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-[#06b6d4] text-right">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
                     </tr>
                   `;
                 });
@@ -3588,7 +3676,7 @@ ${syncErrorMessage || "Unknown error"}`);
                   <p class="text-gray-400">Financial exposure categorized by Ishka Credit Ratings</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}">
                     <div class="text-gray-400 text-sm">Critical Exposure (CCC &amp; Below)</div>
                     <div class="text-2xl font-bold text-white">${formatMoneyM(highRiskValue)}</div>
@@ -3601,6 +3689,76 @@ ${syncErrorMessage || "Unknown error"}`);
                     <div class="text-gray-400 text-sm">Investment Grade Exposure (BBB- &amp; Above)</div>
                     <div class="text-2xl font-bold text-white">${formatMoneyM(lowRiskValue)}</div>
                   </div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Unrated"].cardClass}">
+                    <div class="text-gray-400 text-sm">Unrated Exposure</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(unratedValue)}</div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-800 rounded p-4 mb-6">
+                  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                      <h3 class="text-lg font-bold text-white">Filters</h3>
+                      <p class="text-sm text-gray-400 mt-1">Review all airlines, or narrow the exposure matrix by risk band, region, company type, and rating coverage.</p>
+                    </div>
+                    <div class="text-sm text-gray-400">Operators shown: <span class="text-white font-semibold">${filteredOperators.length.toLocaleString()}</span> of ${allOperators.length.toLocaleString()}</div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
+                    <div>
+                      <label class="fl">Risk Category</label>
+                      <select id="cr-filter-category" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
+                        <option value="">All Categories</option>
+                        ${categoryOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.category === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="fl">Operator Region</label>
+                      <select id="cr-filter-region" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
+                        <option value="">All Regions</option>
+                        ${regionOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.region === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="fl">Operator Company Type</label>
+                      <select id="cr-filter-companytype" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
+                        <option value="">All Company Types</option>
+                        ${companyTypeOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.companyType === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="fl">Rating Coverage</label>
+                      <select id="cr-filter-ratingstate" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
+                        <option value="">Rated + Unrated</option>
+                        <option value="rated" ${filters.ratingState === "rated" ? "selected" : ""}>Rated Only</option>
+                        <option value="unrated" ${filters.ratingState === "unrated" ? "selected" : ""}>Unrated Only</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-800 rounded p-4 mb-6 flex-grow flex flex-col min-h-0">
+                  <div class="flex items-center justify-between mb-4 gap-4">
+                    <div>
+                      <h3 class="text-lg font-bold text-white">Operator Exposure Matrix</h3>
+                      <p class="text-sm text-gray-400 mt-1">All airlines in the current clean fleet universe, with Ishka credit tags where available.</p>
+                    </div>
+                  </div>
+                  <div class="overflow-y-auto flex-grow custom-scrollbar">
+                    <table class="w-full text-left text-sm text-gray-300">
+                      <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
+                        <tr>
+                          <th class="px-4 py-2">Operator</th>
+                          <th class="px-4 py-2">Region</th>
+                          <th class="px-4 py-2">Company Type</th>
+                          <th class="px-4 py-2">Credit Score</th>
+                          <th class="px-4 py-2">Risk Category</th>
+                          <th class="px-4 py-2 text-right">Aircraft Count</th>
+                          <th class="px-4 py-2 text-right">Total Value Exposure ($M)</th>
+                        </tr>
+                      </thead>
+                      <tbody>${allRowsHTML}</tbody>
+                    </table>
+                  </div>
                 </div>
 
                 <div class="bg-gray-800 rounded p-4 flex-grow flex flex-col min-h-0">
@@ -3610,12 +3768,14 @@ ${syncErrorMessage || "Unknown error"}`);
                       <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
                         <tr>
                           <th class="px-4 py-2">Operator</th>
+                          <th class="px-4 py-2">Region</th>
+                          <th class="px-4 py-2">Company Type</th>
                           <th class="px-4 py-2">Credit Score</th>
-                          <th class="px-4 py-2">Aircraft Count</th>
-                          <th class="px-4 py-2">Total Value Exposure ($M)</th>
+                          <th class="px-4 py-2 text-right">Aircraft Count</th>
+                          <th class="px-4 py-2 text-right">Total Value Exposure ($M)</th>
                         </tr>
                       </thead>
-                      <tbody>${tableRowsHTML}</tbody>
+                      <tbody>${watchlistRowsHTML}</tbody>
                     </table>
                   </div>
                 </div>
