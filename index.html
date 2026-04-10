@@ -2593,13 +2593,27 @@
           return text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         }
 
+        function normalizeParsedRows(rows) {
+          return (rows || []).map(row => {
+            if (!row || typeof row !== "object") return null;
+            const normalized = {};
+            Object.entries(row).forEach(([key, value]) => {
+              const cleanKey = String(key || "").replace(/^\uFEFF/, "").trim();
+              if (!cleanKey) return;
+              normalized[cleanKey] = typeof value === "string" ? value.trim() : value;
+            });
+            return normalized;
+          }).filter(row => row && Object.values(row).some(value => String(value ?? "").trim() !== ""));
+        }
+
         function parseCsvText(csvText, { clean = false } = {}) {
           return new Promise((resolve, reject) => {
             Papa.parse(csvText, {
               header: true,
               skipEmptyLines: true,
+              transformHeader: header => String(header || "").replace(/^\uFEFF/, "").trim(),
               complete: (res) => {
-                const rows = res.data || [];
+                const rows = normalizeParsedRows(res.data || []);
                 resolve(clean ? cleanFleetRows(rows) : rows.filter(row => row && typeof row === "object" && Object.values(row).some(value => String(value || "").trim() !== "")));
               },
               error: reject
@@ -2788,7 +2802,7 @@
 
             const lookups = buildSupplementalLookups(creditRows || [], []);
             const mergedRows = applySupplementalJoins(mainRows || [], lookups);
-            creditSheetRows = Array.isArray(creditRows) ? creditRows : [];
+            creditSheetRows = normalizeParsedRows(Array.isArray(creditRows) ? creditRows : []);
             const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" }, { creditRows: creditSheetRows });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", mergedRows.length, saved);
@@ -2826,7 +2840,7 @@
               setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
             }
               try {
-                creditSheetRows = Array.isArray(cached.creditRows) ? cached.creditRows : [];
+                creditSheetRows = normalizeParsedRows(Array.isArray(cached.creditRows) ? cached.creditRows : []);
                 initDash(cached.data, { creditRows: creditSheetRows });
                 if (fromUser) setSyncStatus("Live sync failed, cached offline data loaded.", "warning");
               } catch (renderErr) {
@@ -2883,9 +2897,12 @@
           document.getElementById("upload-title").textContent = "Parsing & Saving...";
           document.getElementById("upload-desc").textContent = "Processing your CSV, please wait...";
           Papa.parse(f, {
-            header: true, skipEmptyLines: true, complete: async function (res) {
-              const cleanedData = cleanFleetRows(res.data || []);
-              try {
+              header: true,
+              skipEmptyLines: true,
+              transformHeader: header => String(header || "").replace(/^\uFEFF/, "").trim(),
+              complete: async function (res) {
+                const cleanedData = cleanFleetRows(normalizeParsedRows(res.data || []));
+                try {
                   const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name }, { creditRows: creditSheetRows });
                   updateDataBanner("manual", cleanedData.length, saved);
                 } catch (e) { }
@@ -2907,7 +2924,7 @@
           feFiltered = [];
           tatsVisibleRows = [];
           ddVisibleRows = [];
-          creditSheetRows = Array.isArray(supplemental.creditRows) ? supplemental.creditRows.slice() : creditSheetRows;
+            creditSheetRows = Array.isArray(supplemental.creditRows) ? normalizeParsedRows(supplemental.creditRows) : creditSheetRows;
 
           document.getElementById("init-loading").classList.add("hidden");
           document.getElementById("upload-section").classList.add("hidden");
@@ -3629,7 +3646,7 @@
                 coverage: (document.getElementById('cr-filter-coverage') || {}).value || ""
               };
 
-              const preparedRows = (creditSheetRows || []).map((row, idx) => {
+              const preparedRows = normalizeParsedRows(creditSheetRows || []).map((row, idx) => {
                 const score = getScore(row);
                 const category = this.categorizeRisk(score);
                 const airline = String(row["Airlines"] || row["Airline"] || `Row ${idx + 1}`).trim();
@@ -6002,11 +6019,12 @@ function renderSunburst(topN){
 
         // PATCH: Fleet Explorer charts to horizontal sorted bars
         const _origRunFE = typeof runFE === "function" ? runFE : null;
-        const _feOverride = function () {
-          if (_origRunFE) _origRunFE();
-          setTimeout(() => {
-            const d = feFiltered; if (!d || !d.length) return;
-            const mfgD = topN(cBy(d, "Manufacturer"), 10);
+          const _feOverride = function () {
+            const base = typeof window._runFEBase === "function" ? window._runFEBase : _origRunFE;
+            if (base) base();
+            setTimeout(() => {
+              const d = feFiltered; if (!d || !d.length) return;
+              const mfgD = topN(cBy(d, "Manufacturer"), 10);
             ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
             const stD = topN(cBy(d, "Status"), 8);
             ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
@@ -6194,12 +6212,129 @@ function renderSunburst(topN){
           document.getElementById("p3-region-table").innerHTML = regD.map(e => `<tr><td>${e[0]}</td><td class="num">${e[1].toLocaleString()}</td></tr>`).join("");
         }
 
-        // Minimal legacy sort helper so Inventory headers never call a missing function.
-        function sortTable(scope, col) {
-          if (scope !== "p4") return;
-          p4Sort = { col, dir: p4Sort.col === col && p4Sort.dir === "desc" ? "asc" : "desc" };
-          renderP4();
-        }
+          // Minimal legacy sort helper so Inventory headers never call a missing function.
+          function sortTable(scope, col) {
+            if (scope !== "p4") return;
+            p4Sort = { col, dir: p4Sort.col === col && p4Sort.dir === "desc" ? "asc" : "desc" };
+            renderP4();
+          }
+
+          // Restore the Fleet Explorer renderer that older patches started decorating.
+          function resetFE() {
+            ["fe-region", "fe-country", "fe-opgroup", "fe-operator", "fe-mfg", "fe-family", "fe-engine", "fe-grouping", "fe-status", "fe-usage"]
+              .forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = "";
+              });
+          }
+
+          function runFE() {
+            const tab = document.getElementById("tab-fleet");
+            if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
+
+            const matches = (value, selected) => !selected || String(value || "").trim() === selected;
+            const filters = {
+              region: gv("fe-region"),
+              country: gv("fe-country"),
+              opgroup: gv("fe-opgroup"),
+              operator: gv("fe-operator"),
+              mfg: gv("fe-mfg"),
+              family: gv("fe-family"),
+              engine: gv("fe-engine"),
+              grouping: gv("fe-grouping"),
+              status: gv("fe-status"),
+              usage: gv("fe-usage")
+            };
+
+            const d = allData.filter(r =>
+              matches(r["Operator Region"], filters.region) &&
+              matches(r["Operator Country/Subregion"], filters.country) &&
+              matches(r["Operator Group"], filters.opgroup) &&
+              matches(r["Operator"], filters.operator) &&
+              matches(r["Manufacturer"], filters.mfg) &&
+              matches(r["Current Family"], filters.family) &&
+              matches(r["Engine Manufacturer"], filters.engine) &&
+              matches(r["Market Grouping"], filters.grouping) &&
+              matches(r["Status"], filters.status) &&
+              matches(r["Primary Usage"], filters.usage)
+            );
+
+            feFiltered = d;
+
+            const ages = d.map(r => r._age).filter(v => typeof v === "number" && !Number.isNaN(v));
+            const uniqueOps = new Set(d.map(r => String(r["Operator"] || "").trim()).filter(Boolean));
+            const limitedRows = d.slice(0, 500);
+
+            const totalEl = document.getElementById("fe-kpi-total");
+            const ageEl = document.getElementById("fe-kpi-age");
+            const opsEl = document.getElementById("fe-kpi-ops");
+            const noteEl = document.getElementById("fe-limit-note");
+            const tbody = document.getElementById("fe-tbody");
+            if (totalEl) totalEl.textContent = d.length.toLocaleString();
+            if (ageEl) ageEl.textContent = ages.length ? (ages.reduce((sum, value) => sum + value, 0) / ages.length).toFixed(1) : "0.0";
+            if (opsEl) opsEl.textContent = uniqueOps.size.toLocaleString();
+            if (noteEl) noteEl.textContent = d.length > limitedRows.length ? `Showing first ${limitedRows.length.toLocaleString()} rows of ${d.length.toLocaleString()}` : `${d.length.toLocaleString()} rows in view`;
+
+            const ageBuckets = [
+              { label: "<5", count: 0 },
+              { label: "5-9", count: 0 },
+              { label: "10-14", count: 0 },
+              { label: "15-19", count: 0 },
+              { label: "20+", count: 0 }
+            ];
+            ages.forEach(age => {
+              if (age < 5) ageBuckets[0].count += 1;
+              else if (age < 10) ageBuckets[1].count += 1;
+              else if (age < 15) ageBuckets[2].count += 1;
+              else if (age < 20) ageBuckets[3].count += 1;
+              else ageBuckets[4].count += 1;
+            });
+
+            const mfgTop = topN(cBy(d, "Manufacturer"), 10);
+            const statusTop = topN(cBy(d, "Status"), 8);
+            const groupingTop = topN(cBy(d, "Market Grouping"), 8);
+
+            ic("fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
+            ic("fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
+            ic("fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
+            ic("fe-chart-age", {
+              type: "bar",
+              data: {
+                labels: ageBuckets.map(bucket => bucket.label),
+                datasets: [{
+                  data: ageBuckets.map(bucket => bucket.count),
+                  backgroundColor: ["#06b6d4", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444"],
+                  borderRadius: 4
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, border: { display: false } },
+                  y: { grid: { color: "#111827" }, border: { display: false } }
+                }
+              }
+            });
+
+            if (!tbody) return;
+            tbody.innerHTML = limitedRows.length ? limitedRows.map((r, idx) => `
+              <tr class="border-b border-[#1a2234] hover:bg-[#111827] cursor-pointer" onclick="showAcDetail(${allData.indexOf(r)})">
+                <td style="padding:8px 10px;">${typeof operatorWithCreditHtml === "function" ? operatorWithCreditHtml(r["Operator"] || "-", r._creditScore, r._creditOutlook) : escapeHtml(r["Operator"] || "-")}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Registration"] || r["Serial Number"] || "-")}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Type"] || "-")}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Manufacturer"] || "-")}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Current Family"] || "-")}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Engine Family"] || "-")}</td>
+                <td style="padding:8px 10px;">${sBadge(String(r["Status"] || "-"))}</td>
+                <td class="num" style="padding:8px 10px;">${typeof r._age === "number" ? r._age.toFixed(1) : "-"}</td>
+                <td class="num" style="padding:8px 10px;">${r._val ? "$" + r._val.toFixed(1) + "M" : "-"}</td>
+                <td style="padding:8px 10px;">${escapeHtml(r["Manager"] || "-")}</td>
+              </tr>
+            `).join("") : `<tr><td colspan="10" style="padding:18px;text-align:center;color:#64748b;">No aircraft match the current Fleet Explorer filters.</td></tr>`;
+          }
+          window._runFEBase = runFE;
 
         // Restored lightweight Inventory renderer to replace the missing renderP4 path.
         function renderP4() {
