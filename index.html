@@ -828,6 +828,7 @@
     </div>
     <div class="flex items-center gap-3">
       <span id="banner-date" style="color:#475569;font-size:11px;"></span>
+      <span id="sync-status" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid #1f2937;background:#0a0f1e;color:#94a3b8;"></span>
       <button id="sync-data-btn" onclick="syncData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
         <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -2464,6 +2465,49 @@
           updateHeaderStatus();
         }
 
+        // Small status helper for sync/export actions so users get feedback without changing the app layout.
+        let syncStatusTimer = null;
+        function setSyncStatus(message = "", tone = "info", persist = false) {
+          const status = document.getElementById("sync-status");
+          if (!status) return;
+          if (!message) {
+            status.textContent = "";
+            status.classList.add("hidden");
+            return;
+          }
+          const toneMap = {
+            info: { bg: "#0a0f1e", border: "#1f2937", color: "#94a3b8" },
+            loading: { bg: "#082f49", border: "#0ea5e9", color: "#bae6fd" },
+            success: { bg: "#052e16", border: "#166534", color: "#86efac" },
+            warning: { bg: "#3f2a05", border: "#b45309", color: "#fcd34d" },
+            error: { bg: "#3f0d14", border: "#be123c", color: "#fda4af" }
+          };
+          const palette = toneMap[tone] || toneMap.info;
+          status.textContent = message;
+          status.style.background = palette.bg;
+          status.style.borderColor = palette.border;
+          status.style.color = palette.color;
+          status.classList.remove("hidden");
+          clearTimeout(syncStatusTimer);
+          if (!persist && tone !== "loading") {
+            syncStatusTimer = setTimeout(() => setSyncStatus(""), 5000);
+          }
+        }
+
+        function setSyncButtonState(isLoading) {
+          const button = document.getElementById("sync-data-btn");
+          if (!button) return;
+          if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = button.innerHTML;
+          }
+          button.disabled = !!isLoading;
+          button.style.opacity = isLoading ? "0.75" : "1";
+          button.style.cursor = isLoading ? "wait" : "pointer";
+          button.innerHTML = isLoading
+            ? `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;border:2px solid #334155;border-top-color:#06b6d4;border-radius:999px;animation:spin .8s linear infinite;"></span>Syncing...</span>`
+            : button.dataset.defaultLabel;
+        }
+
         function formatHeaderTimestamp(value) {
           const date = value instanceof Date ? value : new Date(value);
           if (Number.isNaN(date.getTime())) return "";
@@ -2512,22 +2556,31 @@
 
         function exportTableToCSV(dataArray, filename) {
           if (!Array.isArray(dataArray) || !dataArray.length) {
+            setSyncStatus("No rows are currently available to export.", "warning");
             alert("No rows are currently available to export.");
             return;
           }
-          const headers = Object.keys(dataArray[0]);
-          const lines = [headers.map(csvEscape).join(",")].concat(
-            dataArray.map(row => headers.map(header => csvEscape(row[header])).join(","))
-          );
-          const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          try {
+            const headers = Object.keys(dataArray[0]);
+            const lines = [headers.map(csvEscape).join(",")].concat(
+              dataArray.map(row => headers.map(header => csvEscape(row[header])).join(","))
+            );
+            const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            setSyncStatus(`Exported ${dataArray.length.toLocaleString()} rows to ${filename}.`, "success");
+          } catch (err) {
+            console.error("CSV export failed.", err);
+            setSyncStatus(`CSV export failed: ${getErrorMessage(err)}`, "error", true);
+            alert(`CSV export failed: ${getErrorMessage(err)}`);
+          }
         }
 
         function buildExportFilename(tabName) {
@@ -2701,6 +2754,10 @@
         }
 
         async function syncData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
+          if (fromUser) {
+            setSyncButtonState(true);
+            setSyncStatus("Syncing latest data from GitHub...", "loading", true);
+          }
           if (showSpinner) {
             setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
           }
@@ -2738,18 +2795,22 @@
 
             try {
               initDash(mergedRows, { ...lookups, creditRows: creditSheetRows });
+              if (fromUser) setSyncStatus("Live sync completed successfully.", "success");
             } catch (renderErr) {
               const renderMessage = `Render error after successful fetch: ${getErrorMessage(renderErr)}`;
               console.error("Dashboard render failed after live sync.", renderErr);
               showSyncError(renderMessage);
+              if (fromUser) setSyncStatus(renderMessage, "error", true);
               throw new Error(renderMessage);
             }
+            if (fromUser) setSyncButtonState(false);
             return;
           } catch (err) {
             syncErrorMessage = getErrorMessage(err);
             const isRenderError = syncErrorMessage.startsWith("Render error after successful fetch:");
             console.warn(isRenderError ? "Live fetch succeeded but dashboard rendering failed." : "Remote sync unavailable, attempting cached fallback.", err);
             showSyncError(isRenderError ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
+            if (fromUser) setSyncStatus(isRenderError ? syncErrorMessage : `Live sync failed: ${syncErrorMessage}`, "error", true);
           }
 
           let cached = null;
@@ -2764,26 +2825,37 @@
             if (showSpinner) {
               setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
             }
-            try {
+              try {
                 creditSheetRows = Array.isArray(cached.creditRows) ? cached.creditRows : [];
                 initDash(cached.data, { creditRows: creditSheetRows });
+                if (fromUser) setSyncStatus("Live sync failed, cached offline data loaded.", "warning");
               } catch (renderErr) {
-              const renderMessage = `Render error from cached data: ${getErrorMessage(renderErr)}`;
-              console.error("Dashboard render failed while using cached data.", renderErr);
-              showSyncError(renderMessage);
+                const renderMessage = `Render error from cached data: ${getErrorMessage(renderErr)}`;
+                console.error("Dashboard render failed while using cached data.", renderErr);
+                showSyncError(renderMessage);
+                if (fromUser) setSyncStatus(renderMessage, "error", true);
+              }
+              if (fromUser) setSyncButtonState(false);
+              return;
             }
-            return;
-          }
 
-          if (allowUploadFallback) {
-            if (syncErrorMessage) showSyncError(/^(Fetch error:|Render error)/.test(syncErrorMessage) ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
-            showUpload();
-          } else if (fromUser) {
-            alert(`Live sync failed and no cached dataset is available yet.
+            if (allowUploadFallback) {
+              if (syncErrorMessage) showSyncError(/^(Fetch error:|Render error)/.test(syncErrorMessage) ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
+              showUpload();
+              if (fromUser) {
+                setSyncButtonState(false);
+                setSyncStatus("Sync failed. Upload fallback is now available.", "error", true);
+              }
+            } else if (fromUser) {
+              setSyncButtonState(false);
+              alert(`Live sync failed and no cached dataset is available yet.
 
-${syncErrorMessage || "Unknown error"}`);
+  ${syncErrorMessage || "Unknown error"}`);
+            }
+            if (fromUser && document.getElementById("sync-data-btn") && document.getElementById("sync-data-btn").disabled) {
+              setSyncButtonState(false);
+            }
           }
-        }
 
         async function syncLatestData(options = {}) {
           return syncData(options);
@@ -4273,6 +4345,56 @@ ${syncErrorMessage || "Unknown error"}`);
             renderCounterpartyRisk();
           }
         }
+
+        // Keep broken modules isolated to their own tab instead of escalating into a global boot failure.
+        function clearModuleError(tabId) {
+          const tab = document.getElementById(`tab-${tabId}`);
+          if (!tab) return;
+          const banner = tab.querySelector(".module-error-banner");
+          if (banner) banner.remove();
+        }
+
+        function showModuleError(tabId, title, error) {
+          const tab = document.getElementById(`tab-${tabId}`);
+          if (!tab) return;
+          let banner = tab.querySelector(".module-error-banner");
+          if (!banner) {
+            banner = document.createElement("div");
+            banner.className = "module-error-banner card";
+            banner.style.border = "1px solid #7f1d1d";
+            banner.style.background = "#1f1117";
+            banner.style.marginBottom = "12px";
+            tab.prepend(banner);
+          }
+          banner.innerHTML = `
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+              <div>
+                <div style="font-size:14px;font-weight:800;color:#fecaca;">${escapeHtml(title)} failed to render</div>
+                <div style="font-size:12px;color:#fca5a5;margin-top:4px;">${escapeHtml(getErrorMessage(error))}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:6px;">Other dashboard modules remain available while this section is being repaired.</div>
+              </div>
+              <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="clearModuleError('${tabId}')">Dismiss</button>
+            </div>
+          `;
+        }
+
+        function renderLegacyPlaceholder(tabId, title, description) {
+          const tab = document.getElementById(`tab-${tabId}`);
+          if (!tab || !allData || !allData.length) return;
+          clearModuleError(tabId);
+          const existing = tab.querySelector(".legacy-placeholder");
+          const summary = `${allData.length.toLocaleString()} aircraft are loaded and ready for analysis.`;
+          const html = `
+            <div class="legacy-placeholder card" style="border:1px dashed #334155;background:#0d1424;">
+              <div class="s-title">${escapeHtml(title)}</div>
+              <div class="s-sub">${escapeHtml(description)}</div>
+              <div style="font-size:12px;color:#94a3b8;margin-top:8px;">${summary}</div>
+            </div>
+          `;
+          if (existing) existing.outerHTML = html;
+          else tab.insertAdjacentHTML("afterbegin", html);
+        }
+
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
@@ -4303,10 +4425,12 @@ ${syncErrorMessage || "Unknown error"}`);
           };
           if (rMap[id]) {
             try {
+              clearModuleError(id);
               rMap[id]();
             } catch (err) {
               console.error(`Tab render failed for ${id}:`, err);
-              throw err;
+              showModuleError(id, (document.getElementById(`tbtn-${id}`) || {}).textContent || id, err);
+              setSyncStatus(`${(document.getElementById(`tbtn-${id}`) || {}).textContent || id} failed to render.`, "error");
             }
           }
         }
@@ -5894,7 +6018,8 @@ function renderSunburst(topN){
         // PATCH: P2 doughnuts to horizontal bars
         const _origRenderP2 = typeof renderP2 === "function" ? renderP2 : null;
         const _p2Override = function () {
-          if (_origRenderP2) _origRenderP2();
+          const base = typeof window._renderP2Base === "function" ? window._renderP2Base : _origRenderP2;
+          if (base) base();
           setTimeout(() => {
             const reg = typeof gv === "function" ? gv("p2-region") : ""; const mfg = typeof gv === "function" ? gv("p2-mfg") : "";
             if (!allData || !allData.length) return;
@@ -5910,7 +6035,8 @@ function renderSunburst(topN){
         const _origRenderP8 = typeof renderP8 === "function" ? renderP8 : null;
         const _p8Override = function () {
           if (document.getElementById("tab-p8").classList.contains("hidden")) return;
-          if (_origRenderP8) _origRenderP8();
+          const base = typeof window._renderP8Base === "function" ? window._renderP8Base : _origRenderP8;
+          if (base) base();
           setTimeout(() => {
             const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
             if (!allData || !allData.length) return;
@@ -6045,6 +6171,7 @@ function renderSunburst(topN){
           const etD = topN(cBy(d, "Engine Type"), 8); ic("chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
           const neD = topN(cBy(d, "Number Of Engines"), 5); ic("chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
         }
+        window._renderP2Base = renderP2;
 
         // FAMILY MARKET: year slicer + multi-select
         function renderP3() {
@@ -6066,6 +6193,134 @@ function renderSunburst(topN){
           const regD = topN(cBy(d, "Operator Region"), 8);
           document.getElementById("p3-region-table").innerHTML = regD.map(e => `<tr><td>${e[0]}</td><td class="num">${e[1].toLocaleString()}</td></tr>`).join("");
         }
+
+        // Minimal legacy sort helper so Inventory headers never call a missing function.
+        function sortTable(scope, col) {
+          if (scope !== "p4") return;
+          p4Sort = { col, dir: p4Sort.col === col && p4Sort.dir === "desc" ? "asc" : "desc" };
+          renderP4();
+        }
+
+        // Restored lightweight Inventory renderer to replace the missing renderP4 path.
+        function renderP4() {
+          const tab = document.getElementById("tab-p4");
+          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
+          renderLegacyPlaceholder("p4", "Inventory List", "Flat sortable ledger of the filtered fleet with market value, manager, lease end, and TATS tier.");
+          const search = gv("p4-search").trim().toLowerCase();
+          let d = allData.filter(r =>
+            (!gv("p4-region") || (r["Operator Region"] || "").trim() === gv("p4-region")) &&
+            (!gv("p4-mfg") || (r["Manufacturer"] || "").trim() === gv("p4-mfg")) &&
+            (!gv("p4-status") || (r["Status"] || "").trim() === gv("p4-status")) &&
+            (!gv("p4-manager") || (r["Manager"] || "").trim() === gv("p4-manager")) &&
+            (!search || [r["Operator"], r["Registration"], r["Serial Number"], r["Type"], r["Manager"]].join(" ").toLowerCase().includes(search))
+          );
+          const accessors = {
+            region: r => (r["Operator Region"] || "").toLowerCase(),
+            operator: r => (r["Operator"] || "").toLowerCase(),
+            type: r => (r["Type"] || "").toLowerCase(),
+            manager: r => (r["Manager"] || "").toLowerCase(),
+            leaseEnd: r => r._leaseEndDate ? r._leaseEndDate.getTime() : Number.MAX_SAFE_INTEGER,
+            val: r => Number(r._val || 0),
+            age: r => Number(r._age || 0)
+          };
+          const accessor = accessors[p4Sort.col] || accessors.age;
+          d.sort((a, b) => {
+            const va = accessor(a), vb = accessor(b);
+            return p4Sort.dir === "asc" ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
+          });
+          document.getElementById("p4-count").textContent = `${d.length.toLocaleString()} aircraft shown`;
+          document.getElementById("p4-tbody").innerHTML = d.slice(0, 800).map(r => `
+            <tr>
+              <td>${escapeHtml(r["Operator Region"] || "-")}</td>
+              <td>${escapeHtml(r["Operator"] || "-")}</td>
+              <td>${escapeHtml(r["Type"] || "-")}</td>
+              <td class="mono">${escapeHtml(r["Registration"] || "-")}</td>
+              <td class="mono">${escapeHtml(r["Serial Number"] || "-")}</td>
+              <td>${escapeHtml(r["Manager"] || "-")}</td>
+              <td>${sBadge(r["Status"] || "-")}</td>
+              <td>${escapeHtml(r["Lease End"] || "-")}</td>
+              <td class="num">${Number(r._val || 0).toFixed(1)}</td>
+              <td class="num">${Number(r._rate || 0).toFixed(2)}</td>
+              <td class="num">${r._age != null ? Number(r._age).toFixed(1) : "-"}</td>
+              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
+            </tr>
+          `).join("") || `<tr><td colspan="12" style="text-align:center;color:#475569;padding:18px;">No inventory records match the current filters.</td></tr>`;
+        }
+
+        // Restored lightweight TATS analytics renderer for the legacy score tab.
+        function renderP5() {
+          const tab = document.getElementById("tab-p5");
+          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
+          renderLegacyPlaceholder("p5", "TATS Risk Score Analytics", "Macro view of TATS tier distribution, operator-level risk, and upcoming lease-end pressure.");
+          const d = allData.filter(r =>
+            (!gv("p5-tier") || r._tatsTier === gv("p5-tier")) &&
+            (!gv("p5-region") || (r["Operator Region"] || "").trim() === gv("p5-region")) &&
+            (!gv("p5-leaseyr") || String(r._leEndYr || "") === gv("p5-leaseyr"))
+          );
+          document.getElementById("p5-kpi-high").textContent = d.filter(r => r._tatsTier === "High Risk").length.toLocaleString();
+          document.getElementById("p5-kpi-med").textContent = d.filter(r => r._tatsTier === "Medium Risk").length.toLocaleString();
+          document.getElementById("p5-kpi-low").textContent = d.filter(r => r._tatsTier === "Low Risk").length.toLocaleString();
+          const avgAge = d.map(r => Number(r._age || 0)).filter(v => Number.isFinite(v));
+          document.getElementById("p5-kpi-age").textContent = avgAge.length ? (avgAge.reduce((a, b) => a + b, 0) / avgAge.length).toFixed(1) : "0";
+          const opRisk = Object.entries(d.reduce((acc, row) => {
+            const key = (row["Operator"] || "Unknown").trim() || "Unknown";
+            acc[key] = (acc[key] || 0) + Number(row._tats || 0);
+            return acc;
+          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 12);
+          ic("chart-p5-op", hBar(opRisk.map(e => e[0]), opRisk.map(e => Number(e[1].toFixed(0))), "#f59e0b"));
+          const tierCounts = ["High Risk", "Medium Risk", "Low Risk"].map(t => d.filter(r => r._tatsTier === t).length);
+          ic("chart-p5-tier", {
+            type: "doughnut",
+            data: { labels: ["High Risk", "Medium Risk", "Low Risk"], datasets: [{ data: tierCounts, backgroundColor: ["#f43f5e", "#f59e0b", "#10b981"], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { color: "#94a3b8", boxWidth: 10 } } } }
+          });
+          document.getElementById("p5-score-tbody").innerHTML = d.slice().sort((a, b) => Number(b._tats || 0) - Number(a._tats || 0)).slice(0, 120).map(r => `
+            <tr>
+              <td>${escapeHtml(r["Operator"] || "-")}</td>
+              <td class="mono">${escapeHtml(r["Registration"] || r["Serial Number"] || "-")}</td>
+              <td class="num">${r._age != null ? Number(r._age).toFixed(1) : "-"}</td>
+              <td class="num">${Math.round(Number(r._tats || 0))}</td>
+              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
+              <td>${escapeHtml(r["Lease End"] || "-")}</td>
+            </tr>
+          `).join("") || `<tr><td colspan="6" style="text-align:center;color:#475569;padding:18px;">No TATS score rows match the current filters.</td></tr>`;
+          document.getElementById("p5-lease-tbody").innerHTML = d.filter(r => r._leaseEndDate).sort((a, b) => a._leaseEndDate - b._leaseEndDate).slice(0, 120).map(r => `
+            <tr>
+              <td>${escapeHtml(r["Operator"] || "-")}</td>
+              <td class="mono">${escapeHtml(r["Registration"] || "-")}</td>
+              <td>${escapeHtml(r["Lease End"] || "-")}</td>
+              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
+            </tr>
+          `).join("") || `<tr><td colspan="4" style="text-align:center;color:#475569;padding:18px;">No lease-end rows match the current filters.</td></tr>`;
+        }
+
+        // Restored lightweight Market Value renderer for the legacy value tab.
+        function renderP8() {
+          const tab = document.getElementById("tab-p8");
+          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
+          renderLegacyPlaceholder("p8", "Market Value Distribution", "Financial exposure view by operator and region using the filtered fleet valuation baseline.");
+          const d = allData.filter(r =>
+            (!gv("p8-region") || (r["Operator Region"] || "").trim() === gv("p8-region")) &&
+            (!gv("p8-country") || (r["Operator Country/Subregion"] || "").trim() === gv("p8-country"))
+          );
+          const totalValue = d.reduce((acc, row) => acc + Number(row._val || 0), 0);
+          document.getElementById("p8-kpi-total").textContent = d.length.toLocaleString();
+          document.getElementById("p8-kpi-value").textContent = `$${totalValue.toFixed(1)}M`;
+          document.getElementById("p8-kpi-avg").textContent = `$${(d.length ? totalValue / d.length : 0).toFixed(1)}M`;
+          const opValues = Object.entries(d.reduce((acc, row) => {
+            const key = (row["Operator"] || "Unknown").trim() || "Unknown";
+            acc[key] = (acc[key] || 0) + Number(row._val || 0);
+            return acc;
+          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 20);
+          ic("chart-p8-ops", hBar(opValues.map(e => e[0]), opValues.map(e => Number(e[1].toFixed(1))), "#06b6d4"));
+          const regionValues = Object.entries(d.reduce((acc, row) => {
+            const key = (row["Operator Region"] || "Unknown").trim() || "Unknown";
+            acc[key] = (acc[key] || 0) + Number(row._val || 0);
+            return acc;
+          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 12);
+          ic("chart-p8-region", hBar(regionValues.map(e => e[0]), regionValues.map(e => Number(e[1].toFixed(1))), "#10b981"));
+        }
+        window._renderP8Base = renderP8;
 
         // FLEET GROWTH: year slicer + family multi-select
         function renderP9() {
