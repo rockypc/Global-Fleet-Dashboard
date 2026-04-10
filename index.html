@@ -2295,7 +2295,7 @@
         } else {
           console.warn("Chart.js failed to load. Chart rendering will be skipped.");
         }
-        let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
+        let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {}, creditSheetRows = [];
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
@@ -2567,11 +2567,12 @@
           });
         }
 
-        async function cacheDashboardData(data, meta = {}) {
+        async function cacheDashboardData(data, meta = {}, supplemental = {}) {
           const saved = Date.now();
           if (typeof localforage === "undefined") return saved;
           try {
             await localforage.setItem("gfd_data", data);
+            await localforage.setItem("gfd_credit", Array.isArray(supplemental.creditRows) ? supplemental.creditRows : []);
             await localforage.setItem("gfd_meta", {
               saved,
               count: data.length,
@@ -2677,9 +2678,10 @@
         async function tryLoadCachedData() {
           if (typeof localforage === "undefined") return null;
           const stored = await localforage.getItem("gfd_data");
+          const cachedCreditRows = await localforage.getItem("gfd_credit");
           const meta = await localforage.getItem("gfd_meta");
           const cleaned = cleanFleetRows(stored || []);
-          if (cleaned.length) return { data: cleaned, meta: meta || {} };
+          if (cleaned.length) return { data: cleaned, creditRows: Array.isArray(cachedCreditRows) ? cachedCreditRows : [], meta: meta || {} };
           return null;
         }
 
@@ -2691,6 +2693,7 @@
           if (confirm("Clear saved data and cached sync history?")) {
             if (typeof localforage !== "undefined") {
               await localforage.removeItem("gfd_data");
+              await localforage.removeItem("gfd_credit");
               await localforage.removeItem("gfd_meta");
             }
             location.reload();
@@ -2728,12 +2731,13 @@
 
             const lookups = buildSupplementalLookups(creditRows || [], []);
             const mergedRows = applySupplementalJoins(mainRows || [], lookups);
-            const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" });
+            creditSheetRows = Array.isArray(creditRows) ? creditRows : [];
+            const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" }, { creditRows: creditSheetRows });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", mergedRows.length, saved);
 
             try {
-              initDash(mergedRows, lookups);
+              initDash(mergedRows, { ...lookups, creditRows: creditSheetRows });
             } catch (renderErr) {
               const renderMessage = `Render error after successful fetch: ${getErrorMessage(renderErr)}`;
               console.error("Dashboard render failed after live sync.", renderErr);
@@ -2761,8 +2765,9 @@
               setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
             }
             try {
-              initDash(cached.data);
-            } catch (renderErr) {
+                creditSheetRows = Array.isArray(cached.creditRows) ? cached.creditRows : [];
+                initDash(cached.data, { creditRows: creditSheetRows });
+              } catch (renderErr) {
               const renderMessage = `Render error from cached data: ${getErrorMessage(renderErr)}`;
               console.error("Dashboard render failed while using cached data.", renderErr);
               showSyncError(renderMessage);
@@ -2809,12 +2814,12 @@ ${syncErrorMessage || "Unknown error"}`);
             header: true, skipEmptyLines: true, complete: async function (res) {
               const cleanedData = cleanFleetRows(res.data || []);
               try {
-                const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name });
-                updateDataBanner("manual", cleanedData.length, saved);
-              } catch (e) { }
-              try {
-                initDash(cleanedData);
-              } catch (renderErr) {
+                  const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name }, { creditRows: creditSheetRows });
+                  updateDataBanner("manual", cleanedData.length, saved);
+                } catch (e) { }
+                try {
+                  initDash(cleanedData, { creditRows: creditSheetRows });
+                } catch (renderErr) {
                 const renderMessage = `Render error after manual upload: ${getErrorMessage(renderErr)}`;
                 console.error("Dashboard render failed after manual upload.", renderErr);
                 showSyncError(renderMessage);
@@ -2830,6 +2835,7 @@ ${syncErrorMessage || "Unknown error"}`);
           feFiltered = [];
           tatsVisibleRows = [];
           ddVisibleRows = [];
+          creditSheetRows = Array.isArray(supplemental.creditRows) ? supplemental.creditRows.slice() : creditSheetRows;
 
           document.getElementById("init-loading").classList.add("hidden");
           document.getElementById("upload-section").classList.add("hidden");
@@ -3506,55 +3512,34 @@ ${syncErrorMessage || "Unknown error"}`);
 
         ModuleSystem.register('CounterpartyRisk', () => {
           const CATEGORY_META = {
-            "Critical (High Risk)": {
-              cardClass: "border-t-4 border-red-600",
-              scoreClass: "bg-red-950/70 text-red-300 border border-red-800"
-            },
-            "Speculative (Medium Risk)": {
-              cardClass: "border-t-4 border-amber-500",
-              scoreClass: "bg-amber-950/60 text-amber-300 border border-amber-800"
-            },
-            "Investment Grade (Low Risk)": {
-              cardClass: "border-t-4 border-emerald-500",
-              scoreClass: "bg-emerald-950/60 text-emerald-300 border border-emerald-800"
-            },
-            "Unrated": {
-              cardClass: "border-t-4 border-slate-500",
-              scoreClass: "bg-slate-800 text-slate-300 border border-slate-700"
-            }
+            "Critical (High Risk)": { cardClass: "border-t-4 border-red-600", scoreClass: "bg-red-950/70 text-red-300 border border-red-800" },
+            "Speculative (Medium Risk)": { cardClass: "border-t-4 border-amber-500", scoreClass: "bg-amber-950/60 text-amber-300 border border-amber-800" },
+            "Investment Grade (Low Risk)": { cardClass: "border-t-4 border-emerald-500", scoreClass: "bg-emerald-950/60 text-emerald-300 border border-emerald-800" },
+            "Unrated": { cardClass: "border-t-4 border-slate-500", scoreClass: "bg-slate-800 text-slate-300 border border-slate-700" }
           };
+          const CREDIT_COLUMNS = ["Airlines", "Business Model", "Region", "Financial", "Traffic Growth", "Yields", "Macro Indicators", "Competition", "Ishka Credit Score", "Ishka Credit Score Outlook or Proxy Score", "Overall credit quality"];
 
           function normalizeScore(score) {
             return String(score || "NR").trim().toUpperCase() || "NR";
           }
 
-          function riskPriority(category) {
-            return {
-              "Critical (High Risk)": 3,
-              "Speculative (Medium Risk)": 2,
-              "Investment Grade (Low Risk)": 1,
-              "Unrated": 0
-            }[category] || 0;
+          function getScore(row) {
+            return String(row["Ishka Credit Score"] || row["Credit Score"] || row["Score"] || row["Rating"] || "").trim() || "NR";
           }
 
-          function formatMoneyM(value) {
-            return `$${(Number(value) || 0).toFixed(2)}M`;
+          function badgeFor(category, score) {
+            const meta = CATEGORY_META[category] || CATEGORY_META.Unrated;
+            return `<span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(score || "NR")}</span>`;
           }
 
           return {
-            init() {
-              this.render();
-            },
+            init() { this.render(); },
 
             categorizeRisk(score) {
               const normalized = normalizeScore(score);
               if (!normalized || normalized === "NR") return "Unrated";
-              if (normalized === "BBB+" || normalized === "BBB" || normalized === "BBB-" || /^A/.test(normalized)) {
-                return "Investment Grade (Low Risk)";
-              }
-              if (normalized.includes("BB") || normalized === "B+" || normalized === "B" || normalized === "B-") {
-                return "Speculative (Medium Risk)";
-              }
+              if (normalized === "BBB+" || normalized === "BBB" || normalized === "BBB-" || /^A/.test(normalized)) return "Investment Grade (Low Risk)";
+              if (normalized.includes("BB") || normalized === "B+" || normalized === "B" || normalized === "B-") return "Speculative (Medium Risk)";
               if (normalized.includes("C") || normalized.includes("D")) return "Critical (High Risk)";
               return "Unrated";
             },
@@ -3563,108 +3548,86 @@ ${syncErrorMessage || "Unknown error"}`);
               const container = document.getElementById('tab-creditrisk');
               if (!container) return;
 
-              let highRiskValue = 0;
-              let mediumRiskValue = 0;
-              let lowRiskValue = 0;
-              let unratedValue = 0;
-              const operatorExposure = {};
-
-              (allData || []).forEach(ac => {
-                if ((ac["Status"] || ac["Order Status"] || "").toLowerCase().includes("unconfirmed")) return;
-
-                const score = String(ac._creditScore || ac["Credit Score"] || "NR").trim() || "NR";
-                const category = this.categorizeRisk(score);
-                const value = Number.isFinite(ac._val) ? ac._val : (parseFloat(ac["Indicative Market Value (US$m)"]) || 0);
-                const operator = String(ac["Operator"] || "Unknown").trim() || "Unknown";
-                const region = String(ac["Operator Region"] || "Unknown").trim() || "Unknown";
-                const companyType = String(ac["Operator Company Type"] || "Unknown").trim() || "Unknown";
-
-                if (category === "Critical (High Risk)") highRiskValue += value;
-                else if (category === "Speculative (Medium Risk)") mediumRiskValue += value;
-                else if (category === "Investment Grade (Low Risk)") lowRiskValue += value;
-                else unratedValue += value;
-
-                if (!operatorExposure[operator]) {
-                  operatorExposure[operator] = {
-                    score,
-                    category,
-                    region,
-                    companyType,
-                    aircraftCount: 0,
-                    totalValue: 0
-                  };
-                }
-
-                const current = operatorExposure[operator];
-                if (riskPriority(category) > riskPriority(current.category)) {
-                  current.score = score;
-                  current.category = category;
-                }
-                current.aircraftCount += 1;
-                current.totalValue += value;
-              });
-
               const filters = {
+                search: (document.getElementById('cr-filter-search') || {}).value || "",
                 category: (document.getElementById('cr-filter-category') || {}).value || "",
                 region: (document.getElementById('cr-filter-region') || {}).value || "",
-                companyType: (document.getElementById('cr-filter-companytype') || {}).value || "",
-                ratingState: (document.getElementById('cr-filter-ratingstate') || {}).value || ""
+                businessModel: (document.getElementById('cr-filter-business') || {}).value || "",
+                overallQuality: (document.getElementById('cr-filter-quality') || {}).value || "",
+                coverage: (document.getElementById('cr-filter-coverage') || {}).value || ""
               };
 
-              const allOperators = Object.entries(operatorExposure)
-                .sort((a, b) => b[1].totalValue - a[1].totalValue || a[0].localeCompare(b[0]));
-
-              const filteredOperators = allOperators.filter(([, data]) => {
-                if (filters.category && data.category !== filters.category) return false;
-                if (filters.region && data.region !== filters.region) return false;
-                if (filters.companyType && data.companyType !== filters.companyType) return false;
-                if (filters.ratingState === "rated" && (!data.score || data.score === "NR")) return false;
-                if (filters.ratingState === "unrated" && data.score && data.score !== "NR") return false;
-                return true;
+              const preparedRows = (creditSheetRows || []).map((row, idx) => {
+                const score = getScore(row);
+                const category = this.categorizeRisk(score);
+                const airline = String(row["Airlines"] || row["Airline"] || `Row ${idx + 1}`).trim();
+                const region = String(row["Region"] || "Unknown").trim() || "Unknown";
+                const businessModel = String(row["Business Model"] || "Unknown").trim() || "Unknown";
+                const overallQuality = String(row["Overall credit quality"] || "Unspecified").trim() || "Unspecified";
+                return {
+                  ...row,
+                  _airline: airline,
+                  _score: score,
+                  _category: category,
+                  _region: region,
+                  _businessModel: businessModel,
+                  _overallQuality: overallQuality,
+                  _coverage: score === "NR" ? "Unrated" : "Rated",
+                  _searchBlob: [
+                    airline,
+                    region,
+                    businessModel,
+                    overallQuality,
+                    score,
+                    row["Ishka Credit Score Outlook or Proxy Score"] || "",
+                    row["Financial"] || "",
+                    row["Traffic Growth"] || "",
+                    row["Yields"] || "",
+                    row["Macro Indicators"] || "",
+                    row["Competition"] || ""
+                  ].join(" ").toLowerCase()
+                };
               });
 
-              const watchlist = filteredOperators
-                .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
-                .slice(0, 25);
+              const filteredRows = preparedRows.filter(row => {
+                if (filters.search && !row._searchBlob.includes(filters.search.trim().toLowerCase())) return false;
+                if (filters.category && row._category !== filters.category) return false;
+                if (filters.region && row._region !== filters.region) return false;
+                if (filters.businessModel && row._businessModel !== filters.businessModel) return false;
+                if (filters.overallQuality && row._overallQuality !== filters.overallQuality) return false;
+                if (filters.coverage && row._coverage !== filters.coverage) return false;
+                return true;
+              }).sort((a, b) => {
+                const categoryRank = { "Critical (High Risk)": 3, "Speculative (Medium Risk)": 2, "Investment Grade (Low Risk)": 1, "Unrated": 0 };
+                const delta = (categoryRank[b._category] || 0) - (categoryRank[a._category] || 0);
+                return delta || a._airline.localeCompare(b._airline);
+              });
 
-              const categoryOptions = uniq(allOperators.map(([, data]) => data.category));
-              const regionOptions = uniq(allOperators.map(([, data]) => data.region));
-              const companyTypeOptions = uniq(allOperators.map(([, data]) => data.companyType));
+              const counts = {
+                critical: preparedRows.filter(r => r._category === "Critical (High Risk)").length,
+                speculative: preparedRows.filter(r => r._category === "Speculative (Medium Risk)").length,
+                investment: preparedRows.filter(r => r._category === "Investment Grade (Low Risk)").length,
+                unrated: preparedRows.filter(r => r._category === "Unrated").length
+              };
 
-              let watchlistRowsHTML = "";
-              if (!watchlist.length) {
-                watchlistRowsHTML = `<tr><td colspan="6" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties match the current filters.</td></tr>`;
+              const categoryOptions = uniq(preparedRows.map(r => r._category));
+              const regionOptions = uniq(preparedRows.map(r => r._region));
+              const businessOptions = uniq(preparedRows.map(r => r._businessModel));
+              const qualityOptions = uniq(preparedRows.map(r => r._overallQuality));
+
+              let rowsHtml = "";
+              if (!preparedRows.length) {
+                rowsHtml = `<tr><td colspan="${CREDIT_COLUMNS.length + 2}" style="padding:22px;text-align:center;color:#64748b;">No records from Consolidated Scores Sheet.csv are currently loaded.</td></tr>`;
+              } else if (!filteredRows.length) {
+                rowsHtml = `<tr><td colspan="${CREDIT_COLUMNS.length + 2}" style="padding:22px;text-align:center;color:#64748b;">No credit records match the current filters.</td></tr>`;
               } else {
-                watchlist.forEach(([operator, data]) => {
-                  const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
-                  watchlistRowsHTML += `
+                filteredRows.forEach(row => {
+                  rowsHtml += `
                     <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
-                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
-                      <td class="px-4 py-3">${escapeHtml(data.region)}</td>
-                      <td class="px-4 py-3">${escapeHtml(data.companyType)}</td>
-                      <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
-                      <td class="px-4 py-3 text-right">${(data.aircraftCount || 0).toLocaleString()}</td>
-                      <td class="px-4 py-3 font-mono text-[#06b6d4] text-right">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
-                    </tr>
-                  `;
-                });
-              }
-
-              let allRowsHTML = "";
-              if (!filteredOperators.length) {
-                allRowsHTML = `<tr><td colspan="7" style="padding:22px;text-align:center;color:#64748b;">No operators match the current filters.</td></tr>`;
-              } else {
-                filteredOperators.forEach(([operator, data]) => {
-                  const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
-                  allRowsHTML += `
-                    <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
-                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
-                      <td class="px-4 py-3">${escapeHtml(data.region)}</td>
-                      <td class="px-4 py-3">${escapeHtml(data.companyType)}</td>
-                      <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
-                      <td class="px-4 py-3">${escapeHtml(data.category)}</td>
-                      <td class="px-4 py-3 text-right">${(data.aircraftCount || 0).toLocaleString()}</td>
-                      <td class="px-4 py-3 font-mono text-[#06b6d4] text-right">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
+                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(row._airline)}</td>
+                      <td class="px-4 py-3">${badgeFor(row._category, row._score)}</td>
+                      <td class="px-4 py-3">${escapeHtml(row._category)}</td>
+                      ${CREDIT_COLUMNS.slice(1).map(col => `<td class="px-4 py-3">${escapeHtml(row[col] || "-")}</td>`).join("")}
                     </tr>
                   `;
                 });
@@ -3672,110 +3635,50 @@ ${syncErrorMessage || "Unknown error"}`);
 
               container.innerHTML = `
                 <div class="header-section mb-6">
-                  <h2 class="text-2xl font-bold text-white">Counterparty Risk &amp; Exposure</h2>
-                  <p class="text-gray-400">Financial exposure categorized by Ishka Credit Ratings</p>
+                  <h2 class="text-2xl font-bold text-white">Counterparty Risk Explorer</h2>
+                  <p class="text-gray-400">Standalone view of every record in Consolidated Scores Sheet.csv, independent of the fleet database join.</p>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}">
-                    <div class="text-gray-400 text-sm">Critical Exposure (CCC &amp; Below)</div>
-                    <div class="text-2xl font-bold text-white">${formatMoneyM(highRiskValue)}</div>
-                  </div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}">
-                    <div class="text-gray-400 text-sm">Speculative Exposure (B to BB+)</div>
-                    <div class="text-2xl font-bold text-white">${formatMoneyM(mediumRiskValue)}</div>
-                  </div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}">
-                    <div class="text-gray-400 text-sm">Investment Grade Exposure (BBB- &amp; Above)</div>
-                    <div class="text-2xl font-bold text-white">${formatMoneyM(lowRiskValue)}</div>
-                  </div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Unrated"].cardClass}">
-                    <div class="text-gray-400 text-sm">Unrated Exposure</div>
-                    <div class="text-2xl font-bold text-white">${formatMoneyM(unratedValue)}</div>
-                  </div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}"><div class="text-gray-400 text-sm">Critical Airlines</div><div class="text-2xl font-bold text-white">${counts.critical.toLocaleString()}</div></div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}"><div class="text-gray-400 text-sm">Speculative Airlines</div><div class="text-2xl font-bold text-white">${counts.speculative.toLocaleString()}</div></div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}"><div class="text-gray-400 text-sm">Investment Grade Airlines</div><div class="text-2xl font-bold text-white">${counts.investment.toLocaleString()}</div></div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Unrated"].cardClass}"><div class="text-gray-400 text-sm">Unrated / Missing</div><div class="text-2xl font-bold text-white">${counts.unrated.toLocaleString()}</div></div>
                 </div>
-
                 <div class="bg-gray-800 rounded p-4 mb-6">
                   <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                      <h3 class="text-lg font-bold text-white">Filters</h3>
-                      <p class="text-sm text-gray-400 mt-1">Review all airlines, or narrow the exposure matrix by risk band, region, company type, and rating coverage.</p>
+                      <h3 class="text-lg font-bold text-white">Credit Filters</h3>
+                      <p class="text-sm text-gray-400 mt-1">Explore the raw credit sheet directly by airline, region, business model, overall quality, and rating coverage.</p>
                     </div>
-                    <div class="text-sm text-gray-400">Operators shown: <span class="text-white font-semibold">${filteredOperators.length.toLocaleString()}</span> of ${allOperators.length.toLocaleString()}</div>
+                    <div class="text-sm text-gray-400">Rows shown: <span class="text-white font-semibold">${filteredRows.length.toLocaleString()}</span> of ${preparedRows.length.toLocaleString()}</div>
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mt-4">
-                    <div>
-                      <label class="fl">Risk Category</label>
-                      <select id="cr-filter-category" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
-                        <option value="">All Categories</option>
-                        ${categoryOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.category === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
-                      </select>
-                    </div>
-                    <div>
-                      <label class="fl">Operator Region</label>
-                      <select id="cr-filter-region" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
-                        <option value="">All Regions</option>
-                        ${regionOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.region === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
-                      </select>
-                    </div>
-                    <div>
-                      <label class="fl">Operator Company Type</label>
-                      <select id="cr-filter-companytype" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
-                        <option value="">All Company Types</option>
-                        ${companyTypeOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.companyType === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
-                      </select>
-                    </div>
-                    <div>
-                      <label class="fl">Rating Coverage</label>
-                      <select id="cr-filter-ratingstate" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()">
-                        <option value="">Rated + Unrated</option>
-                        <option value="rated" ${filters.ratingState === "rated" ? "selected" : ""}>Rated Only</option>
-                        <option value="unrated" ${filters.ratingState === "unrated" ? "selected" : ""}>Unrated Only</option>
-                      </select>
-                    </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
+                    <div><label class="fl">Search Airline / Notes</label><input id="cr-filter-search" class="fs" type="text" value="${escapeHtml(filters.search)}" oninput="ModuleSystem.get('CounterpartyRisk').render()" placeholder="Search airline, rating, outlook..." /></div>
+                    <div><label class="fl">Risk Category</label><select id="cr-filter-category" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Categories</option>${categoryOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.category === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
+                    <div><label class="fl">Region</label><select id="cr-filter-region" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Regions</option>${regionOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.region === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
+                    <div><label class="fl">Business Model</label><select id="cr-filter-business" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Models</option>${businessOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.businessModel === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
+                    <div><label class="fl">Overall Credit Quality</label><select id="cr-filter-quality" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Quality Bands</option>${qualityOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.overallQuality === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
+                    <div><label class="fl">Coverage</label><select id="cr-filter-coverage" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">Rated + Unrated</option><option value="Rated" ${filters.coverage === "Rated" ? "selected" : ""}>Rated Only</option><option value="Unrated" ${filters.coverage === "Unrated" ? "selected" : ""}>Unrated Only</option></select></div>
                   </div>
                 </div>
-
-                <div class="bg-gray-800 rounded p-4 mb-6 flex-grow flex flex-col min-h-0">
+                <div class="bg-gray-800 rounded p-4 flex-grow flex flex-col min-h-0">
                   <div class="flex items-center justify-between mb-4 gap-4">
                     <div>
-                      <h3 class="text-lg font-bold text-white">Operator Exposure Matrix</h3>
-                      <p class="text-sm text-gray-400 mt-1">All airlines in the current clean fleet universe, with Ishka credit tags where available.</p>
+                      <h3 class="text-lg font-bold text-white">Consolidated Scores Sheet</h3>
+                      <p class="text-sm text-gray-400 mt-1">All source columns from the credit file, with a derived risk category and rating pill for quick screening.</p>
                     </div>
                   </div>
-                  <div class="overflow-y-auto flex-grow custom-scrollbar">
-                    <table class="w-full text-left text-sm text-gray-300">
+                  <div class="overflow-auto flex-grow custom-scrollbar">
+                    <table class="w-full text-left text-sm text-gray-300" style="min-width:1680px;">
                       <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
                         <tr>
-                          <th class="px-4 py-2">Operator</th>
-                          <th class="px-4 py-2">Region</th>
-                          <th class="px-4 py-2">Company Type</th>
+                          <th class="px-4 py-2">Airlines</th>
                           <th class="px-4 py-2">Credit Score</th>
                           <th class="px-4 py-2">Risk Category</th>
-                          <th class="px-4 py-2 text-right">Aircraft Count</th>
-                          <th class="px-4 py-2 text-right">Total Value Exposure ($M)</th>
+                          ${CREDIT_COLUMNS.slice(1).map(col => `<th class="px-4 py-2">${escapeHtml(col)}</th>`).join("")}
                         </tr>
                       </thead>
-                      <tbody>${allRowsHTML}</tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div class="bg-gray-800 rounded p-4 flex-grow flex flex-col min-h-0">
-                  <h3 class="text-lg font-bold text-white mb-4 text-red-400 flex-shrink-0">High-Risk Operator Watchlist</h3>
-                  <div class="overflow-y-auto flex-grow custom-scrollbar">
-                    <table class="w-full text-left text-sm text-gray-300">
-                      <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
-                        <tr>
-                          <th class="px-4 py-2">Operator</th>
-                          <th class="px-4 py-2">Region</th>
-                          <th class="px-4 py-2">Company Type</th>
-                          <th class="px-4 py-2">Credit Score</th>
-                          <th class="px-4 py-2 text-right">Aircraft Count</th>
-                          <th class="px-4 py-2 text-right">Total Value Exposure ($M)</th>
-                        </tr>
-                      </thead>
-                      <tbody>${watchlistRowsHTML}</tbody>
+                      <tbody>${rowsHtml}</tbody>
                     </table>
                   </div>
                 </div>
