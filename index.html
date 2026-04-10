@@ -2326,6 +2326,18 @@
           if (!c) return;
           charts[id] = new Chart(c.getContext("2d"), cfg);
         }
+        // Legacy analytics tabs should keep rendering even if one chart config fails.
+        function safeChart(tabId, chartId, cfg) {
+          try {
+            ic(chartId, cfg);
+            return true;
+          } catch (err) {
+            console.error(`Chart render failed for ${chartId}:`, err);
+            const title = (document.getElementById(`tbtn-${tabId}`) || {}).textContent || tabId;
+            showModuleError(tabId, title, err);
+            return false;
+          }
+        }
         function barO(h = false) { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: h }, border: { display: false } }, y: { grid: { display: !h }, border: { display: false } } }, indexAxis: h ? "y" : "x" }; }
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
         function uniq(a) { return [...new Set(a.filter(v => v && v.trim()))].sort(); }
@@ -6237,14 +6249,14 @@ function renderSunburst(topN){
           document.getElementById("p1-kpi-operators").textContent = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size;
           // Region stacked chart
           const rMap = cBy(d, "Operator Region"); const rTop = topN(rMap, 10);
-          ic("chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
+          safeChart("p1", "chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
           const topRegs = rTop.map(e => e[0]); const topEFs = topN(cBy(d, "Engine Family"), 5).map(e => e[0]);
           const em = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(), ef = (r["Engine Family"] || "?").trim(); if (!em[rg]) em[rg] = {}; em[rg][ef] = (em[rg][ef] || 0) + 1; });
-          ic("chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          safeChart("p1", "chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
           const cTop = topN(cBy(d, "Operator Country/Subregion"), 10);
-          ic("chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
+          safeChart("p1", "chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
           const mgTop = topN(cBy(d, "Market Grouping"), 8);
-          ic("chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
+          safeChart("p1", "chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
           // Airlines per region  click on bar to drill
           renderP1Airlines(d, topRegs);
         }
@@ -6276,11 +6288,11 @@ function renderSunburst(topN){
           const d = allData.filter(r => mf(r["Operator Region"], regs) && mf(r["Manufacturer"], mfgs));
           const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
           const flow = {}; d.forEach(r => { const m = (r["Manufacturer"] || "?").trim(), e = (r["Engine Manufacturer"] || "?").trim(); if (!flow[m]) flow[m] = {}; flow[m][e] = (flow[m][e] || 0) + 1; });
-          ic("chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
-          const emD = topN(cBy(d, "Engine Manufacturer"), 10); ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
-          const efD = topN(cBy(d, "Engine Family"), 10); ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
-          const etD = topN(cBy(d, "Engine Type"), 8); ic("chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
-          const neD = topN(cBy(d, "Number Of Engines"), 5); ic("chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
+          safeChart("p2", "chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          const emD = topN(cBy(d, "Engine Manufacturer"), 10); safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+          const efD = topN(cBy(d, "Engine Family"), 10); safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
+          const etD = topN(cBy(d, "Engine Type"), 8); safeChart("p2", "chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
+          const neD = topN(cBy(d, "Number Of Engines"), 5); safeChart("p2", "chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
         }
         window._renderP2Base = renderP2;
 
@@ -6296,9 +6308,9 @@ function renderSunburst(topN){
           const years = []; for (let y = yrFrom; y <= yrTo; y++)if (d.some(r => r._buildYr === y)) years.push(y);
           const families = topN(cBy(d, "Current Family"), 8).map(e => e[0]);
           const cumD = {}; families.forEach(f => { let c = 0; cumD[f] = years.map(y => { c += d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
-          ic("chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
+          safeChart("p3", "chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
           const total = d.length || 1;
-          ic("chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
+          safeChart("p3", "chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
           const famStats = families.map(f => { const fd = d.filter(r => (r["Current Family"] || "").trim() === f); const ages = fd.map(r => r._age).filter(Boolean); const inSvc = fd.filter(r => (r["Status"] || "").includes("Service")).length; return { f, count: fd.length, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", share: ((fd.length / total) * 100).toFixed(1), inSvcPct: fd.length ? ((inSvc / fd.length) * 100).toFixed(0) + "%" : "-" }; });
           document.getElementById("p3-family-table").innerHTML = famStats.map((s, i) => `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${C[i]};margin-right:6px;"></span>${s.f}</td><td class="num">${s.count.toLocaleString()}</td><td class="num">${s.avgAge}</td><td class="num">${s.share}%</td><td class="num">${s.inSvcPct}</td></tr>`).join("");
           const regD = topN(cBy(d, "Operator Region"), 8);
@@ -6387,10 +6399,10 @@ function renderSunburst(topN){
             const statusTop = topN(cBy(d, "Status"), 8);
             const groupingTop = topN(cBy(d, "Market Grouping"), 8);
 
-            ic("fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
-            ic("fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
-            ic("fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
-            ic("fe-chart-age", {
+            safeChart("fleet", "fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
+            safeChart("fleet", "fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
+            safeChart("fleet", "fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
+            safeChart("fleet", "fe-chart-age", {
               type: "bar",
               data: {
                 labels: ageBuckets.map(bucket => bucket.label),
@@ -6649,14 +6661,29 @@ function renderSunburst(topN){
           const mgrs = cBy(allData, "Manager");
           const topMgrs = topN(mgrs, 15);
           if (topMgrs.length) {
-            ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
+            safeChart("lessors", "chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
           }
           const mgrList = Object.entries(mgrs).map(([m, count]) => {
-            const d = allData.filter(r => (r["Manager"] || "").trim() === m);
+            const d = allData.filter(r => (((r["Manager"] || "").trim()) || "N/A") === m);
             const ages = d.map(r => r._age).filter(v => v !== null);
             const highRisk = d.filter(r => r._mroRisk === "High Risk").length;
             const hrPct = d.length ? (highRisk / d.length * 100).toFixed(0) : 0;
-            return { m, count, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", hrPct: hrPct + "%", region: d[0]._region || "-" };
+            const region = d.length
+              ? String(
+                d[0]["Manager Country/Subregion"] ||
+                d[0]["Operator Country/Subregion"] ||
+                d[0]["Operator Region"] ||
+                d[0]._region ||
+                "-"
+              ).trim() || "-"
+              : "-";
+            return {
+              m,
+              count,
+              avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-",
+              hrPct: hrPct + "%",
+              region
+            };
           }).sort((a, b) => b.count - a.count).slice(0, 50);
           document.getElementById("lessors-tbody").innerHTML = mgrList.length
             ? mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("")
@@ -6672,11 +6699,11 @@ function renderSunburst(topN){
           document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
           const topCtyAl = topN(countryReport.map(r => [r.country, r.airlineCount]), 10);
           if (topCtyAl.length) {
-            ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
+            safeChart("country", "chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
           }
           const topCtyAc = topN(countryReport.map(r => [r.country, r.aircraftCount]), 10);
           if (topCtyAc.length) {
-            ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
+            safeChart("country", "chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
           }
           renderCountryTable();
         }
