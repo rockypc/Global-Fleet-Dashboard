@@ -828,7 +828,6 @@
     </div>
     <div class="flex items-center gap-3">
       <span id="banner-date" style="color:#475569;font-size:11px;"></span>
-      <span id="sync-status" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid #1f2937;background:#0a0f1e;color:#94a3b8;"></span>
       <button id="sync-data-btn" onclick="syncData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
         <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -2239,23 +2238,6 @@
             </div>
           </div>
 
-          <!-- Predictive Maintenance Forecast (Phase 8) -->
-          <div id="acd-mx-forecast" class="card" style="padding:0;overflow:hidden;">
-            <div style="padding:14px 18px;border-bottom:1px solid #1a2234;background:linear-gradient(135deg,#0a1628,#0d1424);display:flex;align-items:center;gap:10px;">
-              <svg style="width:16px;height:16px;color:#f59e0b;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <div>
-                <div style="font-size:12px;font-weight:700;color:#f1f5f9;">Predictive Maintenance Forecast</div>
-                <div style="font-size:10px;color:#475569;margin-top:1px;">OEM MPD baseline intervals · Browser-computed remaining life</div>
-              </div>
-            </div>
-            <div id="acd-mx-body" style="padding:18px;">
-              <div style="font-size:12px;color:#334155;text-align:center;padding:20px;">Select an aircraft to view maintenance predictions.</div>
-            </div>
-          </div>
-
         </div><!-- end acd-content -->
       </div><!-- end tab-acdetail -->
 
@@ -2279,140 +2261,6 @@
           arr.forEach(v => { const o = new Option(v, v); if (cur.has(v)) o.selected = true; el.appendChild(o); });
         }
         Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
-
-        // ===== MODULE SYSTEM (Phase 1.1) =====
-        const ModuleSystem = (() => {
-          const modules = {};
-          return {
-            register(name, factory) {
-              if (modules[name]) console.warn(`[ModuleSystem] Overwriting: ${name}`);
-              modules[name] = typeof factory === 'function' ? factory() : factory;
-              console.log(`[ModuleSystem] Registered: ${name}`);
-            },
-            get(name) {
-              if (!modules[name]) throw new Error(`[ModuleSystem] Not found: ${name}`);
-              return modules[name];
-            },
-            has(name) { return !!modules[name]; },
-            list() { return Object.keys(modules); }
-          };
-        })();
-
-        // ===== DATA SCHEMA VALIDATION (Phase 1.2) =====
-        ModuleSystem.register('DataSchema', () => {
-          const schema = {
-            required: ['Serial Number', 'Type', 'Operator', 'Status', 'Manufacturer'],
-            numeric: ['Age', 'Cumulative Cycles', 'Cumulative Hours', 'Operating MTOW (lbs)'],
-            marketValue: 'Indicative Market Value (US$m)',
-            date: ['Lease End', 'Delivery Date'],
-            statusEnum: ['In Service', 'Storage', 'On Order']
-          };
-
-          function validate(record, idx) {
-            const errors = [];
-            schema.required.forEach(field => {
-              const val = (record[field] || '').trim();
-              if (!val) errors.push({ row: idx, field, issue: 'missing' });
-            });
-            schema.numeric.forEach(field => {
-              const raw = record[field];
-              if (raw !== undefined && raw !== null && raw !== '' && isNaN(parseFloat(raw))) {
-                errors.push({ row: idx, field, issue: 'not_numeric', value: String(raw).slice(0, 30) });
-              }
-            });
-            const status = (record['Status'] || '').trim();
-            if (status && !schema.statusEnum.some(s => status.includes(s))) {
-              errors.push({ row: idx, field: 'Status', issue: 'unknown_enum', value: status });
-            }
-            return errors;
-          }
-
-          function validateBatch(records) {
-            const allIssues = [];
-            records.forEach((r, i) => {
-              const issues = validate(r, i);
-              if (issues.length > 0) allIssues.push(...issues);
-            });
-            return allIssues;
-          }
-
-          return { validate, validateBatch, schema };
-        });
-
-        // ===== TATS SCORING MODULE (Phase 1.3) =====
-        ModuleSystem.register('TATS', () => {
-          /**
-           * calculateScore(params) — Pure function, no side effects.
-           * Replicates the Step 4 (_opportunityScore) algorithm exactly.
-           *
-           * @param {Object} params
-           * @param {number|null} params.daysToLeaseEnd
-           * @param {string} params.status  — normalized status
-           * @param {number|null} params.ageYears
-           * @param {string} params.operatorTier — 'Tier 1' or 'Standard'
-           * @param {boolean} params.isTop25
-           * @param {boolean} params.isLeaseEndEstimated
-           * @returns {number} score 0–100
-           */
-          function calculateScore({ daysToLeaseEnd, status, ageYears, operatorTier, isTop25, isLeaseEndEstimated }) {
-            let score = 0;
-
-            // Days to lease end: 0–30pts
-            if (daysToLeaseEnd !== null && daysToLeaseEnd !== undefined) {
-              if (daysToLeaseEnd <= 365) score += 30;
-              else if (daysToLeaseEnd <= 730) score += 20;
-              else if (daysToLeaseEnd <= 1095) score += 10;
-            } else {
-              score -= 10; // Unknown lease penalty
-            }
-
-            // Status: +20 Storage, +5 In Service
-            if (status === 'Storage') score += 20;
-            else if (status === 'In Service') score += 5;
-
-            // Age tiers: 0–25pts
-            if (ageYears !== null && ageYears !== undefined) {
-              if (ageYears >= 20) score += 25;
-              else if (ageYears >= 15) score += 15;
-              else if (ageYears >= 10) score += 10;
-              else if (ageYears >= 5) score += 5;
-            }
-
-            // Operator tier: +15 for Tier 1
-            if (operatorTier === 'Tier 1') score += 15;
-
-            // Top-25 membership: +10
-            if (isTop25) score += 10;
-
-            // Estimated lease penalty: -15
-            if (isLeaseEndEstimated) score -= 15;
-
-            return Math.max(0, Math.min(100, score));
-          }
-
-          function getTier(score) {
-            if (score >= 70) return 'High Risk';
-            if (score >= 40) return 'Medium Risk';
-            return 'Low Risk';
-          }
-
-          function estimateTAM(marketValueUSD) {
-            if (!Number.isFinite(marketValueUSD) || marketValueUSD <= 0) return null;
-            return marketValueUSD * 0.002;
-          }
-
-          function scoreBreakdown(params) {
-            const score = calculateScore(params);
-            return {
-              ...params,
-              score,
-              tier: getTier(score)
-            };
-          }
-
-          return { calculateScore, getTier, estimateTAM, scoreBreakdown };
-        });
-
         let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
@@ -2436,59 +2284,17 @@
         })();
         window.ModuleSystem = ModuleSystem;
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
-        function ic(id, cfg) {
-          if (typeof window.Chart === "undefined") return;
-          if (charts[id]) charts[id].destroy();
-          const c = document.getElementById(id);
-          if (!c) return;
-          charts[id] = new Chart(c.getContext("2d"), cfg);
-        }
-        // Legacy analytics tabs should keep rendering even if one chart config fails.
-        function safeChart(tabId, chartId, cfg) {
-          try {
-            ic(chartId, cfg);
-            return true;
-          } catch (err) {
-            console.error(`Chart render failed for ${chartId}:`, err);
-            const title = (document.getElementById(`tbtn-${tabId}`) || {}).textContent || tabId;
-            showModuleError(tabId, title, err);
-            return false;
-          }
-        }
+        function ic(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c.getContext("2d"), cfg); }
         function barO(h = false) { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: h }, border: { display: false } }, y: { grid: { display: !h }, border: { display: false } } }, indexAxis: h ? "y" : "x" }; }
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
         function uniq(a) { return [...new Set(a.filter(v => v && v.trim()))].sort(); }
         function cBy(arr, k) { const m = {}; arr.forEach(r => { const v = (r[k] || "N/A").trim() || "N/A"; m[v] = (m[v] || 0) + 1; }); return m; }
-        // Accept either an object map or a pre-built array of [label, value] pairs.
-        function topN(source, n = 10) {
-          const entries = Array.isArray(source)
-            ? source.filter(entry => Array.isArray(entry) && entry.length >= 2)
-            : Object.entries(source || {});
-          return entries
-            .map(([label, value]) => [label, Number(value) || 0])
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, n);
-        }
+        function topN(m, n = 10) { return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, n); }
         function gv(id) { const e = document.getElementById(id); return e ? e.value : ""; }
         function resetF(ids) { ids.forEach(id => { const e = document.getElementById(id); if (e) e.value = "" }); }
         function sBadge(s) { const t = s.includes("Service") ? "bg-is" : s.includes("order") || s.includes("Order") ? "bg-or" : s.includes("Stor") ? "bg-st" : "bg-xx"; return `<span class="badge ${t}">${s || "-"}</span>`; }
         function tBadge(t) { return `<span class="badge ${{ ["High Risk"]: "bg-hr", ["Medium Risk"]: "bg-mr", ["Low Risk"]: "bg-lr" }[t] || "bg-xx"}">${t}</span>`; }
-        // DEPRECATED: Legacy calcTATS — scoring now handled by ModuleSystem.get('TATS').calculateScore()
-        // Kept as wrapper for backwards compatibility. Real scoring is in initDash() Step 4.
-        function calcTATS(r) {
-          if (ModuleSystem.has('TATS')) {
-            return ModuleSystem.get('TATS').calculateScore({
-              daysToLeaseEnd: r._daysToLeaseEnd != null ? r._daysToLeaseEnd : (r._leEnd ? (r._leEnd - new Date()) / 864e5 : null),
-              status: r._statusNormalized || '',
-              ageYears: r._ageYears != null ? r._ageYears : (r._age || null),
-              operatorTier: r._operatorTier || 'Standard',
-              isTop25: !!r._top25,
-              isLeaseEndEstimated: !!r._isLeaseEndEstimated
-            });
-          }
-          // Fallback: original inline logic
-          let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100);
-        }
+        function calcTATS(r) { let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100); }
         // --- Helper: Robust Date Parser ---
         function parseLeaseEndDate(s) {
           if (!s || s.trim().toLowerCase() === "unknown") return null;
@@ -2541,10 +2347,9 @@
         }
 
         // Persistence
-        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Aircraft%20Detail.csv";
-        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/main/Consolidated%20Scores%20Sheet.csv";
+        const URL_MAIN = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Aircraft%20Detail.csv";
+        const URL_CREDIT = "https://raw.githubusercontent.com/rockypc/Global-Fleet-Dashboard/refs/heads/main/Consolidated%20Scores%20Sheet.csv";
         // const URL_SUPPLY = "Remarketing%20Supply.csv";
-        const LIVE_FETCH_TIMEOUT_MS = 15000;
 
         function setInitState(mode, msg, sub) {
           const loading = document.getElementById("init-loading");
@@ -2570,7 +2375,7 @@
         }
 
         function showSyncError(message) {
-          const detail = /^(Fetch error:|Render error)/.test(String(message || "")) ? String(message) : `Fetch error: ${message}`;
+          const detail = `Fetch error: ${message}`;
           setInitState("loading", "Live sync failed", detail);
           const uploadTitle = document.getElementById("upload-title");
           const uploadDesc = document.getElementById("upload-desc");
@@ -2580,22 +2385,6 @@
               <span style="display:block;color:#fca5a5;font-weight:700;margin-bottom:8px;">${escapeHtml(detail)}</span>
               <span style="color:#4b5563;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
             `;
-          }
-        }
-
-        async function fetchWithTimeout(url, options = {}, timeoutMs = LIVE_FETCH_TIMEOUT_MS) {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), timeoutMs);
-          try {
-            const response = await fetch(url, { ...options, signal: controller.signal });
-            return response;
-          } catch (err) {
-            if (err && err.name === "AbortError") {
-              throw new Error(`Request timed out after ${timeoutMs}ms: ${url}`);
-            }
-            throw err;
-          } finally {
-            clearTimeout(timer);
           }
         }
 
@@ -2616,49 +2405,6 @@
             lastDataAsOfLabel = formatHeaderTimestamp(savedAt);
           }
           updateHeaderStatus();
-        }
-
-        // Small status helper for sync/export actions so users get feedback without changing the app layout.
-        let syncStatusTimer = null;
-        function setSyncStatus(message = "", tone = "info", persist = false) {
-          const status = document.getElementById("sync-status");
-          if (!status) return;
-          if (!message) {
-            status.textContent = "";
-            status.classList.add("hidden");
-            return;
-          }
-          const toneMap = {
-            info: { bg: "#0a0f1e", border: "#1f2937", color: "#94a3b8" },
-            loading: { bg: "#082f49", border: "#0ea5e9", color: "#bae6fd" },
-            success: { bg: "#052e16", border: "#166534", color: "#86efac" },
-            warning: { bg: "#3f2a05", border: "#b45309", color: "#fcd34d" },
-            error: { bg: "#3f0d14", border: "#be123c", color: "#fda4af" }
-          };
-          const palette = toneMap[tone] || toneMap.info;
-          status.textContent = message;
-          status.style.background = palette.bg;
-          status.style.borderColor = palette.border;
-          status.style.color = palette.color;
-          status.classList.remove("hidden");
-          clearTimeout(syncStatusTimer);
-          if (!persist && tone !== "loading") {
-            syncStatusTimer = setTimeout(() => setSyncStatus(""), 5000);
-          }
-        }
-
-        function setSyncButtonState(isLoading) {
-          const button = document.getElementById("sync-data-btn");
-          if (!button) return;
-          if (!button.dataset.defaultLabel) {
-            button.dataset.defaultLabel = button.innerHTML;
-          }
-          button.disabled = !!isLoading;
-          button.style.opacity = isLoading ? "0.75" : "1";
-          button.style.cursor = isLoading ? "wait" : "pointer";
-          button.innerHTML = isLoading
-            ? `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;border:2px solid #334155;border-top-color:#06b6d4;border-radius:999px;animation:spin .8s linear infinite;"></span>Syncing...</span>`
-            : button.dataset.defaultLabel;
         }
 
         function formatHeaderTimestamp(value) {
@@ -2709,31 +2455,22 @@
 
         function exportTableToCSV(dataArray, filename) {
           if (!Array.isArray(dataArray) || !dataArray.length) {
-            setSyncStatus("No rows are currently available to export.", "warning");
             alert("No rows are currently available to export.");
             return;
           }
-          try {
-            const headers = Object.keys(dataArray[0]);
-            const lines = [headers.map(csvEscape).join(",")].concat(
-              dataArray.map(row => headers.map(header => csvEscape(row[header])).join(","))
-            );
-            const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            setSyncStatus(`Exported ${dataArray.length.toLocaleString()} rows to ${filename}.`, "success");
-          } catch (err) {
-            console.error("CSV export failed.", err);
-            setSyncStatus(`CSV export failed: ${getErrorMessage(err)}`, "error", true);
-            alert(`CSV export failed: ${getErrorMessage(err)}`);
-          }
+          const headers = Object.keys(dataArray[0]);
+          const lines = [headers.map(csvEscape).join(",")].concat(
+            dataArray.map(row => headers.map(header => csvEscape(row[header])).join(","))
+          );
+          const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
         }
 
         function buildExportFilename(tabName) {
@@ -2746,27 +2483,13 @@
           return text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         }
 
-        function normalizeParsedRows(rows) {
-          return (rows || []).map(row => {
-            if (!row || typeof row !== "object") return null;
-            const normalized = {};
-            Object.entries(row).forEach(([key, value]) => {
-              const cleanKey = String(key || "").replace(/^\uFEFF/, "").trim();
-              if (!cleanKey) return;
-              normalized[cleanKey] = typeof value === "string" ? value.trim() : value;
-            });
-            return normalized;
-          }).filter(row => row && Object.values(row).some(value => String(value ?? "").trim() !== ""));
-        }
-
         function parseCsvText(csvText, { clean = false } = {}) {
           return new Promise((resolve, reject) => {
             Papa.parse(csvText, {
               header: true,
               skipEmptyLines: true,
-              transformHeader: header => String(header || "").replace(/^\uFEFF/, "").trim(),
               complete: (res) => {
-                const rows = normalizeParsedRows(res.data || []);
+                const rows = res.data || [];
                 resolve(clean ? cleanFleetRows(rows) : rows.filter(row => row && typeof row === "object" && Object.values(row).some(value => String(value || "").trim() !== "")));
               },
               error: reject
@@ -2787,21 +2510,15 @@
           });
         }
 
-        async function cacheDashboardData(data, meta = {}, supplemental = {}) {
+        async function cacheDashboardData(data, meta = {}) {
           const saved = Date.now();
-          if (typeof localforage === "undefined") return saved;
-          try {
-            await localforage.setItem("gfd_data", data);
-            await localforage.setItem("gfd_credit", Array.isArray(supplemental.creditRows) ? supplemental.creditRows : []);
-            await localforage.setItem("gfd_meta", {
-              saved,
-              count: data.length,
-              source: meta.source || "live",
-              name: meta.name || "Aircraft Detail.csv"
-            });
-          } catch (err) {
-            console.warn("Cache save failed.", err);
-          }
+          await localforage.setItem("gfd_data", data);
+          await localforage.setItem("gfd_meta", {
+            saved,
+            count: data.length,
+            source: meta.source || "live",
+            name: meta.name || "Aircraft Detail.csv"
+          });
           return saved;
         }
 
@@ -2809,53 +2526,15 @@
           return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
         }
 
-        function normalizeCreditJoinKeys(value) {
-          const raw = String(value || "").trim();
-          if (!raw) return [];
-          const variants = new Set();
-          variants.add(normalizeJoinKey(raw));
-          variants.add(normalizeJoinKey(raw.replace(/\s*\([^)]*\)\s*/g, " ")));
-          variants.add(normalizeJoinKey(raw.replace(/\s*-\s*.*$/, "")));
-          return [...variants].filter(Boolean);
-        }
-
-        function lookupCreditRecord(creditLookup, operatorName) {
-          const keys = normalizeCreditJoinKeys(operatorName);
-          for (const key of keys) {
-            if (creditLookup[key]) return creditLookup[key];
-          }
-          return null;
-        }
-
         function buildSupplementalLookups(creditRows = [], supplyRows = []) {
           const creditLookup = {};
           (creditRows || []).forEach(row => {
-            const keys = normalizeCreditJoinKeys(row["Airlines"] || row["Airline"] || row["Operator"]);
-            if (!keys.length) return;
-            const record = {
-              score: String(
-                row["Credit Score"] ||
-                row["Ishka Credit Score"] ||
-                row["Score"] ||
-                row["Rating"] ||
-                row["Ishka Credit Score Outlook or Proxy Score"] ||
-                ""
-              ).trim(),
-              outlook: String(
-                row["Credit Outlook"] ||
-                row["Ishka Credit Score Outlook or Proxy Score"] ||
-                row["Outlook"] ||
-                row["Overall credit quality"] ||
-                row["Status"] ||
-                ""
-              ).trim(),
-              overallQuality: String(row["Overall credit quality"] || "").trim(),
-              businessModel: String(row["Business Model"] || "").trim(),
-              region: String(row["Region"] || "").trim()
+            const operatorKey = normalizeJoinKey(row["Airlines"] || row["Airline"] || row["Operator"]);
+            if (!operatorKey) return;
+            creditLookup[operatorKey] = {
+              score: String(row["Credit Score"] || row["Score"] || row["Rating"] || "").trim(),
+              outlook: String(row["Credit Outlook"] || row["Outlook"] || row["Status"] || "").trim()
             };
-            keys.forEach(operatorKey => {
-              creditLookup[operatorKey] = record;
-            });
           });
 
           const supplyLookup = {};
@@ -2872,8 +2551,9 @@
           const creditLookup = lookups.creditLookup || {};
           const supplyLookup = lookups.supplyLookup || {};
           return (rows || []).map(row => {
-            const credit = lookupCreditRecord(creditLookup, row["Operator"]) || {};
+            const operatorKey = normalizeJoinKey(row["Operator"]);
             const typeKey = normalizeJoinKey(row["Type"]);
+            const credit = creditLookup[operatorKey] || {};
             return {
               ...row,
               _creditScore: String(row._creditScore || credit.score || "").trim(),
@@ -2885,7 +2565,7 @@
 
         async function fetchCsvText(url, { required = true } = {}) {
           try {
-            const res = await fetchWithTimeout(url, { cache: "no-store" });
+            const res = await fetch(url, { cache: "no-store" });
             if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
             return await res.text();
           } catch (err) {
@@ -2896,12 +2576,10 @@
         }
 
         async function tryLoadCachedData() {
-          if (typeof localforage === "undefined") return null;
           const stored = await localforage.getItem("gfd_data");
-          const cachedCreditRows = await localforage.getItem("gfd_credit");
           const meta = await localforage.getItem("gfd_meta");
           const cleaned = cleanFleetRows(stored || []);
-          if (cleaned.length) return { data: cleaned, creditRows: Array.isArray(cachedCreditRows) ? cachedCreditRows : [], meta: meta || {} };
+          if (cleaned.length) return { data: cleaned, meta: meta || {} };
           return null;
         }
 
@@ -2911,30 +2589,23 @@
 
         async function clearData() {
           if (confirm("Clear saved data and cached sync history?")) {
-            if (typeof localforage !== "undefined") {
-              await localforage.removeItem("gfd_data");
-              await localforage.removeItem("gfd_credit");
-              await localforage.removeItem("gfd_meta");
-            }
+            await localforage.removeItem("gfd_data");
+            await localforage.removeItem("gfd_meta");
             location.reload();
           }
         }
 
         async function syncData({ showSpinner = true, allowUploadFallback = false, fromUser = false } = {}) {
-          if (fromUser) {
-            setSyncButtonState(true);
-            setSyncStatus("Syncing latest data from GitHub...", "loading", true);
-          }
           if (showSpinner) {
-            setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
+            setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
           }
 
-            let syncErrorMessage = "";
-            try {
-              const [resFleet, resCredit] = await Promise.all([
-              fetchWithTimeout(URL_MAIN, { cache: "no-store" }),
-              fetchWithTimeout(URL_CREDIT, { cache: "no-store" })
-              ]);
+          let syncErrorMessage = "";
+          try {
+            const [resFleet, resCredit] = await Promise.all([
+              fetch(URL_MAIN, { cache: "no-store" }),
+              fetch(URL_CREDIT, { cache: "no-store" })
+            ]);
 
             if (!resFleet.ok) {
               throw new Error(`Fleet CSV fetch failed (${resFleet.status} ${resFleet.statusText || "Unknown"})`);
@@ -2955,90 +2626,46 @@
 
             const lookups = buildSupplementalLookups(creditRows || [], []);
             const mergedRows = applySupplementalJoins(mainRows || [], lookups);
-            creditSheetRows = normalizeParsedRows(Array.isArray(creditRows) ? creditRows : []);
-            const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" }, { creditRows: creditSheetRows });
+            const saved = await cacheDashboardData(mergedRows, { source: "live", name: "Fleet + Credit" });
             lastDataAsOfLabel = formatHeaderTimestamp(new Date());
             updateDataBanner("live", mergedRows.length, saved);
-
-            try {
-              initDash(mergedRows, { ...lookups, creditRows: creditSheetRows });
-              if (fromUser) setSyncStatus("Live sync completed successfully.", "success");
-            } catch (renderErr) {
-              const renderMessage = `Render error after successful fetch: ${getErrorMessage(renderErr)}`;
-              console.error("Dashboard render failed after live sync.", renderErr);
-              showSyncError(renderMessage);
-              if (fromUser) setSyncStatus(renderMessage, "error", true);
-              throw new Error(renderMessage);
-            }
-            if (fromUser) setSyncButtonState(false);
+            initDash(mergedRows, lookups);
             return;
           } catch (err) {
             syncErrorMessage = getErrorMessage(err);
-            const isRenderError = syncErrorMessage.startsWith("Render error after successful fetch:");
-            console.warn(isRenderError ? "Live fetch succeeded but dashboard rendering failed." : "Remote sync unavailable, attempting cached fallback.", err);
-            showSyncError(isRenderError ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
-            if (fromUser) setSyncStatus(isRenderError ? syncErrorMessage : `Live sync failed: ${syncErrorMessage}`, "error", true);
+            console.warn("Remote sync unavailable, attempting cached fallback.", err);
+            showSyncError(syncErrorMessage);
           }
 
-          let cached = null;
           try {
-            cached = await tryLoadCachedData();
+            const cached = await tryLoadCachedData();
+            if (cached) {
+              updateDataBanner("cached", cached.data.length, cached.meta.saved);
+              if (showSpinner) {
+                setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
+              }
+              initDash(cached.data);
+              return;
+            }
           } catch (err) {
             console.warn("Cached data unavailable.", err);
           }
 
-          if (cached) {
-            updateDataBanner("cached", cached.data.length, cached.meta.saved);
-            if (showSpinner) {
-              setInitState("loading", "Using cached offline data...", syncErrorMessage ? `Live sync failed: ${syncErrorMessage}` : "GitHub sync failed, so the dashboard loaded the latest saved dataset.");
-            }
-              try {
-                creditSheetRows = normalizeParsedRows(Array.isArray(cached.creditRows) ? cached.creditRows : []);
-                initDash(cached.data, { creditRows: creditSheetRows });
-                if (fromUser) setSyncStatus("Live sync failed, cached offline data loaded.", "warning");
-              } catch (renderErr) {
-                const renderMessage = `Render error from cached data: ${getErrorMessage(renderErr)}`;
-                console.error("Dashboard render failed while using cached data.", renderErr);
-                showSyncError(renderMessage);
-                if (fromUser) setSyncStatus(renderMessage, "error", true);
-              }
-              if (fromUser) setSyncButtonState(false);
-              return;
-            }
-
-            if (allowUploadFallback) {
-              if (syncErrorMessage) showSyncError(/^(Fetch error:|Render error)/.test(syncErrorMessage) ? syncErrorMessage : `Fetch error: ${syncErrorMessage}`);
-              showUpload();
-              if (fromUser) {
-                setSyncButtonState(false);
-                setSyncStatus("Sync failed. Upload fallback is now available.", "error", true);
-              }
-            } else if (fromUser) {
-              setSyncButtonState(false);
-              alert(`Live sync failed and no cached dataset is available yet.
-
-  ${syncErrorMessage || "Unknown error"}`);
-            }
-            if (fromUser && document.getElementById("sync-data-btn") && document.getElementById("sync-data-btn").disabled) {
-              setSyncButtonState(false);
-            }
+          if (allowUploadFallback) {
+            if (syncErrorMessage) showSyncError(syncErrorMessage);
+            showUpload();
+          } else if (fromUser) {
+            alert(`Live sync failed and no cached dataset is available yet.\n\n${syncErrorMessage || "Unknown error"}`);
           }
+        }
 
         async function syncLatestData(options = {}) {
           return syncData(options);
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-          if (typeof Papa === "undefined") {
-            showBootError("Required library failed to load: Papa Parse.");
-            return;
-          }
-          setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.");
-          try {
-            await syncData({ showSpinner: true, allowUploadFallback: true });
-          } catch (err) {
-            showBootError(`Unexpected startup error: ${getErrorMessage(err)}`);
-          }
+          setInitState("loading", "Syncing live fleet data...", "Fetching the latest CSV from GitHub with offline cache fallback.");
+          await syncData({ showSpinner: true, allowUploadFallback: true });
         });
         // Drag/drop
         const dz = document.getElementById("dropzone");
@@ -3050,22 +2677,13 @@
           document.getElementById("upload-title").textContent = "Parsing & Saving...";
           document.getElementById("upload-desc").textContent = "Processing your CSV, please wait...";
           Papa.parse(f, {
-              header: true,
-              skipEmptyLines: true,
-              transformHeader: header => String(header || "").replace(/^\uFEFF/, "").trim(),
-              complete: async function (res) {
-                const cleanedData = cleanFleetRows(normalizeParsedRows(res.data || []));
-                try {
-                  const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name }, { creditRows: creditSheetRows });
-                  updateDataBanner("manual", cleanedData.length, saved);
-                } catch (e) { }
-                try {
-                  initDash(cleanedData, { creditRows: creditSheetRows });
-                } catch (renderErr) {
-                const renderMessage = `Render error after manual upload: ${getErrorMessage(renderErr)}`;
-                console.error("Dashboard render failed after manual upload.", renderErr);
-                showSyncError(renderMessage);
-              }
+            header: true, skipEmptyLines: true, complete: async function (res) {
+              const cleanedData = cleanFleetRows(res.data || []);
+              try {
+                const saved = await cacheDashboardData(cleanedData, { source: "manual", name: f.name });
+                updateDataBanner("manual", cleanedData.length, saved);
+              } catch (e) { }
+              initDash(cleanedData);
             }, error: function (e) { alert("CSV parse error: " + e.message); location.reload(); }
           });
         });
@@ -3077,7 +2695,6 @@
           feFiltered = [];
           tatsVisibleRows = [];
           ddVisibleRows = [];
-            creditSheetRows = Array.isArray(supplemental.creditRows) ? normalizeParsedRows(supplemental.creditRows) : creditSheetRows;
 
           document.getElementById("init-loading").classList.add("hidden");
           document.getElementById("upload-section").classList.add("hidden");
@@ -3113,7 +2730,7 @@
             r._operatorClean = r["Operator"] ? String(r["Operator"]).trim() : "Unknown";
             r._country = r["Operator Country/Subregion"] ? String(r["Operator Country/Subregion"]).trim() : "Unknown";
             r._region = r["Operator Region"] ? String(r["Operator Region"]).trim() : "Unknown";
-            const joinedCredit = lookupCreditRecord((supplemental.creditLookup || {}), r["Operator"]) || null;
+            const joinedCredit = (supplemental.creditLookup || {})[normalizeJoinKey(r["Operator"])] || null;
             r._creditScore = String(r._creditScore || (joinedCredit && joinedCredit.score) || "").trim();
             r._creditOutlook = String(r._creditOutlook || (joinedCredit && joinedCredit.outlook) || "").trim();
             r._competingSupplyCount = Number.isFinite(+r._competingSupplyCount) ? +r._competingSupplyCount : ((supplemental.supplyLookup || {})[normalizeJoinKey(r["Type"])] || 0);
@@ -3330,24 +2947,43 @@
 
           const top25Keys = new Set(hitListCandidates.slice(0, 25).map(r => r._aircraftKey));
 
-          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM (via TATS Module) ---
-          const _tatsModule = ModuleSystem.get('TATS');
+          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM ---
           allData.forEach(r => {
             r._top25 = top25Keys.has(r._aircraftKey);
 
-            // Delegate scoring to the extracted TATS module
-            r._opportunityScore = _tatsModule.calculateScore({
-              daysToLeaseEnd: r._daysToLeaseEnd,
-              status: r._statusNormalized,
-              ageYears: r._ageYears,
-              operatorTier: r._operatorTier,
-              isTop25: r._top25,
-              isLeaseEndEstimated: r._isLeaseEndEstimated
-            });
-            r._tats = r._opportunityScore; // sync back to old refs
-            r._tatsTier = _tatsModule.getTier(r._tats);
+            let oScore = 0;
+            if (r._daysToLeaseEnd !== null) {
+              if (r._daysToLeaseEnd <= 365) oScore += 30; // Within 1 year (or overdue)
+              else if (r._daysToLeaseEnd <= 730) oScore += 20;
+              else if (r._daysToLeaseEnd <= 1095) oScore += 10;
+            } else {
+              oScore -= 10; // Explicit unknown lease penalty
+            }
 
-            r._estimatedTATSUSD = _tatsModule.estimateTAM(r._mktValueUSD);
+            if (r._statusNormalized === "Storage") oScore += 20;
+            else if (r._statusNormalized === "In Service") oScore += 5;
+
+            if (r._ageYears !== null) {
+              if (r._ageYears >= 20) oScore += 25;
+              else if (r._ageYears >= 15) oScore += 15;
+              else if (r._ageYears >= 10) oScore += 10;
+              else if (r._ageYears >= 5) oScore += 5;
+            }
+
+            if (r._operatorTier === "Tier 1") oScore += 15;
+            if (r._top25) oScore += 10;
+
+            if (r._isLeaseEndEstimated) oScore -= 15;
+
+            r._opportunityScore = Math.max(0, Math.min(100, oScore));
+            r._tats = r._opportunityScore; // sync back to old refs
+            r._tatsTier = r._tats >= 70 ? "High Risk" : r._tats >= 40 ? "Medium Risk" : "Low Risk";
+
+            if (r._mktValueUSDm !== null) {
+              r._estimatedTATSUSD = r._mktValueUSD * 0.002;
+            } else {
+              r._estimatedTATSUSD = null;
+            }
 
             // --- PIPELINE STEP 5: DYNAMIC HOOK GENERATION ---
             let hookStr = `Observational analysis indicates this ${r["Type"] || "aircraft"} (SN: ${r._aircraftKey === "Unknown" ? "N/A" : r._aircraftKey}) `;
@@ -3735,34 +3371,55 @@
 
         ModuleSystem.register('CounterpartyRisk', () => {
           const CATEGORY_META = {
-            "Critical (High Risk)": { cardClass: "border-t-4 border-red-600", scoreClass: "bg-red-950/70 text-red-300 border border-red-800" },
-            "Speculative (Medium Risk)": { cardClass: "border-t-4 border-amber-500", scoreClass: "bg-amber-950/60 text-amber-300 border border-amber-800" },
-            "Investment Grade (Low Risk)": { cardClass: "border-t-4 border-emerald-500", scoreClass: "bg-emerald-950/60 text-emerald-300 border border-emerald-800" },
-            "Unrated": { cardClass: "border-t-4 border-slate-500", scoreClass: "bg-slate-800 text-slate-300 border border-slate-700" }
+            "Critical (High Risk)": {
+              cardClass: "border-t-4 border-red-600",
+              scoreClass: "bg-red-950/70 text-red-300 border border-red-800"
+            },
+            "Speculative (Medium Risk)": {
+              cardClass: "border-t-4 border-amber-500",
+              scoreClass: "bg-amber-950/60 text-amber-300 border border-amber-800"
+            },
+            "Investment Grade (Low Risk)": {
+              cardClass: "border-t-4 border-emerald-500",
+              scoreClass: "bg-emerald-950/60 text-emerald-300 border border-emerald-800"
+            },
+            "Unrated": {
+              cardClass: "border-t-4 border-slate-500",
+              scoreClass: "bg-slate-800 text-slate-300 border border-slate-700"
+            }
           };
-          const CREDIT_COLUMNS = ["Airlines", "Business Model", "Region", "Financial", "Traffic Growth", "Yields", "Macro Indicators", "Competition", "Ishka Credit Score", "Ishka Credit Score Outlook or Proxy Score", "Overall credit quality"];
 
           function normalizeScore(score) {
             return String(score || "NR").trim().toUpperCase() || "NR";
           }
 
-          function getScore(row) {
-            return String(row["Ishka Credit Score"] || row["Credit Score"] || row["Score"] || row["Rating"] || "").trim() || "NR";
+          function riskPriority(category) {
+            return {
+              "Critical (High Risk)": 3,
+              "Speculative (Medium Risk)": 2,
+              "Investment Grade (Low Risk)": 1,
+              "Unrated": 0
+            }[category] || 0;
           }
 
-          function badgeFor(category, score) {
-            const meta = CATEGORY_META[category] || CATEGORY_META.Unrated;
-            return `<span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(score || "NR")}</span>`;
+          function formatMoneyM(value) {
+            return `$${(Number(value) || 0).toFixed(2)}M`;
           }
 
           return {
-            init() { this.render(); },
+            init() {
+              this.render();
+            },
 
             categorizeRisk(score) {
               const normalized = normalizeScore(score);
               if (!normalized || normalized === "NR") return "Unrated";
-              if (normalized === "BBB+" || normalized === "BBB" || normalized === "BBB-" || /^A/.test(normalized)) return "Investment Grade (Low Risk)";
-              if (normalized.includes("BB") || normalized === "B+" || normalized === "B" || normalized === "B-") return "Speculative (Medium Risk)";
+              if (normalized === "BBB+" || normalized === "BBB" || normalized === "BBB-" || /^A/.test(normalized)) {
+                return "Investment Grade (Low Risk)";
+              }
+              if (normalized.includes("BB") || normalized === "B+" || normalized === "B" || normalized === "B-") {
+                return "Speculative (Medium Risk)";
+              }
               if (normalized.includes("C") || normalized.includes("D")) return "Critical (High Risk)";
               return "Unrated";
             },
@@ -3771,86 +3428,57 @@
               const container = document.getElementById('tab-creditrisk');
               if (!container) return;
 
-              const filters = {
-                search: (document.getElementById('cr-filter-search') || {}).value || "",
-                category: (document.getElementById('cr-filter-category') || {}).value || "",
-                region: (document.getElementById('cr-filter-region') || {}).value || "",
-                businessModel: (document.getElementById('cr-filter-business') || {}).value || "",
-                overallQuality: (document.getElementById('cr-filter-quality') || {}).value || "",
-                coverage: (document.getElementById('cr-filter-coverage') || {}).value || ""
-              };
+              let highRiskValue = 0;
+              let mediumRiskValue = 0;
+              let lowRiskValue = 0;
+              const operatorExposure = {};
 
-              const preparedRows = normalizeParsedRows(creditSheetRows || []).map((row, idx) => {
-                const score = getScore(row);
+              (allData || []).forEach(ac => {
+                if ((ac["Status"] || ac["Order Status"] || "").toLowerCase().includes("unconfirmed")) return;
+
+                const score = String(ac._creditScore || ac["Credit Score"] || "NR").trim() || "NR";
                 const category = this.categorizeRisk(score);
-                const airline = String(row["Airlines"] || row["Airline"] || `Row ${idx + 1}`).trim();
-                const region = String(row["Region"] || "Unknown").trim() || "Unknown";
-                const businessModel = String(row["Business Model"] || "Unknown").trim() || "Unknown";
-                const overallQuality = String(row["Overall credit quality"] || "Unspecified").trim() || "Unspecified";
-                return {
-                  ...row,
-                  _airline: airline,
-                  _score: score,
-                  _category: category,
-                  _region: region,
-                  _businessModel: businessModel,
-                  _overallQuality: overallQuality,
-                  _coverage: score === "NR" ? "Unrated" : "Rated",
-                  _searchBlob: [
-                    airline,
-                    region,
-                    businessModel,
-                    overallQuality,
+                const value = Number.isFinite(ac._val) ? ac._val : (parseFloat(ac["Indicative Market Value (US$m)"]) || 0);
+                const operator = String(ac["Operator"] || "Unknown").trim() || "Unknown";
+
+                if (category === "Critical (High Risk)") highRiskValue += value;
+                else if (category === "Speculative (Medium Risk)") mediumRiskValue += value;
+                else if (category === "Investment Grade (Low Risk)") lowRiskValue += value;
+
+                if (!operatorExposure[operator]) {
+                  operatorExposure[operator] = {
                     score,
-                    row["Ishka Credit Score Outlook or Proxy Score"] || "",
-                    row["Financial"] || "",
-                    row["Traffic Growth"] || "",
-                    row["Yields"] || "",
-                    row["Macro Indicators"] || "",
-                    row["Competition"] || ""
-                  ].join(" ").toLowerCase()
-                };
+                    category,
+                    aircraftCount: 0,
+                    totalValue: 0
+                  };
+                }
+
+                const current = operatorExposure[operator];
+                if (riskPriority(category) > riskPriority(current.category)) {
+                  current.score = score;
+                  current.category = category;
+                }
+                current.aircraftCount += 1;
+                current.totalValue += value;
               });
 
-              const filteredRows = preparedRows.filter(row => {
-                if (filters.search && !row._searchBlob.includes(filters.search.trim().toLowerCase())) return false;
-                if (filters.category && row._category !== filters.category) return false;
-                if (filters.region && row._region !== filters.region) return false;
-                if (filters.businessModel && row._businessModel !== filters.businessModel) return false;
-                if (filters.overallQuality && row._overallQuality !== filters.overallQuality) return false;
-                if (filters.coverage && row._coverage !== filters.coverage) return false;
-                return true;
-              }).sort((a, b) => {
-                const categoryRank = { "Critical (High Risk)": 3, "Speculative (Medium Risk)": 2, "Investment Grade (Low Risk)": 1, "Unrated": 0 };
-                const delta = (categoryRank[b._category] || 0) - (categoryRank[a._category] || 0);
-                return delta || a._airline.localeCompare(b._airline);
-              });
+              const watchlist = Object.entries(operatorExposure)
+                .filter(([, data]) => data.category === "Critical (High Risk)" || data.category === "Speculative (Medium Risk)")
+                .sort((a, b) => b[1].totalValue - a[1].totalValue);
 
-              const counts = {
-                critical: preparedRows.filter(r => r._category === "Critical (High Risk)").length,
-                speculative: preparedRows.filter(r => r._category === "Speculative (Medium Risk)").length,
-                investment: preparedRows.filter(r => r._category === "Investment Grade (Low Risk)").length,
-                unrated: preparedRows.filter(r => r._category === "Unrated").length
-              };
-
-              const categoryOptions = uniq(preparedRows.map(r => r._category));
-              const regionOptions = uniq(preparedRows.map(r => r._region));
-              const businessOptions = uniq(preparedRows.map(r => r._businessModel));
-              const qualityOptions = uniq(preparedRows.map(r => r._overallQuality));
-
-              let rowsHtml = "";
-              if (!preparedRows.length) {
-                rowsHtml = `<tr><td colspan="${CREDIT_COLUMNS.length + 2}" style="padding:22px;text-align:center;color:#64748b;">No records from Consolidated Scores Sheet.csv are currently loaded.</td></tr>`;
-              } else if (!filteredRows.length) {
-                rowsHtml = `<tr><td colspan="${CREDIT_COLUMNS.length + 2}" style="padding:22px;text-align:center;color:#64748b;">No credit records match the current filters.</td></tr>`;
+              let tableRowsHTML = "";
+              if (!watchlist.length) {
+                tableRowsHTML = `<tr><td colspan="4" style="padding:22px;text-align:center;color:#64748b;">No speculative or critical counterparties in the current clean fleet universe.</td></tr>`;
               } else {
-                filteredRows.forEach(row => {
-                  rowsHtml += `
+                watchlist.forEach(([operator, data]) => {
+                  const meta = CATEGORY_META[data.category] || CATEGORY_META.Unrated;
+                  tableRowsHTML += `
                     <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
-                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(row._airline)}</td>
-                      <td class="px-4 py-3">${badgeFor(row._category, row._score)}</td>
-                      <td class="px-4 py-3">${escapeHtml(row._category)}</td>
-                      ${CREDIT_COLUMNS.slice(1).map(col => `<td class="px-4 py-3">${escapeHtml(row[col] || "-")}</td>`).join("")}
+                      <td class="px-4 py-3 font-bold text-white">${escapeHtml(operator)}</td>
+                      <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${meta.scoreClass}">${escapeHtml(data.score || "NR")}</span></td>
+                      <td class="px-4 py-3">${(data.aircraftCount || 0).toLocaleString()}</td>
+                      <td class="px-4 py-3 font-mono text-[#06b6d4]">$${Number(data.totalValue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M</td>
                     </tr>
                   `;
                 });
@@ -3858,50 +3486,38 @@
 
               container.innerHTML = `
                 <div class="header-section mb-6">
-                  <h2 class="text-2xl font-bold text-white">Counterparty Risk Explorer</h2>
-                  <p class="text-gray-400">Standalone view of every record in Consolidated Scores Sheet.csv, independent of the fleet database join.</p>
+                  <h2 class="text-2xl font-bold text-white">Counterparty Risk &amp; Exposure</h2>
+                  <p class="text-gray-400">Financial exposure categorized by Ishka Credit Ratings</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}"><div class="text-gray-400 text-sm">Critical Airlines</div><div class="text-2xl font-bold text-white">${counts.critical.toLocaleString()}</div></div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}"><div class="text-gray-400 text-sm">Speculative Airlines</div><div class="text-2xl font-bold text-white">${counts.speculative.toLocaleString()}</div></div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}"><div class="text-gray-400 text-sm">Investment Grade Airlines</div><div class="text-2xl font-bold text-white">${counts.investment.toLocaleString()}</div></div>
-                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Unrated"].cardClass}"><div class="text-gray-400 text-sm">Unrated / Missing</div><div class="text-2xl font-bold text-white">${counts.unrated.toLocaleString()}</div></div>
-                </div>
-                <div class="bg-gray-800 rounded p-4 mb-6">
-                  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                      <h3 class="text-lg font-bold text-white">Credit Filters</h3>
-                      <p class="text-sm text-gray-400 mt-1">Explore the raw credit sheet directly by airline, region, business model, overall quality, and rating coverage.</p>
-                    </div>
-                    <div class="text-sm text-gray-400">Rows shown: <span class="text-white font-semibold">${filteredRows.length.toLocaleString()}</span> of ${preparedRows.length.toLocaleString()}</div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Critical (High Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Critical Exposure (CCC &amp; Below)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(highRiskValue)}</div>
                   </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
-                    <div><label class="fl">Search Airline / Notes</label><input id="cr-filter-search" class="fs" type="text" value="${escapeHtml(filters.search)}" oninput="ModuleSystem.get('CounterpartyRisk').render()" placeholder="Search airline, rating, outlook..." /></div>
-                    <div><label class="fl">Risk Category</label><select id="cr-filter-category" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Categories</option>${categoryOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.category === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
-                    <div><label class="fl">Region</label><select id="cr-filter-region" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Regions</option>${regionOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.region === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
-                    <div><label class="fl">Business Model</label><select id="cr-filter-business" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Models</option>${businessOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.businessModel === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
-                    <div><label class="fl">Overall Credit Quality</label><select id="cr-filter-quality" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">All Quality Bands</option>${qualityOptions.map(value => `<option value="${escapeHtml(value)}" ${filters.overallQuality === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
-                    <div><label class="fl">Coverage</label><select id="cr-filter-coverage" class="fs" onchange="ModuleSystem.get('CounterpartyRisk').render()"><option value="">Rated + Unrated</option><option value="Rated" ${filters.coverage === "Rated" ? "selected" : ""}>Rated Only</option><option value="Unrated" ${filters.coverage === "Unrated" ? "selected" : ""}>Unrated Only</option></select></div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Speculative (Medium Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Speculative Exposure (B to BB+)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(mediumRiskValue)}</div>
+                  </div>
+                  <div class="kpi-card bg-gray-800 p-4 rounded ${CATEGORY_META["Investment Grade (Low Risk)"].cardClass}">
+                    <div class="text-gray-400 text-sm">Investment Grade Exposure (BBB- &amp; Above)</div>
+                    <div class="text-2xl font-bold text-white">${formatMoneyM(lowRiskValue)}</div>
                   </div>
                 </div>
+
                 <div class="bg-gray-800 rounded p-4 flex-grow flex flex-col min-h-0">
-                  <div class="flex items-center justify-between mb-4 gap-4">
-                    <div>
-                      <h3 class="text-lg font-bold text-white">Consolidated Scores Sheet</h3>
-                      <p class="text-sm text-gray-400 mt-1">All source columns from the credit file, with a derived risk category and rating pill for quick screening.</p>
-                    </div>
-                  </div>
-                  <div class="overflow-auto flex-grow custom-scrollbar">
-                    <table class="w-full text-left text-sm text-gray-300" style="min-width:1680px;">
+                  <h3 class="text-lg font-bold text-white mb-4 text-red-400 flex-shrink-0">High-Risk Operator Watchlist</h3>
+                  <div class="overflow-y-auto flex-grow custom-scrollbar">
+                    <table class="w-full text-left text-sm text-gray-300">
                       <thead class="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
                         <tr>
-                          <th class="px-4 py-2">Airlines</th>
+                          <th class="px-4 py-2">Operator</th>
                           <th class="px-4 py-2">Credit Score</th>
-                          <th class="px-4 py-2">Risk Category</th>
-                          ${CREDIT_COLUMNS.slice(1).map(col => `<th class="px-4 py-2">${escapeHtml(col)}</th>`).join("")}
+                          <th class="px-4 py-2">Aircraft Count</th>
+                          <th class="px-4 py-2">Total Value Exposure ($M)</th>
                         </tr>
                       </thead>
-                      <tbody>${rowsHtml}</tbody>
+                      <tbody>${tableRowsHTML}</tbody>
                     </table>
                   </div>
                 </div>
@@ -4480,173 +4096,39 @@
         }
 
         const ALL_TABS = ["home", "deepdive", "p1", "p2", "p3", "p4", "p5", "p8", "p9", "gantt", "lessors", "country", "fleet", "lopa", "placement", "ccolopa", "engineintel", "transitionintel", "tats", "usm", "creditrisk", "exposure", "historical", "acdetail"];
-        function renderCounterpartyRiskTab() {
-          if (typeof ModuleSystem !== "undefined" && ModuleSystem && typeof ModuleSystem.get === "function") {
-            try {
-              const module = ModuleSystem.get("CounterpartyRisk");
-              if (module && typeof module.init === "function") {
-                module.init();
-                return;
-              }
-            } catch (err) {
-              console.warn("CounterpartyRisk module unavailable.", err);
-            }
-          }
-          if (typeof renderCounterpartyRisk === "function") {
-            renderCounterpartyRisk();
-          }
-        }
-
-        // Keep broken modules isolated to their own tab instead of escalating into a global boot failure.
-        function clearModuleError(tabId) {
-          const tab = document.getElementById(`tab-${tabId}`);
-          if (!tab) return;
-          const banner = tab.querySelector(".module-error-banner");
-          if (banner) banner.remove();
-        }
-
-        function showModuleError(tabId, title, error) {
-          const tab = document.getElementById(`tab-${tabId}`);
-          if (!tab) return;
-          let banner = tab.querySelector(".module-error-banner");
-          if (!banner) {
-            banner = document.createElement("div");
-            banner.className = "module-error-banner card";
-            banner.style.border = "1px solid #7f1d1d";
-            banner.style.background = "#1f1117";
-            banner.style.marginBottom = "12px";
-            tab.prepend(banner);
-          }
-          banner.innerHTML = `
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-              <div>
-                <div style="font-size:14px;font-weight:800;color:#fecaca;">${escapeHtml(title)} failed to render</div>
-                <div style="font-size:12px;color:#fca5a5;margin-top:4px;">${escapeHtml(getErrorMessage(error))}</div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:6px;">Other dashboard modules remain available while this section is being repaired.</div>
-              </div>
-              <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="clearModuleError('${tabId}')">Dismiss</button>
-            </div>
-          `;
-        }
-
-        function renderLegacyPlaceholder(tabId, title, description) {
-          const tab = document.getElementById(`tab-${tabId}`);
-          if (!tab || !allData || !allData.length) return;
-          clearModuleError(tabId);
-          const existing = tab.querySelector(".legacy-placeholder");
-          const summary = `${allData.length.toLocaleString()} aircraft are loaded and ready for analysis.`;
-          const html = `
-            <div class="legacy-placeholder card" style="border:1px dashed #334155;background:#0d1424;">
-              <div class="s-title">${escapeHtml(title)}</div>
-              <div class="s-sub">${escapeHtml(description)}</div>
-              <div style="font-size:12px;color:#94a3b8;margin-top:8px;">${summary}</div>
-            </div>
-          `;
-          if (existing) existing.outerHTML = html;
-          else tab.insertAdjacentHTML("afterbegin", html);
-        }
-
-        // Some legacy tabs render charts after the tab becomes visible; this
-        // helper gives them one safe second pass without changing the router model.
-        function resolveRenderer(fnName, directFn) {
-          if (typeof window[fnName] === "function") return window[fnName];
-          if (typeof directFn === "function") return directFn;
-          return null;
-        }
-
-        function scheduleTabRerender(tabId, fnName, directFn, delayMs = 60) {
-          setTimeout(() => {
-            const tab = document.getElementById(`tab-${tabId}`);
-            const fn = resolveRenderer(fnName, directFn);
-            if (!tab || tab.classList.contains("hidden") || !fn) return;
-            try {
-              fn();
-            } catch (err) {
-              console.error(`Deferred tab render failed for ${tabId}:`, err);
-              showModuleError(tabId, (document.getElementById(`tbtn-${tabId}`) || {}).textContent || tabId, err);
-            }
-          }, delayMs);
-        }
-
         function switchTab(id) {
           ALL_TABS.forEach(t => { const el = document.getElementById("tab-" + t), btn = document.getElementById("tbtn-" + t); if (!el || !btn) return; if (t === id) { el.style.display = "flex"; el.style.flexDirection = "column"; el.classList.remove("hidden"); btn.classList.add("active"); } else { el.style.display = "none"; el.classList.add("hidden"); btn.classList.remove("active"); } });
           const ta = document.getElementById("tab-area"); if (ta) ta.scrollTop = 0;
+          const usm = typeof renderUSM === "function" ? renderUSM : null;
+          const exp = typeof renderExposure === "function" ? renderExposure : null;
+          const hist = typeof renderHistorical === "function" ? renderHistorical : null;
           const rMap = {
-            home: () => { if (typeof renderHome === "function") renderHome(); },
-            deepdive: () => { if (typeof runDD === "function") runDD(); },
-              // These legacy analytics tabs are more reliable when called directly.
-              // The extra resolve/schedule indirection was leaving the live app with blank shells.
-              p1: () => {
-                if (typeof renderP1 === "function") renderP1();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-p1");
-                  if (tab && !tab.classList.contains("hidden") && typeof renderP1 === "function") renderP1();
-                }, 80);
-              },
-              p2: () => {
-                const fn = typeof window.renderP2 === "function" ? window.renderP2 : (typeof renderP2 === "function" ? renderP2 : null);
-                if (fn) fn();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-p2");
-                  const delayed = typeof window.renderP2 === "function" ? window.renderP2 : (typeof renderP2 === "function" ? renderP2 : null);
-                  if (tab && !tab.classList.contains("hidden") && delayed) delayed();
-                }, 80);
-              },
-              p3: () => {
-                if (typeof renderP3 === "function") renderP3();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-p3");
-                  if (tab && !tab.classList.contains("hidden") && typeof renderP3 === "function") renderP3();
-                }, 80);
-              },
-            p4: () => { if (typeof renderP4 === "function") renderP4(); },
-            p5: () => { if (typeof renderP5 === "function") renderP5(); },
-            p8: () => { if (typeof renderP8 === "function") renderP8(); },
-            p9: () => { if (typeof renderP9 === "function") renderP9(); },
-              lessors: () => {
-                if (typeof renderLessors === "function") renderLessors();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-lessors");
-                  if (tab && !tab.classList.contains("hidden") && typeof renderLessors === "function") renderLessors();
-                }, 80);
-              },
-              country: () => {
-                if (typeof renderCountryTab === "function") renderCountryTab();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-country");
-                  if (tab && !tab.classList.contains("hidden") && typeof renderCountryTab === "function") renderCountryTab();
-                }, 80);
-              },
-              gantt: () => { if (typeof renderGantt === "function") renderGantt(); },
-              fleet: () => {
-                const fn = typeof window.runFE === "function" ? window.runFE : (typeof runFE === "function" ? runFE : null);
-                if (fn) fn();
-                setTimeout(() => {
-                  const tab = document.getElementById("tab-fleet");
-                  const delayed = typeof window.runFE === "function" ? window.runFE : (typeof runFE === "function" ? runFE : null);
-                  if (tab && !tab.classList.contains("hidden") && delayed) delayed();
-                }, 80);
-              },
-            lopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("lopa", "ops"); },
-            placement: () => { if (typeof renderPlacementRadar === "function") renderPlacementRadar(); },
-            ccolopa: () => { if (typeof renderLopaModule === "function") renderLopaModule("ccolopa", "cco"); },
-            engineintel: () => { if (typeof renderEngineIntel === "function") renderEngineIntel(); },
-            transitionintel: () => { if (typeof renderTransitionIntel === "function") renderTransitionIntel(); },
-            tats: () => { if (typeof refreshTATSVisuals === "function") refreshTATSVisuals(); if (typeof renderTATSKPIs === "function") renderTATSKPIs(); },
-            usm: () => { if (typeof renderUSM === "function") setTimeout(renderUSM, 50); },
-            creditrisk: () => { renderCounterpartyRiskTab(); },
-            exposure: () => { if (typeof renderExposure === "function") setTimeout(renderExposure, 50); },
-            historical: () => { if (typeof renderHistorical === "function") setTimeout(renderHistorical, 50); }
+            home: renderHome,
+            deepdive: runDD,
+            p1: renderP1,
+            p2: renderP2,
+            p3: renderP3,
+            p4: renderP4,
+            p5: renderP5,
+            p8: renderP8,
+            p9: renderP9,
+            lessors: renderLessors,
+            country: renderCountryTab,
+            gantt: renderGantt,
+            fleet: runFE,
+            lopa: () => renderLopaModule("lopa", "ops"),
+            placement: renderPlacementRadar,
+            ccolopa: () => renderLopaModule("ccolopa", "cco"),
+            engineintel: renderEngineIntel,
+            transitionintel: renderTransitionIntel,
+            tats: () => { refreshTATSVisuals(); renderTATSKPIs(); },
+            usm: () => { if (usm) setTimeout(usm, 50); },
+            exposure: () => { if (exp) setTimeout(exp, 50); },
+            historical: () => { if (hist) setTimeout(hist, 50); }
           };
-          if (rMap[id]) {
-            try {
-              clearModuleError(id);
-              rMap[id]();
-            } catch (err) {
-              console.error(`Tab render failed for ${id}:`, err);
-              showModuleError(id, (document.getElementById(`tbtn-${id}`) || {}).textContent || id, err);
-              setSyncStatus(`${(document.getElementById(`tbtn-${id}`) || {}).textContent || id} failed to render.`, "error");
-            }
+          if (rMap[id]) rMap[id]();
+          if (id === 'creditrisk') {
+            ModuleSystem.get('CounterpartyRisk').init();
           }
         }
 
@@ -4796,6 +4278,7 @@
             d = d.filter(r => /stor/i.test(r["Status"] || ""));
           }
           ddFiltered = d;
+
           // KPIs
           const ops = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean));
           const ages = d.map(r => r._age).filter(v => v !== null);
@@ -4822,35 +4305,6 @@
           const cb = document.getElementById("dd-chips");
           cb.innerHTML = chips.length ? chips.map(c => `<div class="chip">${c.label}<button onclick="${c.id === "__quickview__" ? "clearDDQuickView()" : `clearDDFilter('${c.id}')`}"></button></div>`).join("") : "<span style='font-size:10.5px;color:#1f2937;'>None  showing all ${allData.length.toLocaleString()} records</span>";
           renderDDTable();
-        }
-
-        /**
-         * refreshDDFilterOptions(filtered)
-         * Cascading drill-through: repopulate every DD filter dropdown with
-         * only the values present in the current filtered dataset. Preserves
-         * each dropdown's current selection via the existing fill() helper.
-         */
-        function refreshDDFilterOptions(filtered) {
-          const U = (k) => uniq(filtered.map(r => (r[k] || "").trim()));
-          const V = (k) => uniq(filtered.map(r => r[k] ? String(r[k]) : "").filter(Boolean));
-
-          // All standard DD_FILTERS (single-select dropdowns mapped to CSV columns)
-          DD_FILTERS.forEach(f => {
-            fill(f.id, U(f.k));
-          });
-
-          // Extra DD-specific filters not in DD_FILTERS array
-          fill("dd-buildyr", V("_buildYr"));
-          fill("dd-lsendyr", uniq(filtered.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
-          fill("dd-delyr", uniq(filtered.map(r => r._delYr ? String(r._delYr) : "").filter(Boolean)));
-
-          // TATS tier filter
-          const tiers = uniq(filtered.map(r => r._tatsTier || "").filter(Boolean));
-          fill("dd-tatstier", tiers);
-
-          // Lease end quarter — always 1-4 if any data has quarters
-          const quarters = uniq(filtered.map(r => r._leEndQ ? String(r._leEndQ) : "").filter(Boolean));
-          fill("dd-lsendq", quarters);
         }
         function clearDDFilter(id) { const e = document.getElementById(id); if (e) { e.value = ""; if (e.type === "number" || e.type === "text") e.value = ""; } runDD(); }
         function renderDDTable() {
@@ -5432,188 +4886,6 @@
             row('Storage Date', r['Storage Date']),
             row('Stor. Location', r['Storage Conversion Location Name'])
           ].join('');
-
-          // Phase 8: Predictive Maintenance Forecast
-          renderMxForecast(r);
-        }
-
-        // ===== PHASE 8: PREDICTIVE MAINTENANCE ENGINE =====
-
-        /**
-         * calculateMxExposure(aircraft)
-         * Matches the aircraft to the mxRules dictionary using Type + Engine Family.
-         * Returns an object with remaining-life calculations or null if no rule matched.
-         */
-        function calculateMxExposure(aircraft) {
-          const acType = (aircraft["Type"] || "").trim();
-          const engFam = (aircraft["Engine Family"] || "").trim();
-          const lookupKey = `${acType}_${engFam}`;
-          const rule = mxRules[lookupKey] || null;
-          if (!rule) return null;
-
-          // --- Variables ---
-          const ageYears = aircraft._age || 0;
-          const ageMonths = Math.round(ageYears * 12);
-          // Cumulative cycles: use parsed value, or estimate as age_months * 120 cycles/month
-          let cumCycles = parseFloat(aircraft["Cumulative Cycles"]) || 0;
-          if (cumCycles === 0 && ageYears > 0) {
-            cumCycles = ageMonths * 120;
-          }
-          // Cumulative flight hours: use parsed value, or estimate
-          let cumHours = parseFloat(aircraft["Cumulative Hours"]) || 0;
-          if (cumHours === 0 && ageYears > 0) {
-            cumHours = ageMonths * 250; // ~250 FH/month industry avg
-          }
-
-          // --- Calculations ---
-
-          // 1. Next C-Check (months remaining)
-          const cCheckRemMo = rule.cCheckMo - (ageMonths % rule.cCheckMo);
-
-          // 2. Next Heavy Check / D-Check (months remaining)
-          const heavyRemMo = rule.heavyMo - (ageMonths % rule.heavyMo);
-
-          // 3. Landing Gear Overhaul — lesser of calendar limit vs. cycle limit
-          const gearRemMo = rule.gearMo - (ageMonths % rule.gearMo);
-          const gearRemFc = rule.gearFc - (cumCycles % rule.gearFc);
-          // Convert gear cycle limit to approximate months for comparison
-          const monthlyFc = cumCycles > 0 && ageMonths > 0 ? cumCycles / ageMonths : 120;
-          const gearFcAsMonths = monthlyFc > 0 ? Math.round(gearRemFc / monthlyFc) : 9999;
-          const gearEffectiveMo = Math.min(gearRemMo, gearFcAsMonths);
-          const gearLimitedBy = gearFcAsMonths < gearRemMo ? "cycles" : "calendar";
-
-          // 4. Engine Performance Restoration (flight hours remaining)
-          const engPrRemFh = rule.engPrFh - (cumHours % rule.engPrFh);
-
-          // 5. Engine LLP Life (cycles remaining)
-          const engLlpRemFc = rule.engLlpFc - (cumCycles % rule.engLlpFc);
-
-          return {
-            lookupKey,
-            rule,
-            ageMonths,
-            cumCycles: Math.round(cumCycles),
-            cumHours: Math.round(cumHours),
-            cCheckRemMo,
-            heavyRemMo,
-            gearRemMo,
-            gearRemFc: Math.round(gearRemFc),
-            gearEffectiveMo,
-            gearLimitedBy,
-            engPrRemFh: Math.round(engPrRemFh),
-            engLlpRemFc: Math.round(engLlpRemFc)
-          };
-        }
-
-        /**
-         * RAG status helper: returns { color, bg, border, label } based on
-         * months-remaining or cycles-remaining thresholds.
-         */
-        function mxRagStatus(monthsOrCycles, unit) {
-          if (unit === "months") {
-            if (monthsOrCycles < 12) return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
-            if (monthsOrCycles < 24) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
-            return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
-          }
-          // unit === "cycles"
-          if (monthsOrCycles < 1000)  return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
-          if (monthsOrCycles < 2500) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
-          return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
-        }
-
-        /**
-         * Render a single MX metric card row.
-         */
-        function mxMetricHtml(icon, title, value, subtext, rag) {
-          return `
-            <div style="background:${rag.bg};border:1px solid ${rag.border};border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${rag.color};">${icon}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(title)}</div>
-                <div style="font-size:24px;font-weight:900;color:${rag.color};line-height:1.15;margin-top:2px;">${value}</div>
-                <div style="font-size:11px;color:#64748b;margin-top:3px;">${subtext}</div>
-              </div>
-              <div style="padding:3px 9px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.06em;color:${rag.color};border:1px solid ${rag.border};background:rgba(0,0,0,.2);flex-shrink:0;">${rag.label}</div>
-            </div>`;
-        }
-
-        /**
-         * renderMxForecast(r) — called from showAcDetail.
-         * Populates the #acd-mx-body panel with predictive maintenance data.
-         */
-        function renderMxForecast(r) {
-          const body = document.getElementById('acd-mx-body');
-          if (!body) return;
-
-          const mx = calculateMxExposure(r);
-
-          if (!mx) {
-            const acType = (r["Type"] || "Unknown").trim();
-            const engFam = (r["Engine Family"] || "Unknown").trim();
-            body.innerHTML = `
-              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;text-align:center;">
-                <svg style="width:32px;height:32px;color:#334155;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <div style="font-size:13px;font-weight:600;color:#94a3b8;">Maintenance baseline data unavailable for this variant</div>
-                <div style="font-size:11px;color:#475569;">Lookup key: <span class="mono" style="color:#64748b;">${escapeHtml(acType)}_${escapeHtml(engFam)}</span></div>
-                <div style="font-size:10px;color:#334155;max-width:420px;margin-top:4px;">The MPD rules dictionary currently covers A320ceo, A320neo, 737-800 NG, and 737-8 MAX variants. Other types will be added in future phases.</div>
-              </div>`;
-            return;
-          }
-
-          // Icon SVGs
-          const icoHeavy = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>';
-          const icoGear  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>';
-          const icoEng   = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
-          const icoCchk  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
-          const icoEngPR = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
-
-          const ragHeavy  = mxRagStatus(mx.heavyRemMo, "months");
-          const ragCchk   = mxRagStatus(mx.cCheckRemMo, "months");
-          const ragGear   = mxRagStatus(mx.gearEffectiveMo, "months");
-          const ragEngLlp = mxRagStatus(mx.engLlpRemFc, "cycles");
-          const ragEngPr  = mxRagStatus(mx.engPrRemFh, "cycles");
-
-          body.innerHTML = `
-            <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-              <div>
-                <span style="font-size:11px;color:#64748b;">MPD Baseline Key:</span>
-                <span class="mono" style="font-size:11px;color:#06b6d4;margin-left:6px;">${escapeHtml(mx.lookupKey)}</span>
-              </div>
-              <div style="display:flex;gap:12px;">
-                <span style="font-size:10px;color:#475569;">Age: <strong style="color:#cbd5e1;">${mx.ageMonths.toLocaleString()} mo</strong></span>
-                <span style="font-size:10px;color:#475569;">Cycles: <strong style="color:#cbd5e1;">${mx.cumCycles.toLocaleString()} FC</strong></span>
-                <span style="font-size:10px;color:#475569;">Hours: <strong style="color:#cbd5e1;">${mx.cumHours.toLocaleString()} FH</strong></span>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
-              ${mxMetricHtml(icoHeavy, 'Months to Heavy Check (D-Check)', mx.heavyRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.heavyMo + ' mo · ' + Math.round(mx.heavyRemMo / 12 * 10) / 10 + ' years remaining', ragHeavy)}
-              ${mxMetricHtml(icoCchk, 'Months to Next C-Check', mx.cCheckRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.cCheckMo + ' mo', ragCchk)}
-              ${mxMetricHtml(icoGear, 'Life to Gear Overhaul', mx.gearEffectiveMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Limited by ' + mx.gearLimitedBy + ' · Calendar: ' + mx.gearRemMo + ' mo · Cycles: ' + mx.gearRemFc.toLocaleString() + ' FC remaining', ragGear)}
-              ${mxMetricHtml(icoEng, 'Remaining Engine LLP Cycles', mx.engLlpRemFc.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FC</span>', 'LLP limit: ' + mx.rule.engLlpFc.toLocaleString() + ' FC per shop visit', ragEngLlp)}
-              ${mxMetricHtml(icoEngPR, 'Engine Perf. Restoration (FH)', mx.engPrRemFh.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FH</span>', 'PR interval: ' + mx.rule.engPrFh.toLocaleString() + ' FH', ragEngPr)}
-            </div>
-            <div style="margin-top:14px;padding:10px 14px;background:#0a0f1e;border:1px solid #1a2234;border-radius:8px;display:flex;align-items:center;gap:8px;">
-              <svg style="width:14px;height:14px;color:#334155;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <div style="font-size:10px;color:#475569;line-height:1.5;">Predictions are browser-computed estimates using hardcoded OEM MPD intervals and the aircraft's current age and cumulative cycles/hours from the fleet dataset. Actual maintenance scheduling depends on operator-specific MPD approvals, AD compliance, and SB incorporation status. Where cumulative cycles were missing, an estimate of 120 FC/month was applied.</div>
-            </div>`;
-        }
-
-        /**
-         * openAircraftDetail(serialNumber)
-         * Convenience function to open the A/C Detail view by serial number.
-         * Called from external triggers or can replace showAcDetail in DD rows.
-         */
-        function openAircraftDetail(serialNumber) {
-          const sn = String(serialNumber || "").trim();
-          if (!sn) return;
-          const idx = allData.findIndex(r => (r["Serial Number"] || "").trim() === sn);
-          if (idx >= 0) {
-            showAcDetail(idx);
-          } else {
-            console.warn("openAircraftDetail: Serial Number not found:", sn);
-          }
         }
       </script>
 
@@ -6415,60 +5687,43 @@ function renderSunburst(topN){
           if (_origRunDD) _origRunDD();
           // Re-render mini charts as horizontal sorted bars
           setTimeout(() => {
-            try {
-              const d = ddFiltered;
-              if (!d || !d.length) return;
-              const mfgD = topN(cBy(d, "Manufacturer"), 8);
-              ic("dd-mini-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
-              const stD = topN(cBy(d, "Status"), 6);
-              ic("dd-mini-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
-              // Age dist stays as vertical bar - already good
-            } catch (err) {
-              console.error("Deferred Deep Dive mini-chart render failed:", err);
-              showModuleError("deepdive", (document.getElementById("tbtn-deepdive") || {}).textContent || "Deep Dive", err);
-            }
+            const d = ddFiltered;
+            if (!d || !d.length) return;
+            const mfgD = topN(cBy(d, "Manufacturer"), 8);
+            ic("dd-mini-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+            const stD = topN(cBy(d, "Status"), 6);
+            ic("dd-mini-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+            // Age dist stays as vertical bar - already good
           }, 50);
         };
 
         // PATCH: Fleet Explorer charts to horizontal sorted bars
         const _origRunFE = typeof runFE === "function" ? runFE : null;
         const _feOverride = function () {
-          const base = typeof window._runFEBase === "function" ? window._runFEBase : _origRunFE;
-          if (base) base();
+          if (_origRunFE) _origRunFE();
           setTimeout(() => {
-            try {
-              const d = feFiltered; if (!d || !d.length) return;
-              const mfgD = topN(cBy(d, "Manufacturer"), 10);
-              safeChart("fleet", "fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
-              const stD = topN(cBy(d, "Status"), 8);
-              safeChart("fleet", "fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
-              const grD = topN(cBy(d, "Market Grouping"), 8);
-              safeChart("fleet", "fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
-            } catch (err) {
-              console.error("Deferred Fleet Explorer render failed:", err);
-              showModuleError("fleet", (document.getElementById("tbtn-fleet") || {}).textContent || "Fleet Explorer", err);
-            }
+            const d = feFiltered; if (!d || !d.length) return;
+            const mfgD = topN(cBy(d, "Manufacturer"), 10);
+            ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+            const stD = topN(cBy(d, "Status"), 8);
+            ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+            const grD = topN(cBy(d, "Market Grouping"), 8);
+            ic("fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
           }, 80);
         };
 
         // PATCH: P2 doughnuts to horizontal bars
         const _origRenderP2 = typeof renderP2 === "function" ? renderP2 : null;
         const _p2Override = function () {
-          const base = typeof window._renderP2Base === "function" ? window._renderP2Base : _origRenderP2;
-          if (base) base();
+          if (_origRenderP2) _origRenderP2();
           setTimeout(() => {
-            try {
-              const reg = typeof gv === "function" ? gv("p2-region") : ""; const mfg = typeof gv === "function" ? gv("p2-mfg") : "";
-              if (!allData || !allData.length) return;
-              const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
-              const emD = topN(cBy(d, "Engine Manufacturer"), 10);
-              safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
-              const efD = topN(cBy(d, "Engine Family"), 10);
-              safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
-            } catch (err) {
-              console.error("Deferred MFG-ENGINE render failed:", err);
-              showModuleError("p2", (document.getElementById("tbtn-p2") || {}).textContent || "MFG-ENGINE", err);
-            }
+            const reg = typeof gv === "function" ? gv("p2-region") : ""; const mfg = typeof gv === "function" ? gv("p2-mfg") : "";
+            if (!allData || !allData.length) return;
+            const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
+            const emD = topN(cBy(d, "Engine Manufacturer"), 10);
+            ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+            const efD = topN(cBy(d, "Engine Family"), 10);
+            ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
           }, 80);
         };
 
@@ -6476,20 +5731,14 @@ function renderSunburst(topN){
         const _origRenderP8 = typeof renderP8 === "function" ? renderP8 : null;
         const _p8Override = function () {
           if (document.getElementById("tab-p8").classList.contains("hidden")) return;
-          const base = typeof window._renderP8Base === "function" ? window._renderP8Base : _origRenderP8;
-          if (base) base();
+          if (_origRenderP8) _origRenderP8();
           setTimeout(() => {
-            try {
-              const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
-              if (!allData || !allData.length) return;
-              const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
-              const rgMap = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(); rgMap[rg] = (rgMap[rg] || 0) + (r._val || 0); });
-              const rgTop = topN(rgMap, 10);
-              ic("chart-p8-region", { ...hBar(rgTop.map(e => e[0]), rgTop.map(e => +e[1].toFixed(0))), options: { ...hBar([], []).options, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${(c.raw / 1000).toFixed(1)}B` } } } } });
-            } catch (err) {
-              console.error("Deferred Market Value render failed:", err);
-              showModuleError("p8", (document.getElementById("tbtn-p8") || {}).textContent || "Market Value", err);
-            }
+            const reg = typeof gv === "function" ? gv("p8-region") : ""; const cty = typeof gv === "function" ? gv("p8-country") : "";
+            if (!allData || !allData.length) return;
+            const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (cty === "" || (r["Operator Country/Subregion"] || "").trim() === cty) && r._val);
+            const rgMap = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(); rgMap[rg] = (rgMap[rg] || 0) + (r._val || 0); });
+            const rgTop = topN(rgMap, 10);
+            ic("chart-p8-region", { ...hBar(rgTop.map(e => e[0]), rgTop.map(e => +e[1].toFixed(0))), options: { ...hBar([], []).options, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${(c.raw / 1000).toFixed(1)}B` } } } } });
           }, 80);
         };
 
@@ -6572,14 +5821,14 @@ function renderSunburst(topN){
           document.getElementById("p1-kpi-operators").textContent = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size;
           // Region stacked chart
           const rMap = cBy(d, "Operator Region"); const rTop = topN(rMap, 10);
-          safeChart("p1", "chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
+          ic("chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
           const topRegs = rTop.map(e => e[0]); const topEFs = topN(cBy(d, "Engine Family"), 5).map(e => e[0]);
           const em = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(), ef = (r["Engine Family"] || "?").trim(); if (!em[rg]) em[rg] = {}; em[rg][ef] = (em[rg][ef] || 0) + 1; });
-          safeChart("p1", "chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          ic("chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
           const cTop = topN(cBy(d, "Operator Country/Subregion"), 10);
-          safeChart("p1", "chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
+          ic("chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
           const mgTop = topN(cBy(d, "Market Grouping"), 8);
-          safeChart("p1", "chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
+          ic("chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
           // Airlines per region  click on bar to drill
           renderP1Airlines(d, topRegs);
         }
@@ -6611,13 +5860,12 @@ function renderSunburst(topN){
           const d = allData.filter(r => mf(r["Operator Region"], regs) && mf(r["Manufacturer"], mfgs));
           const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
           const flow = {}; d.forEach(r => { const m = (r["Manufacturer"] || "?").trim(), e = (r["Engine Manufacturer"] || "?").trim(); if (!flow[m]) flow[m] = {}; flow[m][e] = (flow[m][e] || 0) + 1; });
-          safeChart("p2", "chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
-          const emD = topN(cBy(d, "Engine Manufacturer"), 10); safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
-          const efD = topN(cBy(d, "Engine Family"), 10); safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
-          const etD = topN(cBy(d, "Engine Type"), 8); safeChart("p2", "chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
-          const neD = topN(cBy(d, "Number Of Engines"), 5); safeChart("p2", "chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
+          ic("chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          const emD = topN(cBy(d, "Engine Manufacturer"), 10); ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+          const efD = topN(cBy(d, "Engine Family"), 10); ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
+          const etD = topN(cBy(d, "Engine Type"), 8); ic("chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
+          const neD = topN(cBy(d, "Number Of Engines"), 5); ic("chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
         }
-        window._renderP2Base = renderP2;
 
         // FAMILY MARKET: year slicer + multi-select
         function renderP3() {
@@ -6631,259 +5879,14 @@ function renderSunburst(topN){
           const years = []; for (let y = yrFrom; y <= yrTo; y++)if (d.some(r => r._buildYr === y)) years.push(y);
           const families = topN(cBy(d, "Current Family"), 8).map(e => e[0]);
           const cumD = {}; families.forEach(f => { let c = 0; cumD[f] = years.map(y => { c += d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
-          safeChart("p3", "chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
+          ic("chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
           const total = d.length || 1;
-          safeChart("p3", "chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
+          ic("chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
           const famStats = families.map(f => { const fd = d.filter(r => (r["Current Family"] || "").trim() === f); const ages = fd.map(r => r._age).filter(Boolean); const inSvc = fd.filter(r => (r["Status"] || "").includes("Service")).length; return { f, count: fd.length, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", share: ((fd.length / total) * 100).toFixed(1), inSvcPct: fd.length ? ((inSvc / fd.length) * 100).toFixed(0) + "%" : "-" }; });
           document.getElementById("p3-family-table").innerHTML = famStats.map((s, i) => `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${C[i]};margin-right:6px;"></span>${s.f}</td><td class="num">${s.count.toLocaleString()}</td><td class="num">${s.avgAge}</td><td class="num">${s.share}%</td><td class="num">${s.inSvcPct}</td></tr>`).join("");
           const regD = topN(cBy(d, "Operator Region"), 8);
           document.getElementById("p3-region-table").innerHTML = regD.map(e => `<tr><td>${e[0]}</td><td class="num">${e[1].toLocaleString()}</td></tr>`).join("");
         }
-
-          // Minimal legacy sort helper so Inventory headers never call a missing function.
-          function sortTable(scope, col) {
-            if (scope !== "p4") return;
-            p4Sort = { col, dir: p4Sort.col === col && p4Sort.dir === "desc" ? "asc" : "desc" };
-            renderP4();
-          }
-
-          // Restore the Fleet Explorer renderer that older patches started decorating.
-          function resetFE() {
-            ["fe-region", "fe-country", "fe-opgroup", "fe-operator", "fe-mfg", "fe-family", "fe-engine", "fe-grouping", "fe-status", "fe-usage"]
-              .forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = "";
-              });
-          }
-
-          function runFE() {
-            const tab = document.getElementById("tab-fleet");
-            if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
-
-            const matches = (value, selected) => !selected || String(value || "").trim() === selected;
-            const filters = {
-              region: gv("fe-region"),
-              country: gv("fe-country"),
-              opgroup: gv("fe-opgroup"),
-              operator: gv("fe-operator"),
-              mfg: gv("fe-mfg"),
-              family: gv("fe-family"),
-              engine: gv("fe-engine"),
-              grouping: gv("fe-grouping"),
-              status: gv("fe-status"),
-              usage: gv("fe-usage")
-            };
-
-            const d = allData.filter(r =>
-              matches(r["Operator Region"], filters.region) &&
-              matches(r["Operator Country/Subregion"], filters.country) &&
-              matches(r["Operator Group"], filters.opgroup) &&
-              matches(r["Operator"], filters.operator) &&
-              matches(r["Manufacturer"], filters.mfg) &&
-              matches(r["Current Family"], filters.family) &&
-              matches(r["Engine Manufacturer"], filters.engine) &&
-              matches(r["Market Grouping"], filters.grouping) &&
-              matches(r["Status"], filters.status) &&
-              matches(r["Primary Usage"], filters.usage)
-            );
-
-            feFiltered = d;
-
-            const ages = d.map(r => r._age).filter(v => typeof v === "number" && !Number.isNaN(v));
-            const uniqueOps = new Set(d.map(r => String(r["Operator"] || "").trim()).filter(Boolean));
-            const limitedRows = d.slice(0, 500);
-
-            const totalEl = document.getElementById("fe-kpi-total");
-            const ageEl = document.getElementById("fe-kpi-age");
-            const opsEl = document.getElementById("fe-kpi-ops");
-            const noteEl = document.getElementById("fe-limit-note");
-            const tbody = document.getElementById("fe-tbody");
-            if (totalEl) totalEl.textContent = d.length.toLocaleString();
-            if (ageEl) ageEl.textContent = ages.length ? (ages.reduce((sum, value) => sum + value, 0) / ages.length).toFixed(1) : "0.0";
-            if (opsEl) opsEl.textContent = uniqueOps.size.toLocaleString();
-            if (noteEl) noteEl.textContent = d.length > limitedRows.length ? `Showing first ${limitedRows.length.toLocaleString()} rows of ${d.length.toLocaleString()}` : `${d.length.toLocaleString()} rows in view`;
-
-            const ageBuckets = [
-              { label: "<5", count: 0 },
-              { label: "5-9", count: 0 },
-              { label: "10-14", count: 0 },
-              { label: "15-19", count: 0 },
-              { label: "20+", count: 0 }
-            ];
-            ages.forEach(age => {
-              if (age < 5) ageBuckets[0].count += 1;
-              else if (age < 10) ageBuckets[1].count += 1;
-              else if (age < 15) ageBuckets[2].count += 1;
-              else if (age < 20) ageBuckets[3].count += 1;
-              else ageBuckets[4].count += 1;
-            });
-
-            const mfgTop = topN(cBy(d, "Manufacturer"), 10);
-            const statusTop = topN(cBy(d, "Status"), 8);
-            const groupingTop = topN(cBy(d, "Market Grouping"), 8);
-
-            safeChart("fleet", "fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
-            safeChart("fleet", "fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
-            safeChart("fleet", "fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
-            safeChart("fleet", "fe-chart-age", {
-              type: "bar",
-              data: {
-                labels: ageBuckets.map(bucket => bucket.label),
-                datasets: [{
-                  data: ageBuckets.map(bucket => bucket.count),
-                  backgroundColor: ["#06b6d4", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444"],
-                  borderRadius: 4
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  x: { grid: { display: false }, border: { display: false } },
-                  y: { grid: { color: "#111827" }, border: { display: false } }
-                }
-              }
-            });
-
-            if (!tbody) return;
-            tbody.innerHTML = limitedRows.length ? limitedRows.map((r, idx) => `
-              <tr class="border-b border-[#1a2234] hover:bg-[#111827] cursor-pointer" onclick="showAcDetail(${allData.indexOf(r)})">
-                <td style="padding:8px 10px;">${typeof operatorWithCreditHtml === "function" ? operatorWithCreditHtml(r["Operator"] || "-", r._creditScore, r._creditOutlook) : escapeHtml(r["Operator"] || "-")}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Registration"] || r["Serial Number"] || "-")}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Type"] || "-")}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Manufacturer"] || "-")}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Current Family"] || "-")}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Engine Family"] || "-")}</td>
-                <td style="padding:8px 10px;">${sBadge(String(r["Status"] || "-"))}</td>
-                <td class="num" style="padding:8px 10px;">${typeof r._age === "number" ? r._age.toFixed(1) : "-"}</td>
-                <td class="num" style="padding:8px 10px;">${r._val ? "$" + r._val.toFixed(1) + "M" : "-"}</td>
-                <td style="padding:8px 10px;">${escapeHtml(r["Manager"] || "-")}</td>
-              </tr>
-            `).join("") : `<tr><td colspan="10" style="padding:18px;text-align:center;color:#64748b;">No aircraft match the current Fleet Explorer filters.</td></tr>`;
-          }
-          window._runFEBase = runFE;
-
-        // Restored lightweight Inventory renderer to replace the missing renderP4 path.
-        function renderP4() {
-          const tab = document.getElementById("tab-p4");
-          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
-          renderLegacyPlaceholder("p4", "Inventory List", "Flat sortable ledger of the filtered fleet with market value, manager, lease end, and TATS tier.");
-          const search = gv("p4-search").trim().toLowerCase();
-          let d = allData.filter(r =>
-            (!gv("p4-region") || (r["Operator Region"] || "").trim() === gv("p4-region")) &&
-            (!gv("p4-mfg") || (r["Manufacturer"] || "").trim() === gv("p4-mfg")) &&
-            (!gv("p4-status") || (r["Status"] || "").trim() === gv("p4-status")) &&
-            (!gv("p4-manager") || (r["Manager"] || "").trim() === gv("p4-manager")) &&
-            (!search || [r["Operator"], r["Registration"], r["Serial Number"], r["Type"], r["Manager"]].join(" ").toLowerCase().includes(search))
-          );
-          const accessors = {
-            region: r => (r["Operator Region"] || "").toLowerCase(),
-            operator: r => (r["Operator"] || "").toLowerCase(),
-            type: r => (r["Type"] || "").toLowerCase(),
-            manager: r => (r["Manager"] || "").toLowerCase(),
-            leaseEnd: r => r._leaseEndDate ? r._leaseEndDate.getTime() : Number.MAX_SAFE_INTEGER,
-            val: r => Number(r._val || 0),
-            age: r => Number(r._age || 0)
-          };
-          const accessor = accessors[p4Sort.col] || accessors.age;
-          d.sort((a, b) => {
-            const va = accessor(a), vb = accessor(b);
-            return p4Sort.dir === "asc" ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
-          });
-          document.getElementById("p4-count").textContent = `${d.length.toLocaleString()} aircraft shown`;
-          document.getElementById("p4-tbody").innerHTML = d.slice(0, 800).map(r => `
-            <tr>
-              <td>${escapeHtml(r["Operator Region"] || "-")}</td>
-              <td>${escapeHtml(r["Operator"] || "-")}</td>
-              <td>${escapeHtml(r["Type"] || "-")}</td>
-              <td class="mono">${escapeHtml(r["Registration"] || "-")}</td>
-              <td class="mono">${escapeHtml(r["Serial Number"] || "-")}</td>
-              <td>${escapeHtml(r["Manager"] || "-")}</td>
-              <td>${sBadge(r["Status"] || "-")}</td>
-              <td>${escapeHtml(r["Lease End"] || "-")}</td>
-              <td class="num">${Number(r._val || 0).toFixed(1)}</td>
-              <td class="num">${Number(r._rate || 0).toFixed(2)}</td>
-              <td class="num">${r._age != null ? Number(r._age).toFixed(1) : "-"}</td>
-              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
-            </tr>
-          `).join("") || `<tr><td colspan="12" style="text-align:center;color:#475569;padding:18px;">No inventory records match the current filters.</td></tr>`;
-        }
-
-        // Restored lightweight TATS analytics renderer for the legacy score tab.
-        function renderP5() {
-          const tab = document.getElementById("tab-p5");
-          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
-          renderLegacyPlaceholder("p5", "TATS Risk Score Analytics", "Macro view of TATS tier distribution, operator-level risk, and upcoming lease-end pressure.");
-          const d = allData.filter(r =>
-            (!gv("p5-tier") || r._tatsTier === gv("p5-tier")) &&
-            (!gv("p5-region") || (r["Operator Region"] || "").trim() === gv("p5-region")) &&
-            (!gv("p5-leaseyr") || String(r._leEndYr || "") === gv("p5-leaseyr"))
-          );
-          document.getElementById("p5-kpi-high").textContent = d.filter(r => r._tatsTier === "High Risk").length.toLocaleString();
-          document.getElementById("p5-kpi-med").textContent = d.filter(r => r._tatsTier === "Medium Risk").length.toLocaleString();
-          document.getElementById("p5-kpi-low").textContent = d.filter(r => r._tatsTier === "Low Risk").length.toLocaleString();
-          const avgAge = d.map(r => Number(r._age || 0)).filter(v => Number.isFinite(v));
-          document.getElementById("p5-kpi-age").textContent = avgAge.length ? (avgAge.reduce((a, b) => a + b, 0) / avgAge.length).toFixed(1) : "0";
-          const opRisk = Object.entries(d.reduce((acc, row) => {
-            const key = (row["Operator"] || "Unknown").trim() || "Unknown";
-            acc[key] = (acc[key] || 0) + Number(row._tats || 0);
-            return acc;
-          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 12);
-          ic("chart-p5-op", hBar(opRisk.map(e => e[0]), opRisk.map(e => Number(e[1].toFixed(0))), "#f59e0b"));
-          const tierCounts = ["High Risk", "Medium Risk", "Low Risk"].map(t => d.filter(r => r._tatsTier === t).length);
-          ic("chart-p5-tier", {
-            type: "doughnut",
-            data: { labels: ["High Risk", "Medium Risk", "Low Risk"], datasets: [{ data: tierCounts, backgroundColor: ["#f43f5e", "#f59e0b", "#10b981"], borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { color: "#94a3b8", boxWidth: 10 } } } }
-          });
-          document.getElementById("p5-score-tbody").innerHTML = d.slice().sort((a, b) => Number(b._tats || 0) - Number(a._tats || 0)).slice(0, 120).map(r => `
-            <tr>
-              <td>${escapeHtml(r["Operator"] || "-")}</td>
-              <td class="mono">${escapeHtml(r["Registration"] || r["Serial Number"] || "-")}</td>
-              <td class="num">${r._age != null ? Number(r._age).toFixed(1) : "-"}</td>
-              <td class="num">${Math.round(Number(r._tats || 0))}</td>
-              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
-              <td>${escapeHtml(r["Lease End"] || "-")}</td>
-            </tr>
-          `).join("") || `<tr><td colspan="6" style="text-align:center;color:#475569;padding:18px;">No TATS score rows match the current filters.</td></tr>`;
-          document.getElementById("p5-lease-tbody").innerHTML = d.filter(r => r._leaseEndDate).sort((a, b) => a._leaseEndDate - b._leaseEndDate).slice(0, 120).map(r => `
-            <tr>
-              <td>${escapeHtml(r["Operator"] || "-")}</td>
-              <td class="mono">${escapeHtml(r["Registration"] || "-")}</td>
-              <td>${escapeHtml(r["Lease End"] || "-")}</td>
-              <td>${tBadge(r._tatsTier || "Low Risk")}</td>
-            </tr>
-          `).join("") || `<tr><td colspan="4" style="text-align:center;color:#475569;padding:18px;">No lease-end rows match the current filters.</td></tr>`;
-        }
-
-        // Restored lightweight Market Value renderer for the legacy value tab.
-        function renderP8() {
-          const tab = document.getElementById("tab-p8");
-          if (!tab || tab.classList.contains("hidden") || !allData || !allData.length) return;
-          renderLegacyPlaceholder("p8", "Market Value Distribution", "Financial exposure view by operator and region using the filtered fleet valuation baseline.");
-          const d = allData.filter(r =>
-            (!gv("p8-region") || (r["Operator Region"] || "").trim() === gv("p8-region")) &&
-            (!gv("p8-country") || (r["Operator Country/Subregion"] || "").trim() === gv("p8-country"))
-          );
-          const totalValue = d.reduce((acc, row) => acc + Number(row._val || 0), 0);
-          document.getElementById("p8-kpi-total").textContent = d.length.toLocaleString();
-          document.getElementById("p8-kpi-value").textContent = `$${totalValue.toFixed(1)}M`;
-          document.getElementById("p8-kpi-avg").textContent = `$${(d.length ? totalValue / d.length : 0).toFixed(1)}M`;
-          const opValues = Object.entries(d.reduce((acc, row) => {
-            const key = (row["Operator"] || "Unknown").trim() || "Unknown";
-            acc[key] = (acc[key] || 0) + Number(row._val || 0);
-            return acc;
-          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 20);
-          ic("chart-p8-ops", hBar(opValues.map(e => e[0]), opValues.map(e => Number(e[1].toFixed(1))), "#06b6d4"));
-          const regionValues = Object.entries(d.reduce((acc, row) => {
-            const key = (row["Operator Region"] || "Unknown").trim() || "Unknown";
-            acc[key] = (acc[key] || 0) + Number(row._val || 0);
-            return acc;
-          }, {})).sort((a, b) => b[1] - a[1]).slice(0, 12);
-          ic("chart-p8-region", hBar(regionValues.map(e => e[0]), regionValues.map(e => Number(e[1].toFixed(1))), "#10b981"));
-        }
-        window._renderP8Base = renderP8;
 
         // FLEET GROWTH: year slicer + family multi-select
         function renderP9() {
@@ -6983,52 +5986,28 @@ function renderSunburst(topN){
           if (!allData || !allData.length) return;
           const mgrs = cBy(allData, "Manager");
           const topMgrs = topN(mgrs, 15);
-          if (topMgrs.length) {
-            safeChart("lessors", "chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
-          }
+          ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
           const mgrList = Object.entries(mgrs).map(([m, count]) => {
-            const d = allData.filter(r => (((r["Manager"] || "").trim()) || "N/A") === m);
+            const d = allData.filter(r => (r["Manager"] || "").trim() === m);
             const ages = d.map(r => r._age).filter(v => v !== null);
             const highRisk = d.filter(r => r._mroRisk === "High Risk").length;
             const hrPct = d.length ? (highRisk / d.length * 100).toFixed(0) : 0;
-            const region = d.length
-              ? String(
-                d[0]["Manager Country/Subregion"] ||
-                d[0]["Operator Country/Subregion"] ||
-                d[0]["Operator Region"] ||
-                d[0]._region ||
-                "-"
-              ).trim() || "-"
-              : "-";
-            return {
-              m,
-              count,
-              avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-",
-              hrPct: hrPct + "%",
-              region
-            };
+            return { m, count, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", hrPct: hrPct + "%", region: d[0]._region || "-" };
           }).sort((a, b) => b.count - a.count).slice(0, 50);
-          document.getElementById("lessors-tbody").innerHTML = mgrList.length
-            ? mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("")
-            : `<tr><td colspan="5" style="text-align:center;color:#475569;padding:18px;">No manager exposure records available for the current fleet.</td></tr>`;
+          document.getElementById("lessors-tbody").innerHTML = mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("");
         }
 ​
         function renderCountryTab() {
           const tab = document.getElementById("tab-country");
           if (!tab || tab.classList.contains("hidden")) return;
-          if (!allData || !allData.length) return;
           if (!countryReport || !countryReport.length) buildCountry();
           document.getElementById("co-kpi-cty").textContent = countryReport.length.toLocaleString();
           document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
           document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
           const topCtyAl = topN(countryReport.map(r => [r.country, r.airlineCount]), 10);
-          if (topCtyAl.length) {
-            safeChart("country", "chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
-          }
+          ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
           const topCtyAc = topN(countryReport.map(r => [r.country, r.aircraftCount]), 10);
-          if (topCtyAc.length) {
-            safeChart("country", "chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
-          }
+          ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
           renderCountryTable();
         }
 ​
@@ -7174,116 +6153,6 @@ function renderSunburst(topN){
       </script>
     </div><!-- end tab-area -->
   </div><!-- end dashboard-section -->
-  <!-- Phase 1.4: Lightweight Test Harness -->
-  <script>
-    window.runTests = () => {
-      let pass = 0, fail = 0;
-      const assert = (cond, msg) => {
-        if (cond) { pass++; console.log(`%c✓ ${msg}`, 'color:#86efac'); }
-        else { fail++; console.error(`✗ FAIL: ${msg}`); }
-      };
-      const section = (name) => console.log(`%c\n─── ${name} ───`, 'color:#06b6d4;font-weight:bold');
-
-      // --- ModuleSystem ---
-      section('ModuleSystem');
-      assert(typeof ModuleSystem === 'object', 'ModuleSystem exists');
-      assert(ModuleSystem.has('TATS'), 'TATS module registered');
-      assert(ModuleSystem.has('DataSchema'), 'DataSchema module registered');
-      assert(ModuleSystem.list().length >= 2, 'At least 2 modules registered');
-      try { ModuleSystem.get('NonExistent'); assert(false, 'Missing module throws'); } catch (e) { assert(true, 'Missing module throws: ' + e.message); }
-
-      // --- TATS Scoring ---
-      section('TATS Scoring');
-      const tats = ModuleSystem.get('TATS');
-
-      // High Risk: stored, old, short lease, Tier 1, top-25
-      const hr = tats.calculateScore({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
-      assert(hr >= 70, `High Risk scenario score=${hr} (expected >=70)`);
-      assert(tats.getTier(hr) === 'High Risk', `High Risk tier correct`);
-
-      // Medium Risk: in service, middle age, 2-year lease
-      const mr = tats.calculateScore({ daysToLeaseEnd: 500, status: 'In Service', ageYears: 16, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(mr >= 40 && mr < 70, `Medium Risk scenario score=${mr} (expected 40-69)`);
-      assert(tats.getTier(mr) === 'Medium Risk', `Medium Risk tier correct`);
-
-      // Low Risk: new, long lease, not top-25
-      const lr = tats.calculateScore({ daysToLeaseEnd: 2000, status: 'In Service', ageYears: 3, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(lr < 40, `Low Risk scenario score=${lr} (expected <40)`);
-      assert(tats.getTier(lr) === 'Low Risk', `Low Risk tier correct`);
-
-      // Edge: unknown lease end
-      const unk = tats.calculateScore({ daysToLeaseEnd: null, status: 'In Service', ageYears: 8, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(unk >= 0, `Unknown lease score=${unk} is non-negative`);
-
-      // Edge: estimated lease penalty
-      const estPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
-      const noEstPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(estPen < noEstPen, `Estimated lease penalty: ${estPen} < ${noEstPen}`);
-
-      // Clamp: can't go below 0
-      const clampLow = tats.calculateScore({ daysToLeaseEnd: null, status: 'Other', ageYears: 1, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
-      assert(clampLow >= 0, `Score clamped to 0 minimum (got ${clampLow})`);
-
-      // TAM estimation
-      assert(tats.estimateTAM(50000000) === 100000, 'TAM: $50M market value → $100K TAM');
-      assert(tats.estimateTAM(null) === null, 'TAM: null input returns null');
-      assert(tats.estimateTAM(0) === null, 'TAM: zero input returns null');
-
-      // scoreBreakdown
-      const bd = tats.scoreBreakdown({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
-      assert(bd.score === hr, 'scoreBreakdown matches calculateScore');
-      assert(bd.tier === 'High Risk', 'scoreBreakdown tier matches');
-
-      // --- DataSchema ---
-      section('DataSchema');
-      const ds = ModuleSystem.get('DataSchema');
-
-      // Valid record
-      const validIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
-      assert(validIssues.length === 0, 'Valid record has 0 issues');
-
-      // Missing required
-      const missingIssues = ds.validate({ 'Serial Number': '', 'Type': '', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
-      assert(missingIssues.length >= 2, `Missing required fields detected: ${missingIssues.length} issues`);
-
-      // Invalid numeric
-      const numIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus', 'Age': 'abc' }, 0);
-      assert(numIssues.some(i => i.field === 'Age' && i.issue === 'not_numeric'), 'Non-numeric Age detected');
-
-      // Batch validation
-      const batchIssues = ds.validateBatch([
-        { 'Serial Number': '111', 'Type': 'A320', 'Operator': 'Test', 'Status': 'In Service', 'Manufacturer': 'Airbus' },
-        { 'Serial Number': '', 'Type': '', 'Operator': '', 'Status': 'Weird', 'Manufacturer': '' }
-      ]);
-      assert(batchIssues.length > 0, `Batch validation found ${batchIssues.length} issues in bad row`);
-
-      // --- MX Engine ---
-      section('MX Engine (Phase 8)');
-      if (typeof calculateMxExposure === 'function') {
-        const knownAc = { 'Type': 'Airbus A320ceo', 'Engine Family': 'CFM56-5B', _age: 10, 'Cumulative Cycles': '40000', 'Cumulative Hours': '60000' };
-        const mx = calculateMxExposure(knownAc);
-        assert(mx !== null, 'Known variant returns MX data');
-        assert(mx.heavyRemMo > 0 && mx.heavyRemMo <= 144, `Heavy check remaining: ${mx.heavyRemMo} mo`);
-        assert(mx.engLlpRemFc > 0, `Engine LLP remaining: ${mx.engLlpRemFc} FC`);
-        assert(mx.gearEffectiveMo > 0, `Gear overhaul remaining: ${mx.gearEffectiveMo} mo`);
-
-        const unknownAc = { 'Type': 'Boeing 747-400', 'Engine Family': 'CF6-80C2', _age: 25 };
-        const mxNull = calculateMxExposure(unknownAc);
-        assert(mxNull === null, 'Unknown variant returns null (fallback)');
-      } else {
-        assert(false, 'calculateMxExposure function not found');
-      }
-
-      // --- Summary ---
-      const total = pass + fail;
-      if (fail === 0) {
-        console.log(`%c\n✅ ALL ${total} TESTS PASSED`, 'color:#86efac;font-weight:bold;font-size:14px');
-      } else {
-        console.log(`%c\n⚠ ${total} tests: ${pass} passed, ${fail} FAILED`, 'color:#fca5a5;font-weight:bold;font-size:14px');
-      }
-      return { pass, fail, total };
-    };
-  </script>
 </body>
 
 </html>

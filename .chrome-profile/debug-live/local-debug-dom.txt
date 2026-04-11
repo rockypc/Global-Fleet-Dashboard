@@ -1,7 +1,6 @@
+[42576:23624:0410/170237.090:ERROR:components\device_event_log\device_event_log_impl.cc:202] [17:02:37.090] USB: usb_service_win.cc:105 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: Element not found. (0x490)
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
+<html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Global Fleet Dashboard</title>
@@ -813,16 +812,25 @@
       }
     }
   </style>
-</head>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.relative{position:relative}.flex{display:flex}.hidden{display:none}.flex-grow{flex-grow:1}.cursor-pointer{cursor:pointer}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.p-10{padding:2.5rem}.p-4{padding:1rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.text-center{text-align:center}</style></head>
 
-<body>
+<body><pre id="debug-output">{
+  "hdrCount": null,
+  "dashboardHidden": "hidden flex-col flex-grow overflow-hidden",
+  "lessRows": 0,
+  "lessText": "",
+  "coRows": 0,
+  "feRows": 0,
+  "p1Total": "0",
+  "activeTab": "tbtn-lessors",
+  "syncStatus": null
+}</pre>
 
   <!-- UPDATE BANNER (shown when data is loaded from storage) -->
   <div id="update-banner" class="update-banner hidden" style="justify-content:space-between;">
     <div class="flex items-center gap-2">
-      <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+      <svg style="width:14px;height:14px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
       </svg>
       <span id="banner-text">Live Synced Data</span>
     </div>
@@ -831,25 +839,20 @@
       <span id="sync-status" class="hidden" style="font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid #1f2937;background:#0a0f1e;color:#94a3b8;"></span>
       <button id="sync-data-btn" onclick="syncData({ showSpinner: false, allowUploadFallback: false, fromUser: true })" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">
         <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
         </svg>
         Sync Latest Data
       </button>
-      <button onclick="document.getElementById('update-banner').classList.add('hidden')"
-        style="background:none;border:none;color:#475569;cursor:pointer;font-size:16px;line-height:1;padding:0 4px;"></button>
+      <button onclick="document.getElementById('update-banner').classList.add('hidden')" style="background:none;border:none;color:#475569;cursor:pointer;font-size:16px;line-height:1;padding:0 4px;"></button>
     </div>
   </div>
 
   <!-- HEADER -->
-  <header style="background:#060d1a;border-bottom:1px solid #1a2234;flex-shrink:0;z-index:20;"
-    class="flex items-center justify-between px-5 py-2.5">
+  <header style="background:#060d1a;border-bottom:1px solid #1a2234;flex-shrink:0;z-index:20;" class="flex items-center justify-between px-5 py-2.5">
     <div class="flex items-center gap-3">
       <div style="background:linear-gradient(135deg,#0891b2,#6d28d9);padding:8px;border-radius:9px;flex-shrink:0;">
-        <svg style="width:18px;height:18px;color:#fff;" fill="none" stroke="currentColor" stroke-width="2"
-          viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg style="width:18px;height:18px;color:#fff;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </div>
       <div>
@@ -862,11 +865,9 @@
         <div style="font-size:12px;color:#1e3a5f;"></div>
         <div class="flex items-center gap-2">
           <div id="hdr-count" style="font-size:12px;color:#334155;"></div>
-          <div id="hdr-badge"
-            style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;">
+          <div id="hdr-badge" style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;">
             LIVE</div>
-          <div id="hdr-data-asof"
-            style="font-size:10px;color:#64748b;border:1px solid #1f2937;background:#0d1424;padding:2px 8px;border-radius:999px;">
+          <div id="hdr-data-asof" style="font-size:10px;color:#64748b;border:1px solid #1f2937;background:#0d1424;padding:2px 8px;border-radius:999px;">
           </div>
         </div>
       </div>
@@ -876,19 +877,15 @@
   <div id="init-loading" class="flex flex-col items-center justify-center flex-grow gap-4">
     <div style="position:relative;width:60px;height:60px;">
       <div style="position:absolute;inset:0;border-radius:50%;border:2px solid #1f2937;"></div>
-      <div
-        style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#06b6d4;animation:spin 1s linear infinite;">
+      <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#06b6d4;animation:spin 1s linear infinite;">
       </div>
-      <svg
-        style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;color:#06b6d4;"
-        fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;color:#06b6d4;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
     </div>
     <div style="text-align:center;">
       <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="init-msg">Syncing live fleet data...</div>
-      <div style="font-size:12px;color:#334155;margin-top:4px;" id="init-sub">Fetching the latest CSV from GitHub with offline cache fallback</div>
+      <div style="font-size:12px;color:#334155;margin-top:4px;" id="init-sub">Fetching the latest CSV from raw.githubusercontent.com with offline cache fallback.</div>
     </div>
     <style>
       @keyframes spin {
@@ -901,13 +898,9 @@
 
   <!-- UPLOAD -->
   <div id="upload-section" class="hidden flex-grow flex flex-col items-center justify-center p-10 text-center">
-    <div
-      style="background:#111827;border:2px dashed #1f2937;border-radius:20px;padding:60px 50px;max-width:580px;width:100%;transition:border-color .2s;"
-      id="dropzone">
-      <svg id="upload-icon" style="width:56px;height:56px;color:#0891b2;margin:0 auto 20px;" fill="none"
-        stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+    <div style="background:#111827;border:2px dashed #1f2937;border-radius:20px;padding:60px 50px;max-width:580px;width:100%;transition:border-color .2s;" id="dropzone">
+      <svg id="upload-icon" style="width:56px;height:56px;color:#0891b2;margin:0 auto 20px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"></path>
       </svg>
       <h2 id="upload-title" style="font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:10px;">Upload Aircraft
         Detail CSV</h2>
@@ -915,11 +908,9 @@
         Drop your <strong style="color:#7dd3fc;">Aircraft Detail.csv</strong> here or click to browse.<br>
         <span style="color:#1e40af;">This fallback uploader only appears when live sync and cached data are both unavailable.</span>
       </p>
-      <label
-        style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;padding:12px 30px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(8,145,178,.3);">
+      <label style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;padding:12px 30px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(8,145,178,.3);">
         <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
         Select CSV File
         <input type="file" id="csv-file" accept=".csv" style="display:none;">
@@ -935,117 +926,82 @@
     <!-- TAB NAV -->
     <div style="background:#060d1a;border-bottom:1px solid #1a2234;flex-shrink:0;overflow-x:auto;">
       <nav class="flex px-2" style="flex-shrink:0;">
-        <button class="tab-btn active" id="tbtn-home" onclick="switchTab('home')">🏠 Home</button>
-        <button class="tab-btn" id="tbtn-deepdive" onclick="switchTab('deepdive')"><svg
-            style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        <button class="tab-btn" id="tbtn-home" onclick="switchTab('home')">🏠 Home</button>
+        <button class="tab-btn" id="tbtn-deepdive" onclick="switchTab('deepdive')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"></path>
           </svg>Deep Dive</button>
-        <button class="tab-btn" id="tbtn-p1" onclick="switchTab('p1')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945" />
+        <button class="tab-btn" id="tbtn-p1" onclick="switchTab('p1')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"></path>
           </svg>Regional</button>
-        <button class="tab-btn" id="tbtn-p2" onclick="switchTab('p2')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        <button class="tab-btn" id="tbtn-p2" onclick="switchTab('p2')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
           </svg>Mfg-Engine</button>
-        <button class="tab-btn" id="tbtn-p3" onclick="switchTab('p3')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        <button class="tab-btn" id="tbtn-p3" onclick="switchTab('p3')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
           </svg>Family Market</button>
-        <button class="tab-btn" id="tbtn-p4" onclick="switchTab('p4')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        <button class="tab-btn" id="tbtn-p4" onclick="switchTab('p4')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
           </svg>Inventory</button>
-        <button class="tab-btn" id="tbtn-p5" onclick="switchTab('p5')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <button class="tab-btn" id="tbtn-p5" onclick="switchTab('p5')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
           </svg>TATS Score</button>
-        <button class="tab-btn" id="tbtn-p8" onclick="switchTab('p8')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+        <button class="tab-btn" id="tbtn-p8" onclick="switchTab('p8')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
           </svg>Market Value</button>
-        <button class="tab-btn" id="tbtn-p9" onclick="switchTab('p9')"><svg style="width:12px;height:12px;" fill="none"
-            stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4" />
+        <button class="tab-btn" id="tbtn-p9" onclick="switchTab('p9')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4"></path>
           </svg>Fleet Growth</button>
-        <button class="tab-btn" id="tbtn-gantt" onclick="switchTab('gantt')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <button class="tab-btn" id="tbtn-gantt" onclick="switchTab('gantt')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>Lease Gantt</button>
-        <button class="tab-btn" id="tbtn-lessors" onclick="switchTab('lessors')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <button class="tab-btn active" id="tbtn-lessors" onclick="switchTab('lessors')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
           </svg>Lessors</button>
-        <button class="tab-btn" id="tbtn-country" onclick="switchTab('country')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <button class="tab-btn" id="tbtn-country" onclick="switchTab('country')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>Country</button>
-        <button class="tab-btn" id="tbtn-fleet" onclick="switchTab('fleet')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        <button class="tab-btn" id="tbtn-fleet" onclick="switchTab('fleet')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
           </svg>Fleet Explorer</button>
-        <button class="tab-btn" id="tbtn-lopa" onclick="switchTab('lopa')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+        <button class="tab-btn" id="tbtn-lopa" onclick="switchTab('lopa')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"></path>
           </svg>LOPA &amp; Cabin</button>
-        <button class="tab-btn" id="tbtn-placement" onclick="switchTab('placement')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <button class="tab-btn" id="tbtn-placement" onclick="switchTab('placement')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
           </svg>Placement Radar</button>
-        <button class="tab-btn" id="tbtn-ccolopa" onclick="switchTab('ccolopa')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M7 12h10M10 18h4" />
+        <button class="tab-btn" id="tbtn-ccolopa" onclick="switchTab('ccolopa')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M7 12h10M10 18h4"></path>
           </svg>Global LOPA</button>
-        <button class="tab-btn" id="tbtn-engineintel" onclick="switchTab('engineintel')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h12M9 8l-3 4 3 4m6-8l3 4-3 4" />
+        <button class="tab-btn" id="tbtn-engineintel" onclick="switchTab('engineintel')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h12M9 8l-3 4 3 4m6-8l3 4-3 4"></path>
           </svg>Engine Market</button>
-        <button class="tab-btn" id="tbtn-transitionintel" onclick="switchTab('transitionintel')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <button class="tab-btn" id="tbtn-transitionintel" onclick="switchTab('transitionintel')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>Transitions &amp; USM</button>
-        <button class="tab-btn" id="tbtn-tats" onclick="switchTab('tats')"><svg style="width:12px;height:12px;"
-            fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        <button class="tab-btn" id="tbtn-tats" onclick="switchTab('tats')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
           </svg>TATS Prospect</button>
-        <button class="tab-btn" id="tbtn-usm" title="MRO & USM" onclick="switchTab('usm')"><svg
-              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        <button class="tab-btn" id="tbtn-usm" title="MRO &amp; USM" onclick="switchTab('usm')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>MRO &amp; USM</button>
         <button class="tab-btn" id="tbtn-creditrisk" onclick="switchTab('creditrisk')">Counterparty Risk</button>
-        <button class="tab-btn" id="tbtn-exposure" title="Lessor Exposure" onclick="switchTab('exposure')"><svg
-              style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <button class="tab-btn" id="tbtn-exposure" title="Lessor Exposure" onclick="switchTab('exposure')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>Exposure</button>
-        <button class="tab-btn" id="tbtn-historical" title="History" onclick="switchTab('historical')"><svg
-            style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <button class="tab-btn" id="tbtn-historical" title="History" onclick="switchTab('historical')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
           </svg>History</button>
-        <button class="tab-btn" id="tbtn-acdetail" title="Aircraft Detail" onclick="switchTab('acdetail')"><svg
-            style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <button class="tab-btn" id="tbtn-acdetail" title="Aircraft Detail" onclick="switchTab('acdetail')"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
           </svg> A/C Detail</button>
       </nav>
     </div>
 
     <!-- TAB CONTENT AREA -->
     <div class="flex-grow overflow-y-auto" id="tab-area" style="scrollbar-gutter:stable;">
-      <div id="tab-home" class="p-4 flex flex-col gap-4"></div>
+      <div id="tab-home" class="p-4 flex flex-col gap-4 hidden" style="display: none;"></div>
       <!-- ==================== DEEP DIVE TAB ==================== -->
-      <div id="tab-deepdive" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-deepdive" class="hidden p-4 flex flex-col gap-4" style="display: none;">
 
         <!-- Active filter chips row -->
         <div class="flex items-center gap-2 flex-wrap" id="dd-chip-bar" style="min-height:28px;">
@@ -1060,17 +1016,15 @@
         <div class="flex gap-4 flex-grow overflow-hidden" style="min-height:0;">
 
           <!-- LEFT: Filter Panel (Accordion) -->
-          <div style="width:262px;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"
-            class="custom-scrollbar">
+          <div style="width:262px;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;" class="custom-scrollbar">
 
             <!-- Omni-Search -->
             <div class="omni-wrap" style="margin-bottom:2px;">
-              <svg class="omni-icon" style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
+              <svg class="omni-icon" style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
               </svg>
-              <input id="dd-omni" class="omni-input" placeholder='Search: "Delta A320 CFM56"…' oninput="runDD()">
+              <input id="dd-omni" class="omni-input" placeholder="Search: &quot;Delta A320 CFM56&quot;…" oninput="runDD()">
               <button class="omni-clear" onclick="document.getElementById('dd-omni').value='';runDD();"></button>
               <div class="omni-hint">Searches operator type reg serial engine family</div>
             </div>
@@ -1081,12 +1035,9 @@
               <div style="font-size:11px;color:#64748b;margin-top:4px;">One-click presets for the most common executive
                 workflows.</div>
               <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px;">
-                <button onclick="applyDDQuickView('usm')" class="btn btn-ghost"
-                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">USM Prep Candidates</button>
-                <button onclick="applyDDQuickView('transitions')" class="btn btn-ghost"
-                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Upcoming Transitions</button>
-                <button onclick="applyDDQuickView('active-risk')" class="btn btn-ghost"
-                  style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Active High-Risk</button>
+                <button onclick="applyDDQuickView('usm')" class="btn btn-ghost" style="justify-content:flex-start;font-size:11px;padding:8px 10px;">USM Prep Candidates</button>
+                <button onclick="applyDDQuickView('transitions')" class="btn btn-ghost" style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Upcoming Transitions</button>
+                <button onclick="applyDDQuickView('active-risk')" class="btn btn-ghost" style="justify-content:flex-start;font-size:11px;padding:8px 10px;">Active High-Risk</button>
               </div>
               <div id="dd-quickview-note" style="font-size:10px;color:#475569;margin-top:8px;min-height:14px;"></div>
             </div>
@@ -1096,7 +1047,7 @@
               <div class="acc-header open" onclick="toggleAcc('acc-geo')">
                 <span> Geographic</span>
                 <svg class="acc-chevron open" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body open" id="acc-geo">
@@ -1107,8 +1058,7 @@
                   <div><label class="fl">Operator Country</label><select class="fs" id="dd-country" onchange="runDD()">
                       <option value="">All Countries</option>
                     </select></div>
-                  <div><label class="fl">Operator Location</label><select class="fs" id="dd-location"
-                      onchange="runDD()">
+                  <div><label class="fl">Operator Location</label><select class="fs" id="dd-location" onchange="runDD()">
                       <option value="">All Locations</option>
                     </select></div>
                 </div>
@@ -1120,7 +1070,7 @@
               <div class="acc-header open" onclick="toggleAcc('acc-ac')">
                 <span>✈ Aircraft Specs</span>
                 <svg class="acc-chevron open" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body open" id="acc-ac">
@@ -1140,15 +1090,13 @@
                   <div><label class="fl">Primary Usage</label><select class="fs" id="dd-usage" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Master Series</label><select class="fs" id="dd-masterseries"
-                      onchange="runDD()">
+                  <div><label class="fl">Master Series</label><select class="fs" id="dd-masterseries" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                   <div><label class="fl">Series</label><select class="fs" id="dd-series" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Aircraft Sub Series</label><select class="fs" id="dd-subseries"
-                      onchange="runDD()">
+                  <div><label class="fl">Aircraft Sub Series</label><select class="fs" id="dd-subseries" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                 </div>
@@ -1160,7 +1108,7 @@
               <div class="acc-header open" onclick="toggleAcc('acc-own')">
                 <span> Ownership &amp; Lease</span>
                 <svg class="acc-chevron open" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body open" id="acc-own">
@@ -1183,8 +1131,7 @@
                   <div><label class="fl">Owner</label><select class="fs" id="dd-owner" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Operational Lessor</label><select class="fs" id="dd-oplessor"
-                      onchange="runDD()">
+                  <div><label class="fl">Operational Lessor</label><select class="fs" id="dd-oplessor" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                   <div><label class="fl">Sub Lessor</label><select class="fs" id="dd-sublessor" onchange="runDD()">
@@ -1202,13 +1149,12 @@
               <div class="acc-header" onclick="toggleAcc('acc-eng')">
                 <span> Engine Specs</span>
                 <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body" id="acc-eng">
                 <div class="acc-inner">
-                  <div><label class="fl">Engine Manufacturer</label><select class="fs" id="dd-engmfg"
-                      onchange="runDD()">
+                  <div><label class="fl">Engine Manufacturer</label><select class="fs" id="dd-engmfg" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                   <div><label class="fl">Engine Family</label><select class="fs" id="dd-engfam" onchange="runDD()">
@@ -1217,8 +1163,7 @@
                   <div><label class="fl">Engine Type</label><select class="fs" id="dd-engtype" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Engine Master Series</label><select class="fs" id="dd-engmaster"
-                      onchange="runDD()">
+                  <div><label class="fl">Engine Master Series</label><select class="fs" id="dd-engmaster" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                   <div><label class="fl">Engine Series</label><select class="fs" id="dd-engseries" onchange="runDD()">
@@ -1239,7 +1184,7 @@
               <div class="acc-header" onclick="toggleAcc('acc-time')">
                 <span> Temporal</span>
                 <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body" id="acc-time">
@@ -1265,7 +1210,7 @@
               <div class="acc-header" onclick="toggleAcc('acc-opd')">
                 <span> Operator Detail</span>
                 <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body" id="acc-opd">
@@ -1273,12 +1218,10 @@
                   <div><label class="fl">Operator Group</label><select class="fs" id="dd-opgroup" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Operator Company Type</label><select class="fs" id="dd-optype"
-                      onchange="runDD()">
+                  <div><label class="fl">Operator Company Type</label><select class="fs" id="dd-optype" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
-                  <div><label class="fl">Operator IATA</label><input class="fi" id="dd-iata"
-                      placeholder="e.g. AA, DL, UA" oninput="runDD()"></div>
+                  <div><label class="fl">Operator IATA</label><input class="fi" id="dd-iata" placeholder="e.g. AA, DL, UA" oninput="runDD()"></div>
                   <div><label class="fl">Owner Country</label><select class="fs" id="dd-ownercty" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
@@ -1291,17 +1234,14 @@
               <div class="acc-header" onclick="toggleAcc('acc-id')">
                 <span> Identifiers</span>
                 <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body" id="acc-id">
                 <div class="acc-inner">
-                  <div><label class="fl">Registration</label><input class="fi" id="dd-reg" placeholder="e.g. N488HA"
-                      oninput="runDD()"></div>
-                  <div><label class="fl">Serial Number</label><input class="fi" id="dd-sn" placeholder="e.g. 55001"
-                      oninput="runDD()"></div>
-                  <div><label class="fl">Storage / Conv Location</label><select class="fs" id="dd-storloc"
-                      onchange="runDD()">
+                  <div><label class="fl">Registration</label><input class="fi" id="dd-reg" placeholder="e.g. N488HA" oninput="runDD()"></div>
+                  <div><label class="fl">Serial Number</label><input class="fi" id="dd-sn" placeholder="e.g. 55001" oninput="runDD()"></div>
+                  <div><label class="fl">Storage / Conv Location</label><select class="fs" id="dd-storloc" onchange="runDD()">
                       <option value="">All</option>
                     </select></div>
                 </div>
@@ -1313,22 +1253,18 @@
               <div class="acc-header" onclick="toggleAcc('acc-rng')">
                 <span> Numeric Ranges</span>
                 <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
                 </svg>
               </div>
               <div class="acc-body" id="acc-rng">
                 <div class="acc-inner">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                    <div><label class="fl">Min Age</label><input class="fi" id="dd-agemin" type="number" min="0"
-                        placeholder="0" oninput="runDD()"></div>
-                    <div><label class="fl">Max Age</label><input class="fi" id="dd-agemax" type="number" min="0"
-                        placeholder="" oninput="runDD()"></div>
+                    <div><label class="fl">Min Age</label><input class="fi" id="dd-agemin" type="number" min="0" placeholder="0" oninput="runDD()"></div>
+                    <div><label class="fl">Max Age</label><input class="fi" id="dd-agemax" type="number" min="0" placeholder="" oninput="runDD()"></div>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                    <div><label class="fl">Min Seats</label><input class="fi" id="dd-seatsmin" type="number" min="0"
-                        placeholder="0" oninput="runDD()"></div>
-                    <div><label class="fl">Max Seats</label><input class="fi" id="dd-seatsmax" type="number" min="0"
-                        placeholder="" oninput="runDD()"></div>
+                    <div><label class="fl">Min Seats</label><input class="fi" id="dd-seatsmin" type="number" min="0" placeholder="0" oninput="runDD()"></div>
+                    <div><label class="fl">Max Seats</label><input class="fi" id="dd-seatsmax" type="number" min="0" placeholder="" oninput="runDD()"></div>
                   </div>
                 </div>
               </div>
@@ -1342,81 +1278,65 @@
             <!-- KPI Strip -->
             <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;flex-shrink:0;">
               <div class="kpi kpi-accent kpi-cyan">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
                   Aircraft</div>
                 <div style="font-size:26px;font-weight:800;color:#06b6d4;" id="dd-kpi-total">0</div>
               </div>
               <div class="kpi kpi-accent kpi-violet">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
                   Operators</div>
                 <div style="font-size:26px;font-weight:800;color:#8b5cf6;" id="dd-kpi-ops">0</div>
               </div>
               <div class="kpi kpi-accent kpi-emerald">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
                   Avg Age</div>
                 <div style="font-size:26px;font-weight:800;color:#10b981;" id="dd-kpi-age">-</div>
               </div>
               <div class="kpi kpi-accent kpi-amber">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">In
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">In
                   Service</div>
                 <div style="font-size:26px;font-weight:800;color:#f59e0b;" id="dd-kpi-inservice">0</div>
               </div>
               <div class="kpi kpi-accent kpi-rose">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
                   High Risk</div>
                 <div style="font-size:26px;font-weight:800;color:#f43f5e;" id="dd-kpi-highrisk">0</div>
               </div>
               <div class="kpi kpi-accent kpi-blue">
-                <div
-                  style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
+                <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">
                   Avg MTOW klbs</div>
                 <div style="font-size:26px;font-weight:800;color:#3b82f6;" id="dd-kpi-mtow">-</div>
               </div>
             </div>
 
             <!-- Mini Charts -->
-            <div
-              style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:170px;flex-shrink:0;min-height:170px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:170px;flex-shrink:0;min-height:170px;">
               <div class="card flex flex-col" style="padding:10px;overflow:hidden;height:170px;">
-                <div
-                  style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
+                <div style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
                   By Manufacturer</div>
-                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-mfg"
-                    style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
+                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-mfg" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
               </div>
               <div class="card flex flex-col" style="padding:10px;overflow:hidden;height:170px;">
-                <div
-                  style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
+                <div style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
                   By Status</div>
-                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-status"
-                    style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
+                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-status" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
               </div>
               <div class="card flex flex-col" style="padding:10px;overflow:hidden;height:170px;">
-                <div
-                  style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
+                <div style="font-size:10px;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;flex-shrink:0;">
                   Age Distribution</div>
-                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-age"
-                    style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
+                <div style="position:relative;flex:1;min-height:0;overflow:hidden;"><canvas id="dd-mini-age" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas></div>
               </div>
             </div>
 
             <!-- Table -->
             <div class="card flex flex-col flex-grow overflow-hidden" style="padding:0;">
-              <div
-                style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#0d1424;">
+              <div style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#0d1424;">
                 <div style="display:flex;align-items:center;gap:8px;">
                   <span style="font-size:12px;font-weight:700;color:#94a3b8;">Results</span>
-                  <span id="dd-table-info"
-                    style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;"></span>
+                  <span id="dd-table-info" style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;"></span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;position:relative;">
-                  <input class="fi" id="dd-search" placeholder="Search within results..." oninput="renderDDTable()"
-                    style="width:220px;">
+                  <input class="fi" id="dd-search" placeholder="Search within results..." oninput="renderDDTable()" style="width:220px;">
                   <button onclick="document.getElementById('col-toggles').classList.toggle('hidden')" class="btn btn-ghost" style="padding:6px 12px;font-size:11px;">Columns</button>
                   <select class="fs" id="dd-rowlimit" onchange="renderDDTable()" style="width:90px;">
                     <option value="100">100 rows</option>
@@ -1428,12 +1348,9 @@
                     <div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#06b6d4;">Toggle Visibility</div>
                     <div id="col-toggle-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
                   </div>
-                  <button onclick="exportCurrentDD()" class="btn btn-ghost"
-                    style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
-                    <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2"
-                      viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" />
+                  <button onclick="exportCurrentDD()" class="btn btn-ghost" style="display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;">
+                    <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1"></path>
                     </svg>
                     Export to CSV
                   </button>
@@ -1453,21 +1370,18 @@
       </div>
 
       <!-- ==================== PAGE 1: REGIONAL ==================== -->
-      <div id="tab-p1" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p1" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-4col">
-          <div><label class="fl">Operator Region</label><select class="fs" id="p1-region" multiple
-              onchange="renderP1()">
+          <div><label class="fl">Operator Region</label><select class="fs" id="p1-region" multiple="" onchange="renderP1()">
               <option value="">All Regions</option>
             </select></div>
-          <div><label class="fl">Manufacturer</label><select class="fs" id="p1-mfg" multiple onchange="renderP1()">
+          <div><label class="fl">Manufacturer</label><select class="fs" id="p1-mfg" multiple="" onchange="renderP1()">
               <option value="">All Manufacturers</option>
             </select></div>
-          <div><label class="fl">Status</label><select class="fs" id="p1-status" multiple onchange="renderP1()">
+          <div><label class="fl">Status</label><select class="fs" id="p1-status" multiple="" onchange="renderP1()">
               <option value="">All Statuses</option>
             </select></div>
-          <div class="flex items-end"><button
-              onclick="document.getElementById('p1-region').selectedIndex=-1;document.getElementById('p1-mfg').selectedIndex=-1;document.getElementById('p1-status').selectedIndex=-1;renderP1();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="document.getElementById('p1-region').selectedIndex=-1;document.getElementById('p1-mfg').selectedIndex=-1;document.getElementById('p1-status').selectedIndex=-1;renderP1();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-cyan">
@@ -1522,17 +1436,15 @@
       </div>
 
       <!-- PAGE 2: MFG-ENGINE -->
-      <div id="tab-p2" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p2" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-3col">
-          <div><label class="fl">Region</label><select class="fs" id="p2-region" multiple onchange="renderP2()">
+          <div><label class="fl">Region</label><select class="fs" id="p2-region" multiple="" onchange="renderP2()">
               <option value="">All Regions</option>
             </select></div>
-          <div><label class="fl">Manufacturer</label><select class="fs" id="p2-mfg" multiple onchange="renderP2()">
+          <div><label class="fl">Manufacturer</label><select class="fs" id="p2-mfg" multiple="" onchange="renderP2()">
               <option value="">All Manufacturers</option>
             </select></div>
-          <div class="flex items-end"><button
-              onclick="document.getElementById('p2-region').selectedIndex=-1;document.getElementById('p2-mfg').selectedIndex=-1;renderP2();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="document.getElementById('p2-region').selectedIndex=-1;document.getElementById('p2-mfg').selectedIndex=-1;renderP2();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;height:420px;">
           <div class="card flex flex-col">
@@ -1563,9 +1475,9 @@
       </div>
 
       <!-- PAGE 3: FAMILY MARKET -->
-      <div id="tab-p3" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p3" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-4col">
-          <div><label class="fl">Type</label><select class="fs" id="p3-type" multiple onchange="renderP3()">
+          <div><label class="fl">Type</label><select class="fs" id="p3-type" multiple="" onchange="renderP3()">
               <option value="">All Types</option>
             </select></div>
           <div><label class="fl">Year From</label><select class="fs" id="p3-year-from" onchange="renderP3()">
@@ -1574,12 +1486,10 @@
           <div><label class="fl">Year To</label><select class="fs" id="p3-year-to" onchange="renderP3()">
               <option value="">Now</option>
             </select></div>
-          <div><label class="fl">Current Family</label><select class="fs" id="p3-family" multiple onchange="renderP3()">
+          <div><label class="fl">Current Family</label><select class="fs" id="p3-family" multiple="" onchange="renderP3()">
               <option value="">All Families</option>
             </select></div>
-          <div class="flex items-end"><button
-              onclick="document.getElementById('p3-type').selectedIndex=-1;document.getElementById('p3-family').selectedIndex=-1;document.getElementById('p3-year-from').value='1976';document.getElementById('p3-year-to').value='';renderP3();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="document.getElementById('p3-type').selectedIndex=-1;document.getElementById('p3-family').selectedIndex=-1;document.getElementById('p3-year-from').value='1976';document.getElementById('p3-year-to').value='';renderP3();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;height:360px;">
           <div class="card flex flex-col">
@@ -1625,7 +1535,7 @@
       </div>
 
       <!-- PAGE 4: INVENTORY -->
-      <div id="tab-p4" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p4" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-5col">
           <div><label class="fl">Region</label><select class="fs" id="p4-region" onchange="renderP4()">
               <option value="">All Regions</option>
@@ -1639,11 +1549,8 @@
           <div><label class="fl">Manager</label><select class="fs" id="p4-manager" onchange="renderP4()">
               <option value="">All Managers</option>
             </select></div>
-          <div><label class="fl">Search</label><input class="fi" id="p4-search" placeholder="Operator, reg, serial..."
-              oninput="renderP4()"></div>
-          <div class="flex items-end"><button
-              onclick="resetF(['p4-region','p4-mfg','p4-status','p4-manager']);document.getElementById('p4-search').value='';renderP4();"
-              class="btn btn-ghost">Reset</button></div>
+          <div><label class="fl">Search</label><input class="fi" id="p4-search" placeholder="Operator, reg, serial..." oninput="renderP4()"></div>
+          <div class="flex items-end"><button onclick="resetF(['p4-region','p4-mfg','p4-status','p4-manager']);document.getElementById('p4-search').value='';renderP4();" class="btn btn-ghost">Reset</button></div>
           <div id="p4-count" style="font-size:11px;color:#334155;align-self:end;padding-bottom:4px;"></div>
         </div>
         <div class="card flex-grow flex flex-col overflow-hidden" style="padding:0;min-height:500px;">
@@ -1672,7 +1579,7 @@
       </div>
 
       <!-- PAGE 5: TATS SCORE -->
-      <div id="tab-p5" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p5" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-4col">
           <div><label class="fl">TATS Tier</label><select class="fs" id="p5-tier" onchange="renderP5()">
               <option value="">All Tiers</option>
@@ -1686,8 +1593,7 @@
           <div><label class="fl">Lease End Year</label><select class="fs" id="p5-leaseyr" onchange="renderP5()">
               <option value="">All Years</option>
             </select></div>
-          <div class="flex items-end"><button onclick="resetF(['p5-tier','p5-region','p5-leaseyr']);renderP5();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="resetF(['p5-tier','p5-region','p5-leaseyr']);renderP5();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-rose">
@@ -1753,7 +1659,7 @@
       </div>
 
       <!-- PAGE 8: MARKET VALUE -->
-      <div id="tab-p8" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p8" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-3col">
           <div><label class="fl">Region</label><select class="fs" id="p8-region" onchange="renderP8()">
               <option value="">All</option>
@@ -1761,8 +1667,7 @@
           <div><label class="fl">Country</label><select class="fs" id="p8-country" onchange="renderP8()">
               <option value="">All</option>
             </select></div>
-          <div class="flex items-end"><button onclick="resetF(['p8-region','p8-country']);renderP8();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="resetF(['p8-region','p8-country']);renderP8();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           <div class="kpi kpi-accent kpi-cyan">
@@ -1791,7 +1696,7 @@
       </div>
 
       <!-- PAGE 9: FLEET GROWTH -->
-      <div id="tab-p9" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-p9" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
           <div><label class="fl">Year From</label><select class="fs" id="p9-year-from" onchange="renderP9()">
               <option value="1976">1976</option>
@@ -1799,12 +1704,10 @@
           <div><label class="fl">Year To</label><select class="fs" id="p9-year-to" onchange="renderP9()">
               <option value="">Now</option>
             </select></div>
-          <div><label class="fl">Family (multi)</label><select class="fs" id="p9-family" multiple onchange="renderP9()">
+          <div><label class="fl">Family (multi)</label><select class="fs" id="p9-family" multiple="" onchange="renderP9()">
               <option value="">All Families</option>
             </select></div>
-          <div class="flex items-end"><button
-              onclick="document.getElementById('p9-family').selectedIndex=-1;document.getElementById('p9-year-from').value='1976';document.getElementById('p9-year-to').value='';renderP9();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="document.getElementById('p9-family').selectedIndex=-1;document.getElementById('p9-year-from').value='1976';document.getElementById('p9-year-to').value='';renderP9();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div class="kpi kpi-accent kpi-cyan">
@@ -1830,10 +1733,9 @@
       </div>
 
       <!-- GANTT -->
-      <div id="tab-gantt" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-gantt" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-3col">
-          <div><label class="fl">Manager / Lessor</label><select class="fs" id="gantt-mgr" multiple
-              onchange="renderGantt()">
+          <div><label class="fl">Manager / Lessor</label><select class="fs" id="gantt-mgr" multiple="" onchange="renderGantt()">
               <option value="">All Managers</option>
             </select></div>
           <div><label class="fl">Lease End from</label><select class="fs" id="gantt-yr-from" onchange="renderGantt()">
@@ -1842,9 +1744,7 @@
           <div><label class="fl">Lease End to</label><select class="fs" id="gantt-yr-to" onchange="renderGantt()">
               <option value="">Latest</option>
             </select></div>
-          <div class="flex items-end"><button
-              onclick="document.getElementById('gantt-mgr').selectedIndex=-1;document.getElementById('gantt-yr-from').value='';document.getElementById('gantt-yr-to').value='';renderGantt();"
-              class="btn btn-ghost">Reset</button></div>
+          <div class="flex items-end"><button onclick="document.getElementById('gantt-mgr').selectedIndex=-1;document.getElementById('gantt-yr-from').value='';document.getElementById('gantt-yr-to').value='';renderGantt();" class="btn btn-ghost">Reset</button></div>
         </div>
         <div class="card flex-grow flex flex-col" style="min-height:500px;padding:12px;">
           <div class="s-title" style="margin-bottom:4px;">Lease End Timeline Gantt</div>
@@ -1857,7 +1757,7 @@
       </div>
 
       <!-- LESSORS -->
-      <div id="tab-lessors" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-lessors" class="p-4 flex flex-col gap-4" style="display: flex; flex-direction: column;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;height:480px;">
           <div class="card flex flex-col">
             <div class="s-title">Manager Fleet Size Treemap</div>
@@ -1883,7 +1783,7 @@
       </div>
 
       <!-- COUNTRY OVERVIEW -->
-      <div id="tab-country" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-country" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           <div class="kpi kpi-accent kpi-cyan">
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Countries</div>
@@ -1909,11 +1809,9 @@
           </div>
         </div>
         <div class="card flex flex-col overflow-hidden" style="padding:0;min-height:380px;">
-          <div
-            style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#0d1424;">
+          <div style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#0d1424;">
             <span class="s-title">Country Report Matrix</span>
-            <input class="fi" id="co-search" placeholder="Search country / region..." oninput="renderCountryTable()"
-              style="width:220px;">
+            <input class="fi" id="co-search" placeholder="Search country / region..." oninput="renderCountryTable()" style="width:220px;">
           </div>
           <div class="overflow-auto flex-grow">
             <table style="width:100%;border-collapse:collapse;min-width:700px;">
@@ -1934,7 +1832,7 @@
       </div>
 
       <!-- FLEET EXPLORER -->
-      <div id="tab-fleet" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-fleet" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div class="filter-panel panel-5col">
           <div><label class="fl">Region</label><select class="fs" id="fe-region" onchange="runFE()">
               <option value="">All Regions</option>
@@ -2003,11 +1901,9 @@
           </div>
         </div>
         <div class="card flex flex-col overflow-hidden" style="padding:0;min-height:400px;">
-          <div
-            style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
+          <div style="padding:10px 14px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
             <span style="font-size:12px;font-weight:700;color:#94a3b8;">Filtered Aircraft Details</span>
-            <span id="fe-limit-note"
-              style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;"></span>
+            <span id="fe-limit-note" style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;"></span>
           </div>
           <div class="overflow-auto flex-grow">
             <table style="width:100%;border-collapse:collapse;min-width:1100px;">
@@ -2016,7 +1912,7 @@
                   <th>Reg / SN</th>
                   <th>Operator</th>
                   <th>Aircraft</th>
-                  <th>Market & Usage</th>
+                  <th>Market &amp; Usage</th>
                   <th>Engine</th>
                   <th>Status / Age</th>
                   <th>MTOW (lbs)</th>
@@ -2030,107 +1926,85 @@
       </div>
 
       <!-- ==================== AIRCRAFT DETAIL TAB ==================== -->
-      <div id="tab-acdetail" class="hidden p-4 overflow-y-auto" style="flex-direction:column;">
+      <div id="tab-acdetail" class="hidden p-4 overflow-y-auto" style="flex-direction: column; display: none;">
 
         <!-- Empty State -->
-        <div id="acd-empty"
-          style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;gap:16px;">
-          <svg style="width:56px;height:56px;color:#1e3a5f;" fill="none" stroke="currentColor" stroke-width="1.5"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <div id="acd-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;gap:16px;">
+          <svg style="width:56px;height:56px;color:#1e3a5f;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
           </svg>
           <div style="text-align:center;">
             <div style="font-size:16px;font-weight:700;color:#334155;">No Aircraft Selected</div>
-            <div style="font-size:12px;color:#1e3a5f;margin-top:6px;">Click any row in the <strong
-                style="color:#06b6d4;">Deep Dive</strong> tab to view its full spec sheet here.</div>
+            <div style="font-size:12px;color:#1e3a5f;margin-top:6px;">Click any row in the <strong style="color:#06b6d4;">Deep Dive</strong> tab to view its full spec sheet here.</div>
           </div>
-          <button onclick="switchTab('deepdive')" class="btn"
-            style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;">Go to Deep Dive</button>
+          <button onclick="switchTab('deepdive')" class="btn" style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;">Go to Deep Dive</button>
         </div>
 
         <!-- Detail Content (hidden until aircraft selected) -->
         <div id="acd-content" style="display:none;flex-direction:column;gap:16px;">
 
           <!-- Back button + header -->
-          <div class="no-print"
-            style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
+          <div class="no-print" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-              <button id="acd-back-btn" onclick="switchTab('deepdive')" class="btn btn-ghost"
-                style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              <button id="acd-back-btn" onclick="switchTab('deepdive')" class="btn btn-ghost" style="padding:5px 12px;font-size:11px;display:flex;align-items:center;gap:5px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 <span id="acd-back-label">Back to Deep Dive</span>
               </button>
               <div style="font-size:11px;color:#334155;">Click a different row in Deep Dive to switch aircraft</div>
             </div>
-            <button onclick="window.print()" class="btn"
-              style="padding:8px 14px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;display:flex;align-items:center;gap:6px;">
-              <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.2"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M6 9V4h12v5M6 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-1M6 14h12v6H6v-6z" />
+            <button onclick="window.print()" class="btn" style="padding:8px 14px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;display:flex;align-items:center;gap:6px;">
+              <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V4h12v5M6 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-1M6 14h12v6H6v-6z"></path>
               </svg>
               Export IC Tear Sheet
             </button>
           </div>
 
           <!-- HERO CARD -->
-          <div id="acd-hero"
-            style="background:linear-gradient(135deg,#0a1628 0%,#0d1e3a 50%,#0a0f1e 100%);border:1px solid #1e3a5f;border-radius:14px;padding:24px 28px;position:relative;overflow:hidden;">
+          <div id="acd-hero" style="background:linear-gradient(135deg,#0a1628 0%,#0d1e3a 50%,#0a0f1e 100%);border:1px solid #1e3a5f;border-radius:14px;padding:24px 28px;position:relative;overflow:hidden;">
             <!-- Decorative background plane silhouette -->
-            <div
-              style="position:absolute;right:28px;top:50%;transform:translateY(-50%);opacity:.06;pointer-events:none;">
+            <div style="position:absolute;right:28px;top:50%;transform:translateY(-50%);opacity:.06;pointer-events:none;">
               <svg width="220" height="110" viewBox="0 0 220 110" fill="#06b6d4">
-                <path d="M200 55L20 10v20l70 10 0 15-70 10v20L200 55zm-160 0l30-8v16l-30-8z" />
+                <path d="M200 55L20 10v20l70 10 0 15-70 10v20L200 55zm-160 0l30-8v16l-30-8z"></path>
               </svg>
             </div>
             <div style="display:flex;align-items:flex-start;gap:28px;position:relative;z-index:1;">
               <!-- Registration big display -->
               <div style="flex-shrink:0;">
-                <div
-                  style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">
+                <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">
                   Registration</div>
-                <div id="acd-reg"
-                  style="font-size:42px;font-weight:900;color:#f1f5f9;letter-spacing:-.02em;font-family:'Courier New',monospace;line-height:1;">
+                <div id="acd-reg" style="font-size:42px;font-weight:900;color:#f1f5f9;letter-spacing:-.02em;font-family:'Courier New',monospace;line-height:1;">
                   -</div>
-                <div id="acd-sn"
-                  style="font-size:12px;color:#475569;margin-top:4px;font-family:'Courier New',monospace;">SN: -</div>
+                <div id="acd-sn" style="font-size:12px;color:#475569;margin-top:4px;font-family:'Courier New',monospace;">SN: -</div>
               </div>
               <!-- Type / Operator -->
               <div style="flex:1;">
-                <div id="acd-type-hero"
-                  style="font-size:22px;font-weight:800;color:#e2e8f0;line-height:1.2;margin-bottom:8px;">-</div>
+                <div id="acd-type-hero" style="font-size:22px;font-weight:800;color:#e2e8f0;line-height:1.2;margin-bottom:8px;">-</div>
                 <div id="acd-operator-hero" style="font-size:14px;color:#64748b;margin-bottom:12px;">-</div>
                 <div id="acd-badge-row" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
               </div>
               <!-- TATS Gauge -->
               <div style="flex-shrink:0;text-align:center;">
-                <div
-                  style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">
+                <div style="font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">
                   TATS Risk Score</div>
                 <div id="acd-tats-ring" style="position:relative;width:90px;height:90px;margin:0 auto 6px;">
                   <svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg);">
-                    <circle cx="45" cy="45" r="36" fill="none" stroke="#1a2234" stroke-width="8" />
-                    <circle id="acd-tats-arc" cx="45" cy="45" r="36" fill="none" stroke="#10b981" stroke-width="8"
-                      stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226" />
+                    <circle cx="45" cy="45" r="36" fill="none" stroke="#1a2234" stroke-width="8"></circle>
+                    <circle id="acd-tats-arc" cx="45" cy="45" r="36" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"></circle>
                   </svg>
-                  <div
-                    style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                     <div id="acd-tats-val" style="font-size:22px;font-weight:900;color:#f1f5f9;">0</div>
                     <div style="font-size:8px;color:#334155;text-transform:uppercase;">/100</div>
                   </div>
                 </div>
-                <div id="acd-tats-tier"
-                  style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;display:inline-block;">-
+                <div id="acd-tats-tier" style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:99px;display:inline-block;">-
                 </div>
               </div>
             </div>
             <!-- KPI strip inside hero -->
-            <div id="acd-kpi-strip"
-              style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #1a2234;position:relative;z-index:1;">
+            <div id="acd-kpi-strip" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #1a2234;position:relative;z-index:1;">
             </div>
           </div>
 
@@ -2138,12 +2012,9 @@
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
             <!-- Aircraft Classification -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#06b6d4;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945" />
+              <div style="font-size:10px;font-weight:700;color:#06b6d4;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"></path>
                 </svg>
                 Aircraft Classification
               </div>
@@ -2151,12 +2022,9 @@
             </div>
             <!-- Engine Specs -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#8b5cf6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              <div style="font-size:10px;font-weight:700;color:#8b5cf6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                 </svg>
                 Engine Specifications
               </div>
@@ -2164,11 +2032,9 @@
             </div>
             <!-- Operations & Cycles -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              <div style="font-size:10px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                 </svg>
                 Operations &amp; Cycles
               </div>
@@ -2179,12 +2045,9 @@
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
             <!-- Ownership -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <div style="font-size:10px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
                 Ownership &amp; Operator
               </div>
@@ -2192,12 +2055,9 @@
             </div>
             <!-- Lease -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#f43f5e;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div style="font-size:10px;font-weight:700;color:#f43f5e;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 Lease Information
               </div>
@@ -2205,12 +2065,9 @@
             </div>
             <!-- Financials & Weight -->
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
-                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div style="font-size:10px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 Financials &amp; Weight
               </div>
@@ -2224,35 +2081,16 @@
           <!-- Seating & Retirement Risk -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#14b8a6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">
+              <div style="font-size:10px;font-weight:700;color:#14b8a6;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">
                 Seating Configuration</div>
               <div id="acd-seat-specs" class="spec-grid" style="grid-template-columns:1fr 1fr 1fr;"></div>
               <!-- Seat bar visualisation -->
               <div id="acd-seat-bar" style="margin-top:14px;"></div>
             </div>
             <div class="card" style="padding:16px;">
-              <div
-                style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">
+              <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">
                 Risk &amp; Retirement Indicators</div>
               <div id="acd-risk-specs" class="spec-grid"></div>
-            </div>
-          </div>
-
-          <!-- Predictive Maintenance Forecast (Phase 8) -->
-          <div id="acd-mx-forecast" class="card" style="padding:0;overflow:hidden;">
-            <div style="padding:14px 18px;border-bottom:1px solid #1a2234;background:linear-gradient(135deg,#0a1628,#0d1424);display:flex;align-items:center;gap:10px;">
-              <svg style="width:16px;height:16px;color:#f59e0b;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <div>
-                <div style="font-size:12px;font-weight:700;color:#f1f5f9;">Predictive Maintenance Forecast</div>
-                <div style="font-size:10px;color:#475569;margin-top:1px;">OEM MPD baseline intervals · Browser-computed remaining life</div>
-              </div>
-            </div>
-            <div id="acd-mx-body" style="padding:18px;">
-              <div style="font-size:12px;color:#334155;text-align:center;padding:20px;">Select an aircraft to view maintenance predictions.</div>
             </div>
           </div>
 
@@ -2278,142 +2116,42 @@
           if (first) el.appendChild(first);
           arr.forEach(v => { const o = new Option(v, v); if (cur.has(v)) o.selected = true; el.appendChild(o); });
         }
-        Chart.defaults.font.family = "'Inter',sans-serif"; Chart.defaults.color = "#4b5563"; Chart.defaults.scale.grid.color = "#111827";
-
-        // ===== MODULE SYSTEM (Phase 1.1) =====
-        const ModuleSystem = (() => {
-          const modules = {};
-          return {
-            register(name, factory) {
-              if (modules[name]) console.warn(`[ModuleSystem] Overwriting: ${name}`);
-              modules[name] = typeof factory === 'function' ? factory() : factory;
-              console.log(`[ModuleSystem] Registered: ${name}`);
-            },
-            get(name) {
-              if (!modules[name]) throw new Error(`[ModuleSystem] Not found: ${name}`);
-              return modules[name];
-            },
-            has(name) { return !!modules[name]; },
-            list() { return Object.keys(modules); }
-          };
-        })();
-
-        // ===== DATA SCHEMA VALIDATION (Phase 1.2) =====
-        ModuleSystem.register('DataSchema', () => {
-          const schema = {
-            required: ['Serial Number', 'Type', 'Operator', 'Status', 'Manufacturer'],
-            numeric: ['Age', 'Cumulative Cycles', 'Cumulative Hours', 'Operating MTOW (lbs)'],
-            marketValue: 'Indicative Market Value (US$m)',
-            date: ['Lease End', 'Delivery Date'],
-            statusEnum: ['In Service', 'Storage', 'On Order']
-          };
-
-          function validate(record, idx) {
-            const errors = [];
-            schema.required.forEach(field => {
-              const val = (record[field] || '').trim();
-              if (!val) errors.push({ row: idx, field, issue: 'missing' });
-            });
-            schema.numeric.forEach(field => {
-              const raw = record[field];
-              if (raw !== undefined && raw !== null && raw !== '' && isNaN(parseFloat(raw))) {
-                errors.push({ row: idx, field, issue: 'not_numeric', value: String(raw).slice(0, 30) });
-              }
-            });
-            const status = (record['Status'] || '').trim();
-            if (status && !schema.statusEnum.some(s => status.includes(s))) {
-              errors.push({ row: idx, field: 'Status', issue: 'unknown_enum', value: status });
-            }
-            return errors;
-          }
-
-          function validateBatch(records) {
-            const allIssues = [];
-            records.forEach((r, i) => {
-              const issues = validate(r, i);
-              if (issues.length > 0) allIssues.push(...issues);
-            });
-            return allIssues;
-          }
-
-          return { validate, validateBatch, schema };
+        function escapeBootHtml(value) {
+          return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+        function showBootError(message) {
+          const detail = String(message || "Unknown boot error");
+          const loading = document.getElementById("init-loading");
+          const upload = document.getElementById("upload-section");
+          const initMsg = document.getElementById("init-msg");
+          const initSub = document.getElementById("init-sub");
+          if (loading) loading.classList.remove("hidden");
+          if (upload) upload.classList.add("hidden");
+          if (initMsg) initMsg.textContent = "Application failed to initialize";
+          if (initSub) initSub.innerHTML = `<span style="color:#fca5a5;font-weight:700;">${escapeBootHtml(detail)}</span>`;
+        }
+        window.addEventListener("error", function (event) {
+          const msg = event && (event.message || (event.error && event.error.message));
+          if (msg) showBootError(`Boot error: ${msg}`);
         });
-
-        // ===== TATS SCORING MODULE (Phase 1.3) =====
-        ModuleSystem.register('TATS', () => {
-          /**
-           * calculateScore(params) — Pure function, no side effects.
-           * Replicates the Step 4 (_opportunityScore) algorithm exactly.
-           *
-           * @param {Object} params
-           * @param {number|null} params.daysToLeaseEnd
-           * @param {string} params.status  — normalized status
-           * @param {number|null} params.ageYears
-           * @param {string} params.operatorTier — 'Tier 1' or 'Standard'
-           * @param {boolean} params.isTop25
-           * @param {boolean} params.isLeaseEndEstimated
-           * @returns {number} score 0–100
-           */
-          function calculateScore({ daysToLeaseEnd, status, ageYears, operatorTier, isTop25, isLeaseEndEstimated }) {
-            let score = 0;
-
-            // Days to lease end: 0–30pts
-            if (daysToLeaseEnd !== null && daysToLeaseEnd !== undefined) {
-              if (daysToLeaseEnd <= 365) score += 30;
-              else if (daysToLeaseEnd <= 730) score += 20;
-              else if (daysToLeaseEnd <= 1095) score += 10;
-            } else {
-              score -= 10; // Unknown lease penalty
-            }
-
-            // Status: +20 Storage, +5 In Service
-            if (status === 'Storage') score += 20;
-            else if (status === 'In Service') score += 5;
-
-            // Age tiers: 0–25pts
-            if (ageYears !== null && ageYears !== undefined) {
-              if (ageYears >= 20) score += 25;
-              else if (ageYears >= 15) score += 15;
-              else if (ageYears >= 10) score += 10;
-              else if (ageYears >= 5) score += 5;
-            }
-
-            // Operator tier: +15 for Tier 1
-            if (operatorTier === 'Tier 1') score += 15;
-
-            // Top-25 membership: +10
-            if (isTop25) score += 10;
-
-            // Estimated lease penalty: -15
-            if (isLeaseEndEstimated) score -= 15;
-
-            return Math.max(0, Math.min(100, score));
-          }
-
-          function getTier(score) {
-            if (score >= 70) return 'High Risk';
-            if (score >= 40) return 'Medium Risk';
-            return 'Low Risk';
-          }
-
-          function estimateTAM(marketValueUSD) {
-            if (!Number.isFinite(marketValueUSD) || marketValueUSD <= 0) return null;
-            return marketValueUSD * 0.002;
-          }
-
-          function scoreBreakdown(params) {
-            const score = calculateScore(params);
-            return {
-              ...params,
-              score,
-              tier: getTier(score)
-            };
-          }
-
-          return { calculateScore, getTier, estimateTAM, scoreBreakdown };
+        window.addEventListener("unhandledrejection", function (event) {
+          const reason = event && event.reason;
+          const msg = reason && reason.message ? reason.message : String(reason || "Unknown promise rejection");
+          showBootError(`Unhandled initialization error: ${msg}`);
         });
-
-        let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {};
+        if (typeof window.Chart !== "undefined" && Chart.defaults) {
+          Chart.defaults.font.family = "'Inter',sans-serif";
+          Chart.defaults.color = "#4b5563";
+          Chart.defaults.scale.grid.color = "#111827";
+        } else {
+          console.warn("Chart.js failed to load. Chart rendering will be skipped.");
+        }
+        let allData = [], countryReport = [], ddFiltered = [], feFiltered = [], charts = {}, creditSheetRows = [];
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
@@ -2443,18 +2181,6 @@
           if (!c) return;
           charts[id] = new Chart(c.getContext("2d"), cfg);
         }
-        // Legacy analytics tabs should keep rendering even if one chart config fails.
-        function safeChart(tabId, chartId, cfg) {
-          try {
-            ic(chartId, cfg);
-            return true;
-          } catch (err) {
-            console.error(`Chart render failed for ${chartId}:`, err);
-            const title = (document.getElementById(`tbtn-${tabId}`) || {}).textContent || tabId;
-            showModuleError(tabId, title, err);
-            return false;
-          }
-        }
         function barO(h = false) { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: h }, border: { display: false } }, y: { grid: { display: !h }, border: { display: false } } }, indexAxis: h ? "y" : "x" }; }
         function dO(pos = "right") { return { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: pos, labels: { boxWidth: 9, font: { size: 10 }, color: "#4b5563" } } } }; }
         function uniq(a) { return [...new Set(a.filter(v => v && v.trim()))].sort(); }
@@ -2473,22 +2199,7 @@
         function resetF(ids) { ids.forEach(id => { const e = document.getElementById(id); if (e) e.value = "" }); }
         function sBadge(s) { const t = s.includes("Service") ? "bg-is" : s.includes("order") || s.includes("Order") ? "bg-or" : s.includes("Stor") ? "bg-st" : "bg-xx"; return `<span class="badge ${t}">${s || "-"}</span>`; }
         function tBadge(t) { return `<span class="badge ${{ ["High Risk"]: "bg-hr", ["Medium Risk"]: "bg-mr", ["Low Risk"]: "bg-lr" }[t] || "bg-xx"}">${t}</span>`; }
-        // DEPRECATED: Legacy calcTATS — scoring now handled by ModuleSystem.get('TATS').calculateScore()
-        // Kept as wrapper for backwards compatibility. Real scoring is in initDash() Step 4.
-        function calcTATS(r) {
-          if (ModuleSystem.has('TATS')) {
-            return ModuleSystem.get('TATS').calculateScore({
-              daysToLeaseEnd: r._daysToLeaseEnd != null ? r._daysToLeaseEnd : (r._leEnd ? (r._leEnd - new Date()) / 864e5 : null),
-              status: r._statusNormalized || '',
-              ageYears: r._ageYears != null ? r._ageYears : (r._age || null),
-              operatorTier: r._operatorTier || 'Standard',
-              isTop25: !!r._top25,
-              isLeaseEndEstimated: !!r._isLeaseEndEstimated
-            });
-          }
-          // Fallback: original inline logic
-          let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100);
-        }
+        function calcTATS(r) { let s = 0; const a = r._age || 0; if (a > 25) s += 40; else if (a > 20) s += 30; else if (a > 15) s += 20; else if (a > 10) s += 10; if (r._leEnd) { const d = (r._leEnd - new Date()) / (864e5 * 365); if (d < 1) s += 30; else if (d < 2) s += 20; else if (d < 3) s += 10; } const u = parseFloat(r["Average Daily Utilisation"]) || 0; if (u > 12) s += 15; else if (u > 10) s += 8; const cy = parseInt(r["Cumulative Cycles"]) || 0; if (cy > 50000) s += 15; else if (cy > 30000) s += 8; return Math.min(s, 100); }
         // --- Helper: Robust Date Parser ---
         function parseLeaseEndDate(s) {
           if (!s || s.trim().toLowerCase() === "unknown") return null;
@@ -3330,24 +3041,43 @@
 
           const top25Keys = new Set(hitListCandidates.slice(0, 25).map(r => r._aircraftKey));
 
-          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM (via TATS Module) ---
-          const _tatsModule = ModuleSystem.get('TATS');
+          // --- PIPELINE STEP 4: SCORE PASS 2 AND TAM ---
           allData.forEach(r => {
             r._top25 = top25Keys.has(r._aircraftKey);
 
-            // Delegate scoring to the extracted TATS module
-            r._opportunityScore = _tatsModule.calculateScore({
-              daysToLeaseEnd: r._daysToLeaseEnd,
-              status: r._statusNormalized,
-              ageYears: r._ageYears,
-              operatorTier: r._operatorTier,
-              isTop25: r._top25,
-              isLeaseEndEstimated: r._isLeaseEndEstimated
-            });
-            r._tats = r._opportunityScore; // sync back to old refs
-            r._tatsTier = _tatsModule.getTier(r._tats);
+            let oScore = 0;
+            if (r._daysToLeaseEnd !== null) {
+              if (r._daysToLeaseEnd <= 365) oScore += 30; // Within 1 year (or overdue)
+              else if (r._daysToLeaseEnd <= 730) oScore += 20;
+              else if (r._daysToLeaseEnd <= 1095) oScore += 10;
+            } else {
+              oScore -= 10; // Explicit unknown lease penalty
+            }
 
-            r._estimatedTATSUSD = _tatsModule.estimateTAM(r._mktValueUSD);
+            if (r._statusNormalized === "Storage") oScore += 20;
+            else if (r._statusNormalized === "In Service") oScore += 5;
+
+            if (r._ageYears !== null) {
+              if (r._ageYears >= 20) oScore += 25;
+              else if (r._ageYears >= 15) oScore += 15;
+              else if (r._ageYears >= 10) oScore += 10;
+              else if (r._ageYears >= 5) oScore += 5;
+            }
+
+            if (r._operatorTier === "Tier 1") oScore += 15;
+            if (r._top25) oScore += 10;
+
+            if (r._isLeaseEndEstimated) oScore -= 15;
+
+            r._opportunityScore = Math.max(0, Math.min(100, oScore));
+            r._tats = r._opportunityScore; // sync back to old refs
+            r._tatsTier = r._tats >= 70 ? "High Risk" : r._tats >= 40 ? "Medium Risk" : "Low Risk";
+
+            if (r._mktValueUSDm !== null) {
+              r._estimatedTATSUSD = r._mktValueUSD * 0.002;
+            } else {
+              r._estimatedTATSUSD = null;
+            }
 
             // --- PIPELINE STEP 5: DYNAMIC HOOK GENERATION ---
             let hookStr = `Observational analysis indicates this ${r["Type"] || "aircraft"} (SN: ${r._aircraftKey === "Unknown" ? "N/A" : r._aircraftKey}) `;
@@ -4796,6 +4526,7 @@
             d = d.filter(r => /stor/i.test(r["Status"] || ""));
           }
           ddFiltered = d;
+
           // KPIs
           const ops = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean));
           const ages = d.map(r => r._age).filter(v => v !== null);
@@ -4822,35 +4553,6 @@
           const cb = document.getElementById("dd-chips");
           cb.innerHTML = chips.length ? chips.map(c => `<div class="chip">${c.label}<button onclick="${c.id === "__quickview__" ? "clearDDQuickView()" : `clearDDFilter('${c.id}')`}"></button></div>`).join("") : "<span style='font-size:10.5px;color:#1f2937;'>None  showing all ${allData.length.toLocaleString()} records</span>";
           renderDDTable();
-        }
-
-        /**
-         * refreshDDFilterOptions(filtered)
-         * Cascading drill-through: repopulate every DD filter dropdown with
-         * only the values present in the current filtered dataset. Preserves
-         * each dropdown's current selection via the existing fill() helper.
-         */
-        function refreshDDFilterOptions(filtered) {
-          const U = (k) => uniq(filtered.map(r => (r[k] || "").trim()));
-          const V = (k) => uniq(filtered.map(r => r[k] ? String(r[k]) : "").filter(Boolean));
-
-          // All standard DD_FILTERS (single-select dropdowns mapped to CSV columns)
-          DD_FILTERS.forEach(f => {
-            fill(f.id, U(f.k));
-          });
-
-          // Extra DD-specific filters not in DD_FILTERS array
-          fill("dd-buildyr", V("_buildYr"));
-          fill("dd-lsendyr", uniq(filtered.map(r => r._leEndYr ? String(r._leEndYr) : "").filter(Boolean)));
-          fill("dd-delyr", uniq(filtered.map(r => r._delYr ? String(r._delYr) : "").filter(Boolean)));
-
-          // TATS tier filter
-          const tiers = uniq(filtered.map(r => r._tatsTier || "").filter(Boolean));
-          fill("dd-tatstier", tiers);
-
-          // Lease end quarter — always 1-4 if any data has quarters
-          const quarters = uniq(filtered.map(r => r._leEndQ ? String(r._leEndQ) : "").filter(Boolean));
-          fill("dd-lsendq", quarters);
         }
         function clearDDFilter(id) { const e = document.getElementById(id); if (e) { e.value = ""; if (e.type === "number" || e.type === "text") e.value = ""; } runDD(); }
         function renderDDTable() {
@@ -5432,193 +5134,11 @@
             row('Storage Date', r['Storage Date']),
             row('Stor. Location', r['Storage Conversion Location Name'])
           ].join('');
-
-          // Phase 8: Predictive Maintenance Forecast
-          renderMxForecast(r);
-        }
-
-        // ===== PHASE 8: PREDICTIVE MAINTENANCE ENGINE =====
-
-        /**
-         * calculateMxExposure(aircraft)
-         * Matches the aircraft to the mxRules dictionary using Type + Engine Family.
-         * Returns an object with remaining-life calculations or null if no rule matched.
-         */
-        function calculateMxExposure(aircraft) {
-          const acType = (aircraft["Type"] || "").trim();
-          const engFam = (aircraft["Engine Family"] || "").trim();
-          const lookupKey = `${acType}_${engFam}`;
-          const rule = mxRules[lookupKey] || null;
-          if (!rule) return null;
-
-          // --- Variables ---
-          const ageYears = aircraft._age || 0;
-          const ageMonths = Math.round(ageYears * 12);
-          // Cumulative cycles: use parsed value, or estimate as age_months * 120 cycles/month
-          let cumCycles = parseFloat(aircraft["Cumulative Cycles"]) || 0;
-          if (cumCycles === 0 && ageYears > 0) {
-            cumCycles = ageMonths * 120;
-          }
-          // Cumulative flight hours: use parsed value, or estimate
-          let cumHours = parseFloat(aircraft["Cumulative Hours"]) || 0;
-          if (cumHours === 0 && ageYears > 0) {
-            cumHours = ageMonths * 250; // ~250 FH/month industry avg
-          }
-
-          // --- Calculations ---
-
-          // 1. Next C-Check (months remaining)
-          const cCheckRemMo = rule.cCheckMo - (ageMonths % rule.cCheckMo);
-
-          // 2. Next Heavy Check / D-Check (months remaining)
-          const heavyRemMo = rule.heavyMo - (ageMonths % rule.heavyMo);
-
-          // 3. Landing Gear Overhaul — lesser of calendar limit vs. cycle limit
-          const gearRemMo = rule.gearMo - (ageMonths % rule.gearMo);
-          const gearRemFc = rule.gearFc - (cumCycles % rule.gearFc);
-          // Convert gear cycle limit to approximate months for comparison
-          const monthlyFc = cumCycles > 0 && ageMonths > 0 ? cumCycles / ageMonths : 120;
-          const gearFcAsMonths = monthlyFc > 0 ? Math.round(gearRemFc / monthlyFc) : 9999;
-          const gearEffectiveMo = Math.min(gearRemMo, gearFcAsMonths);
-          const gearLimitedBy = gearFcAsMonths < gearRemMo ? "cycles" : "calendar";
-
-          // 4. Engine Performance Restoration (flight hours remaining)
-          const engPrRemFh = rule.engPrFh - (cumHours % rule.engPrFh);
-
-          // 5. Engine LLP Life (cycles remaining)
-          const engLlpRemFc = rule.engLlpFc - (cumCycles % rule.engLlpFc);
-
-          return {
-            lookupKey,
-            rule,
-            ageMonths,
-            cumCycles: Math.round(cumCycles),
-            cumHours: Math.round(cumHours),
-            cCheckRemMo,
-            heavyRemMo,
-            gearRemMo,
-            gearRemFc: Math.round(gearRemFc),
-            gearEffectiveMo,
-            gearLimitedBy,
-            engPrRemFh: Math.round(engPrRemFh),
-            engLlpRemFc: Math.round(engLlpRemFc)
-          };
-        }
-
-        /**
-         * RAG status helper: returns { color, bg, border, label } based on
-         * months-remaining or cycles-remaining thresholds.
-         */
-        function mxRagStatus(monthsOrCycles, unit) {
-          if (unit === "months") {
-            if (monthsOrCycles < 12) return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
-            if (monthsOrCycles < 24) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
-            return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
-          }
-          // unit === "cycles"
-          if (monthsOrCycles < 1000)  return { color: "#fca5a5", bg: "#2d0f0f", border: "#991b1b", label: "CRITICAL" };
-          if (monthsOrCycles < 2500) return { color: "#fcd34d", bg: "#1c1400", border: "#92400e", label: "CAUTION" };
-          return { color: "#86efac", bg: "#052e16", border: "#166534", label: "OK" };
-        }
-
-        /**
-         * Render a single MX metric card row.
-         */
-        function mxMetricHtml(icon, title, value, subtext, rag) {
-          return `
-            <div style="background:${rag.bg};border:1px solid ${rag.border};border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;">
-              <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${rag.color};">${icon}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">${escapeHtml(title)}</div>
-                <div style="font-size:24px;font-weight:900;color:${rag.color};line-height:1.15;margin-top:2px;">${value}</div>
-                <div style="font-size:11px;color:#64748b;margin-top:3px;">${subtext}</div>
-              </div>
-              <div style="padding:3px 9px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.06em;color:${rag.color};border:1px solid ${rag.border};background:rgba(0,0,0,.2);flex-shrink:0;">${rag.label}</div>
-            </div>`;
-        }
-
-        /**
-         * renderMxForecast(r) — called from showAcDetail.
-         * Populates the #acd-mx-body panel with predictive maintenance data.
-         */
-        function renderMxForecast(r) {
-          const body = document.getElementById('acd-mx-body');
-          if (!body) return;
-
-          const mx = calculateMxExposure(r);
-
-          if (!mx) {
-            const acType = (r["Type"] || "Unknown").trim();
-            const engFam = (r["Engine Family"] || "Unknown").trim();
-            body.innerHTML = `
-              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;text-align:center;">
-                <svg style="width:32px;height:32px;color:#334155;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <div style="font-size:13px;font-weight:600;color:#94a3b8;">Maintenance baseline data unavailable for this variant</div>
-                <div style="font-size:11px;color:#475569;">Lookup key: <span class="mono" style="color:#64748b;">${escapeHtml(acType)}_${escapeHtml(engFam)}</span></div>
-                <div style="font-size:10px;color:#334155;max-width:420px;margin-top:4px;">The MPD rules dictionary currently covers A320ceo, A320neo, 737-800 NG, and 737-8 MAX variants. Other types will be added in future phases.</div>
-              </div>`;
-            return;
-          }
-
-          // Icon SVGs
-          const icoHeavy = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>';
-          const icoGear  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>';
-          const icoEng   = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>';
-          const icoCchk  = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
-          const icoEngPR = '<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
-
-          const ragHeavy  = mxRagStatus(mx.heavyRemMo, "months");
-          const ragCchk   = mxRagStatus(mx.cCheckRemMo, "months");
-          const ragGear   = mxRagStatus(mx.gearEffectiveMo, "months");
-          const ragEngLlp = mxRagStatus(mx.engLlpRemFc, "cycles");
-          const ragEngPr  = mxRagStatus(mx.engPrRemFh, "cycles");
-
-          body.innerHTML = `
-            <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-              <div>
-                <span style="font-size:11px;color:#64748b;">MPD Baseline Key:</span>
-                <span class="mono" style="font-size:11px;color:#06b6d4;margin-left:6px;">${escapeHtml(mx.lookupKey)}</span>
-              </div>
-              <div style="display:flex;gap:12px;">
-                <span style="font-size:10px;color:#475569;">Age: <strong style="color:#cbd5e1;">${mx.ageMonths.toLocaleString()} mo</strong></span>
-                <span style="font-size:10px;color:#475569;">Cycles: <strong style="color:#cbd5e1;">${mx.cumCycles.toLocaleString()} FC</strong></span>
-                <span style="font-size:10px;color:#475569;">Hours: <strong style="color:#cbd5e1;">${mx.cumHours.toLocaleString()} FH</strong></span>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
-              ${mxMetricHtml(icoHeavy, 'Months to Heavy Check (D-Check)', mx.heavyRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.heavyMo + ' mo · ' + Math.round(mx.heavyRemMo / 12 * 10) / 10 + ' years remaining', ragHeavy)}
-              ${mxMetricHtml(icoCchk, 'Months to Next C-Check', mx.cCheckRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.cCheckMo + ' mo', ragCchk)}
-              ${mxMetricHtml(icoGear, 'Life to Gear Overhaul', mx.gearEffectiveMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Limited by ' + mx.gearLimitedBy + ' · Calendar: ' + mx.gearRemMo + ' mo · Cycles: ' + mx.gearRemFc.toLocaleString() + ' FC remaining', ragGear)}
-              ${mxMetricHtml(icoEng, 'Remaining Engine LLP Cycles', mx.engLlpRemFc.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FC</span>', 'LLP limit: ' + mx.rule.engLlpFc.toLocaleString() + ' FC per shop visit', ragEngLlp)}
-              ${mxMetricHtml(icoEngPR, 'Engine Perf. Restoration (FH)', mx.engPrRemFh.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FH</span>', 'PR interval: ' + mx.rule.engPrFh.toLocaleString() + ' FH', ragEngPr)}
-            </div>
-            <div style="margin-top:14px;padding:10px 14px;background:#0a0f1e;border:1px solid #1a2234;border-radius:8px;display:flex;align-items:center;gap:8px;">
-              <svg style="width:14px;height:14px;color:#334155;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <div style="font-size:10px;color:#475569;line-height:1.5;">Predictions are browser-computed estimates using hardcoded OEM MPD intervals and the aircraft's current age and cumulative cycles/hours from the fleet dataset. Actual maintenance scheduling depends on operator-specific MPD approvals, AD compliance, and SB incorporation status. Where cumulative cycles were missing, an estimate of 120 FC/month was applied.</div>
-            </div>`;
-        }
-
-        /**
-         * openAircraftDetail(serialNumber)
-         * Convenience function to open the A/C Detail view by serial number.
-         * Called from external triggers or can replace showAcDetail in DD rows.
-         */
-        function openAircraftDetail(serialNumber) {
-          const sn = String(serialNumber || "").trim();
-          if (!sn) return;
-          const idx = allData.findIndex(r => (r["Serial Number"] || "").trim() === sn);
-          if (idx >= 0) {
-            showAcDetail(idx);
-          } else {
-            console.warn("openAircraftDetail: Serial Number not found:", sn);
-          }
         }
       </script>
 
       <!-- ==================== USM & MRO PIPELINE TAB ==================== -->
-      <div id="tab-usm" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-usm" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-emerald">
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Prime USM Candidates
@@ -5654,10 +5174,8 @@
           </div>
         </div>
         <div class="card flex flex-col overflow-hidden" style="padding:0;min-height:300px;">
-          <div
-            style="padding:10px 16px;border-bottom:1px solid #1a2234;background:#0d1424;display:flex;justify-content:space-between;align-items:center;">
-            <div><span class="s-title">USM Prime Candidates Hit-List</span><span id="usm-table-count"
-                style="font-size:11px;color:#334155;padding:2px 8px;border-radius:5px;background:#0a0f1e;margin-left:8px;"></span>
+          <div style="padding:10px 16px;border-bottom:1px solid #1a2234;background:#0d1424;display:flex;justify-content:space-between;align-items:center;">
+            <div><span class="s-title">USM Prime Candidates Hit-List</span><span id="usm-table-count" style="font-size:11px;color:#334155;padding:2px 8px;border-radius:5px;background:#0a0f1e;margin-left:8px;"></span>
             </div>
           </div>
           <div class="overflow-auto">
@@ -5681,7 +5199,7 @@
       </div>
 
       <!-- ==================== LESSOR EXPOSURE TAB ==================== -->
-      <div id="tab-exposure" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-exposure" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-rose">
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Market Value in
@@ -5708,15 +5226,14 @@
           </div>
           <div class="card flex flex-col">
             <div class="s-title">Transition Wave by Engine Generation</div>
-            <div class="s-sub">Assets transitioning grouped by Lease End Year & Eng Fam</div>
+            <div class="s-sub">Assets transitioning grouped by Lease End Year &amp; Eng Fam</div>
             <div class="flex-grow relative"><canvas id="exp-chart-wave"></canvas></div>
           </div>
         </div>
         <div class="card flex flex-col overflow-hidden" style="padding:0;min-height:300px;">
           <div style="padding:10px 16px;border-bottom:1px solid #1a2234;background:#0d1424;">
             <span class="s-title">Upcoming Transitions List</span>
-            <span id="exp-table-count"
-              style="font-size:11px;color:#334155;padding:2px 8px;border-radius:5px;background:#0a0f1e;margin-left:8px;"></span>
+            <span id="exp-table-count" style="font-size:11px;color:#334155;padding:2px 8px;border-radius:5px;background:#0a0f1e;margin-left:8px;"></span>
           </div>
           <div class="overflow-auto">
             <table style="width:100%;border-collapse:collapse;min-width:1000px;">
@@ -5738,14 +5255,14 @@
       </div>
 
       <!-- ==================== HISTORICAL STORAGE TAB ==================== -->
-      <div id="tab-historical" class="hidden p-4 flex flex-col gap-4">
+      <div id="tab-historical" class="hidden p-4 flex flex-col gap-4" style="display: none;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0;">
           <div class="kpi kpi-accent kpi-amber">
             <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Total Stored Fleet</div>
             <div style="font-size:28px;font-weight:800;color:#f59e0b;" id="hst-kpi-total">0</div>
           </div>
           <div class="kpi kpi-accent kpi-rose">
-            <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Aircraft Stored > 1 Year
+            <div style="font-size:10px;color:#334155;font-weight:700;text-transform:uppercase;">Aircraft Stored &gt; 1 Year
             </div>
             <div style="font-size:28px;font-weight:800;color:#f43f5e;" id="hst-kpi-1yr">0</div>
           </div>
@@ -5765,18 +5282,17 @@
           </div>
         </div>
       </div>
-      <div id="tab-lopa" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-placement" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4"></div>
-        <div id="tab-creditrisk" class="hidden p-4 flex flex-col gap-4"></div>
+      <div id="tab-lopa" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
+        <div id="tab-placement" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
+        <div id="tab-ccolopa" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
+        <div id="tab-engineintel" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
+        <div id="tab-transitionintel" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
+        <div id="tab-creditrisk" class="hidden p-4 flex flex-col gap-4" style="display: none;"></div>
         <!-- ==================== TATS PROSPECTING TAB ==================== -->
-        <div id="tab-tats" class="hidden p-4 flex flex-col gap-4">
+        <div id="tab-tats" class="hidden p-4 flex flex-col gap-4" style="display: none;">
 
         <!-- AUTO-DERIVE BANNER -->
-        <div id="tats-auto-banner" class="card"
-          style="padding:12px 16px;border-left:3px solid #f59e0b;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div id="tats-auto-banner" class="card" style="padding:12px 16px;border-left:3px solid #f59e0b;display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div class="flex items-center gap-3">
             <div style="font-size:22px;"></div>
             <div>
@@ -5786,8 +5302,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <div id="tats-loaded-badge"
-              style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:11px;padding:4px 12px;border-radius:999px;font-weight:700;">
+            <div id="tats-loaded-badge" style="background:#052e16;color:#4ade80;border:1px solid #166534;font-size:11px;padding:4px 12px;border-radius:999px;font-weight:700;">
               LIVE SYSTEM PREDICTIVE</div>
           </div>
         </div>
@@ -5823,7 +5338,7 @@
             <select class="fs" id="tp-topn" onchange="refreshTATSVisuals()">
               <option value="5">Top 5</option>
               <option value="10">Top 10</option>
-              <option value="25" selected>Top 25</option>
+              <option value="25" selected="">Top 25</option>
               <option value="50">Top 50</option>
               <option value="100">Top 100</option>
               <option value="all">All</option>
@@ -5875,14 +5390,12 @@
               <svg id="tp-sunburst" style="width:100%;height:100%;"></svg>
             </div>
             <!-- Tooltip card -->
-            <div id="sunburst-tooltip"
-              style="display:none;position:absolute;background:#111827;border:1px solid #334155;border-radius:10px;padding:12px;min-width:220px;z-index:100;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5);font-size:11px;">
+            <div id="sunburst-tooltip" style="display:none;position:absolute;background:#111827;border:1px solid #334155;border-radius:10px;padding:12px;min-width:220px;z-index:100;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5);font-size:11px;">
               <div id="st-company" style="font-weight:800;color:#f59e0b;margin-bottom:6px;"></div>
               <div id="st-type" style="color:#94a3b8;margin-bottom:3px;"></div>
               <div id="st-lease" style="color:#10b981;margin-bottom:3px;"></div>
               <div id="st-status" style="margin-bottom:6px;"></div>
-              <div id="st-hook"
-                style="color:#60a5fa;font-style:italic;border-top:1px solid #1f2937;padding-top:6px;margin-bottom:6px;">
+              <div id="st-hook" style="color:#60a5fa;font-style:italic;border-top:1px solid #1f2937;padding-top:6px;margin-bottom:6px;">
               </div>
               <div id="st-action" style="font-weight:700;color:#06b6d4;"></div>
             </div>
@@ -5898,18 +5411,14 @@
 
         <!-- TOP-25 ACTION TABLE -->
         <div class="card flex flex-col overflow-hidden" style="padding:0;">
-          <div
-            style="padding:10px 16px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
+          <div style="padding:10px 16px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
             <div>
               <span class="s-title">Top-N Action Table</span>
-              <span id="tp-action-count"
-                style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;margin-left:8px;"></span>
+              <span id="tp-action-count" style="font-size:11px;color:#334155;background:#0a0f1e;padding:2px 8px;border-radius:5px;margin-left:8px;"></span>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <span style="font-size:10px;color:#334155;">QC: <span id="tp-qc-status"
-                  style="font-weight:700;color:#10b981;"> Ready</span></span>
-              <input class="fi" id="tp-table-search" placeholder="Search company, type..." oninput="renderActionTable()"
-                style="width:200px;">
+              <span style="font-size:10px;color:#334155;">QC: <span id="tp-qc-status" style="font-weight:700;color:#10b981;"> Ready</span></span>
+              <input class="fi" id="tp-table-search" placeholder="Search company, type..." oninput="renderActionTable()" style="width:200px;">
             </div>
           </div>
           <div class="overflow-auto" style="max-height:420px;">
@@ -5935,8 +5444,7 @@
 
         <!-- PIPELINE TRACKER -->
         <div class="card flex flex-col overflow-hidden" style="padding:0;">
-          <div
-            style="padding:10px 16px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
+          <div style="padding:10px 16px;border-bottom:1px solid #1a2234;display:flex;align-items:center;justify-content:space-between;background:#0d1424;flex-shrink:0;">
             <span class="s-title">Pipeline Tracker <span style="font-size:11px;font-weight:400;color:#334155;">
                 Prospecting
                 Execution Log</span></span>
@@ -5945,8 +5453,7 @@
                 Entry</button>
               <button onclick="exportPipeline()" class="btn btn-ghost" style="font-size:11px;padding:5px 12px;"> Export
                 CSV</button>
-              <button onclick="clearPipeline()" class="btn btn-ghost"
-                style="font-size:11px;padding:5px 12px;color:#f43f5e;border-color:#4c1519;">Clear</button>
+              <button onclick="clearPipeline()" class="btn btn-ghost" style="font-size:11px;padding:5px 12px;color:#f43f5e;border-color:#4c1519;">Clear</button>
             </div>
           </div>
           <div class="overflow-auto" style="max-height:360px;">
@@ -6439,11 +5946,11 @@ function renderSunburst(topN){
             try {
               const d = feFiltered; if (!d || !d.length) return;
               const mfgD = topN(cBy(d, "Manufacturer"), 10);
-              safeChart("fleet", "fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
+              ic("fe-chart-mfg", hBar(mfgD.map(e => e[0]), mfgD.map(e => e[1])));
               const stD = topN(cBy(d, "Status"), 8);
-              safeChart("fleet", "fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
+              ic("fe-chart-status", hBar(stD.map(e => e[0]), stD.map(e => e[1]), "#6366f1"));
               const grD = topN(cBy(d, "Market Grouping"), 8);
-              safeChart("fleet", "fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
+              ic("fe-chart-grouping", hBar(grD.map(e => e[0]), grD.map(e => e[1]), "#8b5cf6"));
             } catch (err) {
               console.error("Deferred Fleet Explorer render failed:", err);
               showModuleError("fleet", (document.getElementById("tbtn-fleet") || {}).textContent || "Fleet Explorer", err);
@@ -6462,9 +5969,9 @@ function renderSunburst(topN){
               if (!allData || !allData.length) return;
               const d = allData.filter(r => (reg === "" || (r["Operator Region"] || "").trim() === reg) && (mfg === "" || (r["Manufacturer"] || "").trim() === mfg));
               const emD = topN(cBy(d, "Engine Manufacturer"), 10);
-              safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+              ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
               const efD = topN(cBy(d, "Engine Family"), 10);
-              safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
+              ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1]), "#6366f1"));
             } catch (err) {
               console.error("Deferred MFG-ENGINE render failed:", err);
               showModuleError("p2", (document.getElementById("tbtn-p2") || {}).textContent || "MFG-ENGINE", err);
@@ -6572,14 +6079,14 @@ function renderSunburst(topN){
           document.getElementById("p1-kpi-operators").textContent = new Set(d.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size;
           // Region stacked chart
           const rMap = cBy(d, "Operator Region"); const rTop = topN(rMap, 10);
-          safeChart("p1", "chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
+          ic("chart-p1-region", hBar(rTop.map(e => e[0]), rTop.map(e => e[1])));
           const topRegs = rTop.map(e => e[0]); const topEFs = topN(cBy(d, "Engine Family"), 5).map(e => e[0]);
           const em = {}; d.forEach(r => { const rg = (r["Operator Region"] || "?").trim(), ef = (r["Engine Family"] || "?").trim(); if (!em[rg]) em[rg] = {}; em[rg][ef] = (em[rg][ef] || 0) + 1; });
-          safeChart("p1", "chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          ic("chart-p1-sankey", { type: "bar", data: { labels: topRegs, datasets: topEFs.map((f, i) => ({ label: f, data: topRegs.map(r => (em[r] && em[r][f]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
           const cTop = topN(cBy(d, "Operator Country/Subregion"), 10);
-          safeChart("p1", "chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
+          ic("chart-p1-countries", hBar(cTop.map(e => e[0].length > 14 ? e[0].slice(0, 13) + "" : e[0]), cTop.map(e => e[1])));
           const mgTop = topN(cBy(d, "Market Grouping"), 8);
-          safeChart("p1", "chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
+          ic("chart-p1-mkt", hBar(mgTop.map(e => e[0]), mgTop.map(e => e[1]), "#8b5cf6"));
           // Airlines per region  click on bar to drill
           renderP1Airlines(d, topRegs);
         }
@@ -6611,11 +6118,11 @@ function renderSunburst(topN){
           const d = allData.filter(r => mf(r["Operator Region"], regs) && mf(r["Manufacturer"], mfgs));
           const topMfgs = topN(cBy(d, "Manufacturer"), 6).map(e => e[0]); const topEMs = topN(cBy(d, "Engine Manufacturer"), 5).map(e => e[0]);
           const flow = {}; d.forEach(r => { const m = (r["Manufacturer"] || "?").trim(), e = (r["Engine Manufacturer"] || "?").trim(); if (!flow[m]) flow[m] = {}; flow[m][e] = (flow[m][e] || 0) + 1; });
-          safeChart("p2", "chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
-          const emD = topN(cBy(d, "Engine Manufacturer"), 10); safeChart("p2", "chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
-          const efD = topN(cBy(d, "Engine Family"), 10); safeChart("p2", "chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
-          const etD = topN(cBy(d, "Engine Type"), 8); safeChart("p2", "chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
-          const neD = topN(cBy(d, "Number Of Engines"), 5); safeChart("p2", "chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
+          ic("chart-p2-flow", { type: "bar", data: { labels: topMfgs, datasets: topEMs.map((em, i) => ({ label: em, data: topMfgs.map(m => (flow[m] && flow[m][em]) || 0), backgroundColor: C[i], borderRadius: 3, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, border: { display: false } } } } });
+          const emD = topN(cBy(d, "Engine Manufacturer"), 10); ic("chart-p2-share", hBar(emD.map(e => e[0]), emD.map(e => e[1])));
+          const efD = topN(cBy(d, "Engine Family"), 10); ic("chart-p2-engfam", hBar(efD.map(e => e[0]), efD.map(e => e[1])));
+          const etD = topN(cBy(d, "Engine Type"), 8); ic("chart-p2-engtype", hBar(etD.map(e => e[0].length > 10 ? e[0].slice(0, 9) + "" : e[0]), etD.map(e => e[1])));
+          const neD = topN(cBy(d, "Number Of Engines"), 5); ic("chart-p2-numeng", hBar(neD.map(e => e[0] + " eng"), neD.map(e => e[1])));
         }
         window._renderP2Base = renderP2;
 
@@ -6631,9 +6138,9 @@ function renderSunburst(topN){
           const years = []; for (let y = yrFrom; y <= yrTo; y++)if (d.some(r => r._buildYr === y)) years.push(y);
           const families = topN(cBy(d, "Current Family"), 8).map(e => e[0]);
           const cumD = {}; families.forEach(f => { let c = 0; cumD[f] = years.map(y => { c += d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length; return c; }); });
-          safeChart("p3", "chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
+          ic("chart-p3-cumulative", { type: "line", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: cumD[f], borderColor: C[i], backgroundColor: "transparent", tension: .3, pointRadius: 0, borderWidth: 2 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false } } } } });
           const total = d.length || 1;
-          safeChart("p3", "chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
+          ic("chart-p3-share", { type: "bar", data: { labels: years, datasets: families.map((f, i) => ({ label: f, data: years.map(y => { const yt = d.filter(r => r._buildYr === y).length || 1; return +((d.filter(r => r._buildYr === y && (r["Current Family"] || "").trim() === f).length / yt) * 100).toFixed(1); }), backgroundColor: C[i], borderRadius: 2, stack: "s" })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 8, font: { size: 10 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, border: { display: false } } } } });
           const famStats = families.map(f => { const fd = d.filter(r => (r["Current Family"] || "").trim() === f); const ages = fd.map(r => r._age).filter(Boolean); const inSvc = fd.filter(r => (r["Status"] || "").includes("Service")).length; return { f, count: fd.length, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", share: ((fd.length / total) * 100).toFixed(1), inSvcPct: fd.length ? ((inSvc / fd.length) * 100).toFixed(0) + "%" : "-" }; });
           document.getElementById("p3-family-table").innerHTML = famStats.map((s, i) => `<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${C[i]};margin-right:6px;"></span>${s.f}</td><td class="num">${s.count.toLocaleString()}</td><td class="num">${s.avgAge}</td><td class="num">${s.share}%</td><td class="num">${s.inSvcPct}</td></tr>`).join("");
           const regD = topN(cBy(d, "Operator Region"), 8);
@@ -6722,10 +6229,10 @@ function renderSunburst(topN){
             const statusTop = topN(cBy(d, "Status"), 8);
             const groupingTop = topN(cBy(d, "Market Grouping"), 8);
 
-            safeChart("fleet", "fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
-            safeChart("fleet", "fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
-            safeChart("fleet", "fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
-            safeChart("fleet", "fe-chart-age", {
+            ic("fe-chart-mfg", hBar(mfgTop.map(e => e[0]), mfgTop.map(e => e[1])));
+            ic("fe-chart-status", hBar(statusTop.map(e => e[0]), statusTop.map(e => e[1]), "#6366f1"));
+            ic("fe-chart-grouping", hBar(groupingTop.map(e => e[0]), groupingTop.map(e => e[1]), "#8b5cf6"));
+            ic("fe-chart-age", {
               type: "bar",
               data: {
                 labels: ageBuckets.map(bucket => bucket.label),
@@ -6984,29 +6491,14 @@ function renderSunburst(topN){
           const mgrs = cBy(allData, "Manager");
           const topMgrs = topN(mgrs, 15);
           if (topMgrs.length) {
-            safeChart("lessors", "chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
+            ic("chart-lessors-tm", hBar(topMgrs.map(e => e[0]), topMgrs.map(e => e[1]), "#06b6d4"));
           }
           const mgrList = Object.entries(mgrs).map(([m, count]) => {
-            const d = allData.filter(r => (((r["Manager"] || "").trim()) || "N/A") === m);
+            const d = allData.filter(r => (r["Manager"] || "").trim() === m);
             const ages = d.map(r => r._age).filter(v => v !== null);
             const highRisk = d.filter(r => r._mroRisk === "High Risk").length;
             const hrPct = d.length ? (highRisk / d.length * 100).toFixed(0) : 0;
-            const region = d.length
-              ? String(
-                d[0]["Manager Country/Subregion"] ||
-                d[0]["Operator Country/Subregion"] ||
-                d[0]["Operator Region"] ||
-                d[0]._region ||
-                "-"
-              ).trim() || "-"
-              : "-";
-            return {
-              m,
-              count,
-              avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-",
-              hrPct: hrPct + "%",
-              region
-            };
+            return { m, count, avgAge: ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1) : "-", hrPct: hrPct + "%", region: d[0]._region || "-" };
           }).sort((a, b) => b.count - a.count).slice(0, 50);
           document.getElementById("lessors-tbody").innerHTML = mgrList.length
             ? mgrList.map(r => `<tr><td>${r.m}</td><td>${r.region}</td><td class="num">${r.count}</td><td class="num">${r.avgAge}</td><td class="num"><span class="badge ${parseInt(r.hrPct) > 20 ? 'bg-st' : 'bg-is'}">${r.hrPct}</span></td></tr>`).join("")
@@ -7016,18 +6508,17 @@ function renderSunburst(topN){
         function renderCountryTab() {
           const tab = document.getElementById("tab-country");
           if (!tab || tab.classList.contains("hidden")) return;
-          if (!allData || !allData.length) return;
           if (!countryReport || !countryReport.length) buildCountry();
           document.getElementById("co-kpi-cty").textContent = countryReport.length.toLocaleString();
           document.getElementById("co-kpi-al").textContent = new Set(allData.map(r => (r["Operator"] || "").trim()).filter(Boolean)).size.toLocaleString();
           document.getElementById("co-kpi-ac").textContent = allData.length.toLocaleString();
           const topCtyAl = topN(countryReport.map(r => [r.country, r.airlineCount]), 10);
           if (topCtyAl.length) {
-            safeChart("country", "chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
+            ic("chart-co-airlines", hBar(topCtyAl.map(e => e[0]), topCtyAl.map(e => e[1]), "#8b5cf6"));
           }
           const topCtyAc = topN(countryReport.map(r => [r.country, r.aircraftCount]), 10);
           if (topCtyAc.length) {
-            safeChart("country", "chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
+            ic("chart-co-aircraft", hBar(topCtyAc.map(e => e[0]), topCtyAc.map(e => e[1]), "#06b6d4"));
           }
           renderCountryTable();
         }
@@ -7174,116 +6665,50 @@ function renderSunburst(topN){
       </script>
     </div><!-- end tab-area -->
   </div><!-- end dashboard-section -->
-  <!-- Phase 1.4: Lightweight Test Harness -->
-  <script>
-    window.runTests = () => {
-      let pass = 0, fail = 0;
-      const assert = (cond, msg) => {
-        if (cond) { pass++; console.log(`%c✓ ${msg}`, 'color:#86efac'); }
-        else { fail++; console.error(`✗ FAIL: ${msg}`); }
-      };
-      const section = (name) => console.log(`%c\n─── ${name} ───`, 'color:#06b6d4;font-weight:bold');
+<script>
+window.addEventListener('error', function (e) {
+  const pre = document.createElement('pre');
+  pre.id = 'runtime-error';
+  pre.textContent = 'RUNTIME_ERROR: ' + (e.message || 'unknown');
+  document.body.prepend(pre);
+});
+window.addEventListener('unhandledrejection', function (e) {
+  const pre = document.createElement('pre');
+  pre.id = 'promise-error';
+  pre.textContent = 'PROMISE_ERROR: ' + ((e.reason && e.reason.message) || e.reason || 'unknown');
+  document.body.prepend(pre);
+});
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    try {
+      switchTab('lessors');
+      setTimeout(function(){
+        const out = {
+          hdrCount: document.getElementById('hdr-count')?.textContent || null,
+          dashboardHidden: document.getElementById('dashboard-section')?.className || null,
+          lessRows: document.getElementById('lessors-tbody')?.children.length || 0,
+          lessText: (document.getElementById('lessors-tbody')?.textContent || '').trim().slice(0, 300),
+          coRows: document.getElementById('co-tbody')?.children.length || 0,
+          feRows: document.getElementById('fe-tbody')?.children.length || 0,
+          p1Total: document.getElementById('p1-kpi-total')?.textContent || null,
+          activeTab: document.querySelector('.tab-btn.active')?.id || null,
+          syncStatus: document.getElementById('sync-status')?.textContent || null
+        };
+        const pre = document.createElement('pre');
+        pre.id = 'debug-output';
+        pre.textContent = JSON.stringify(out, null, 2);
+        document.body.prepend(pre);
+      }, 1200);
+    } catch (err) {
+      const pre = document.createElement('pre');
+      pre.id = 'debug-catch';
+      pre.textContent = 'DEBUG_CATCH: ' + (err && err.message ? err.message : String(err));
+      document.body.prepend(pre);
+    }
+  }, 18000);
+});
+</script>
 
-      // --- ModuleSystem ---
-      section('ModuleSystem');
-      assert(typeof ModuleSystem === 'object', 'ModuleSystem exists');
-      assert(ModuleSystem.has('TATS'), 'TATS module registered');
-      assert(ModuleSystem.has('DataSchema'), 'DataSchema module registered');
-      assert(ModuleSystem.list().length >= 2, 'At least 2 modules registered');
-      try { ModuleSystem.get('NonExistent'); assert(false, 'Missing module throws'); } catch (e) { assert(true, 'Missing module throws: ' + e.message); }
 
-      // --- TATS Scoring ---
-      section('TATS Scoring');
-      const tats = ModuleSystem.get('TATS');
 
-      // High Risk: stored, old, short lease, Tier 1, top-25
-      const hr = tats.calculateScore({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
-      assert(hr >= 70, `High Risk scenario score=${hr} (expected >=70)`);
-      assert(tats.getTier(hr) === 'High Risk', `High Risk tier correct`);
-
-      // Medium Risk: in service, middle age, 2-year lease
-      const mr = tats.calculateScore({ daysToLeaseEnd: 500, status: 'In Service', ageYears: 16, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(mr >= 40 && mr < 70, `Medium Risk scenario score=${mr} (expected 40-69)`);
-      assert(tats.getTier(mr) === 'Medium Risk', `Medium Risk tier correct`);
-
-      // Low Risk: new, long lease, not top-25
-      const lr = tats.calculateScore({ daysToLeaseEnd: 2000, status: 'In Service', ageYears: 3, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(lr < 40, `Low Risk scenario score=${lr} (expected <40)`);
-      assert(tats.getTier(lr) === 'Low Risk', `Low Risk tier correct`);
-
-      // Edge: unknown lease end
-      const unk = tats.calculateScore({ daysToLeaseEnd: null, status: 'In Service', ageYears: 8, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(unk >= 0, `Unknown lease score=${unk} is non-negative`);
-
-      // Edge: estimated lease penalty
-      const estPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
-      const noEstPen = tats.calculateScore({ daysToLeaseEnd: 200, status: 'In Service', ageYears: 12, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: false });
-      assert(estPen < noEstPen, `Estimated lease penalty: ${estPen} < ${noEstPen}`);
-
-      // Clamp: can't go below 0
-      const clampLow = tats.calculateScore({ daysToLeaseEnd: null, status: 'Other', ageYears: 1, operatorTier: 'Standard', isTop25: false, isLeaseEndEstimated: true });
-      assert(clampLow >= 0, `Score clamped to 0 minimum (got ${clampLow})`);
-
-      // TAM estimation
-      assert(tats.estimateTAM(50000000) === 100000, 'TAM: $50M market value → $100K TAM');
-      assert(tats.estimateTAM(null) === null, 'TAM: null input returns null');
-      assert(tats.estimateTAM(0) === null, 'TAM: zero input returns null');
-
-      // scoreBreakdown
-      const bd = tats.scoreBreakdown({ daysToLeaseEnd: 90, status: 'Storage', ageYears: 22, operatorTier: 'Tier 1', isTop25: true, isLeaseEndEstimated: false });
-      assert(bd.score === hr, 'scoreBreakdown matches calculateScore');
-      assert(bd.tier === 'High Risk', 'scoreBreakdown tier matches');
-
-      // --- DataSchema ---
-      section('DataSchema');
-      const ds = ModuleSystem.get('DataSchema');
-
-      // Valid record
-      const validIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
-      assert(validIssues.length === 0, 'Valid record has 0 issues');
-
-      // Missing required
-      const missingIssues = ds.validate({ 'Serial Number': '', 'Type': '', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus' }, 0);
-      assert(missingIssues.length >= 2, `Missing required fields detected: ${missingIssues.length} issues`);
-
-      // Invalid numeric
-      const numIssues = ds.validate({ 'Serial Number': '12345', 'Type': 'A320', 'Operator': 'Delta', 'Status': 'In Service', 'Manufacturer': 'Airbus', 'Age': 'abc' }, 0);
-      assert(numIssues.some(i => i.field === 'Age' && i.issue === 'not_numeric'), 'Non-numeric Age detected');
-
-      // Batch validation
-      const batchIssues = ds.validateBatch([
-        { 'Serial Number': '111', 'Type': 'A320', 'Operator': 'Test', 'Status': 'In Service', 'Manufacturer': 'Airbus' },
-        { 'Serial Number': '', 'Type': '', 'Operator': '', 'Status': 'Weird', 'Manufacturer': '' }
-      ]);
-      assert(batchIssues.length > 0, `Batch validation found ${batchIssues.length} issues in bad row`);
-
-      // --- MX Engine ---
-      section('MX Engine (Phase 8)');
-      if (typeof calculateMxExposure === 'function') {
-        const knownAc = { 'Type': 'Airbus A320ceo', 'Engine Family': 'CFM56-5B', _age: 10, 'Cumulative Cycles': '40000', 'Cumulative Hours': '60000' };
-        const mx = calculateMxExposure(knownAc);
-        assert(mx !== null, 'Known variant returns MX data');
-        assert(mx.heavyRemMo > 0 && mx.heavyRemMo <= 144, `Heavy check remaining: ${mx.heavyRemMo} mo`);
-        assert(mx.engLlpRemFc > 0, `Engine LLP remaining: ${mx.engLlpRemFc} FC`);
-        assert(mx.gearEffectiveMo > 0, `Gear overhaul remaining: ${mx.gearEffectiveMo} mo`);
-
-        const unknownAc = { 'Type': 'Boeing 747-400', 'Engine Family': 'CF6-80C2', _age: 25 };
-        const mxNull = calculateMxExposure(unknownAc);
-        assert(mxNull === null, 'Unknown variant returns null (fallback)');
-      } else {
-        assert(false, 'calculateMxExposure function not found');
-      }
-
-      // --- Summary ---
-      const total = pass + fail;
-      if (fail === 0) {
-        console.log(`%c\n✅ ALL ${total} TESTS PASSED`, 'color:#86efac;font-weight:bold;font-size:14px');
-      } else {
-        console.log(`%c\n⚠ ${total} tests: ${pass} passed, ${fail} FAILED`, 'color:#fca5a5;font-weight:bold;font-size:14px');
-      }
-      return { pass, fail, total };
-    };
-  </script>
-</body>
-
-</html>
+</body></html>

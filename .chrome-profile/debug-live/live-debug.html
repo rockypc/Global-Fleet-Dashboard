@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<body>
+Loading debug harness...
+<script>
+(async () => {
+  const resp = await fetch('https://rockypc.github.io/Global-Fleet-Dashboard/');
+  let html = await resp.text();
+  const inject = `<script>
+    window.addEventListener('error', function (e) {
+      const pre = document.createElement('pre');
+      pre.id = 'runtime-error';
+      pre.textContent = 'RUNTIME_ERROR: ' + (e.message || 'unknown');
+      document.body.prepend(pre);
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      const pre = document.createElement('pre');
+      pre.id = 'promise-error';
+      pre.textContent = 'PROMISE_ERROR: ' + ((e.reason && e.reason.message) || e.reason || 'unknown');
+      document.body.prepend(pre);
+    });
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        try {
+          switchTab('lessors');
+          setTimeout(function () {
+            const out = {
+              hdrCount: document.getElementById('hdr-count')?.textContent || null,
+              syncStatus: document.getElementById('sync-status')?.textContent || null,
+              lessRows: document.getElementById('lessors-tbody')?.children.length || 0,
+              lessText: (document.getElementById('lessors-tbody')?.textContent || '').trim().slice(0, 300),
+              coRows: document.getElementById('co-tbody')?.children.length || 0,
+              feRows: document.getElementById('fe-tbody')?.children.length || 0,
+              p1Total: document.getElementById('p1-kpi-total')?.textContent || null,
+              currentActive: document.querySelector('.tab-btn.active')?.id || null
+            };
+            const pre = document.createElement('pre');
+            pre.id = 'debug-output';
+            pre.textContent = JSON.stringify(out, null, 2);
+            document.body.prepend(pre);
+          }, 1500);
+        } catch (err) {
+          const pre = document.createElement('pre');
+          pre.id = 'debug-catch';
+          pre.textContent = 'DEBUG_CATCH: ' + (err && err.message ? err.message : String(err));
+          document.body.prepend(pre);
+        }
+      }, 12000);
+    });
+  <\/script>`;
+  html = html.replace('</body>', inject + '</body>');
+  document.open();
+  document.write(html);
+  document.close();
+})();
+</script>
+</body>
+</html>
