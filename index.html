@@ -2417,24 +2417,7 @@
         let ddVisibleRows = [], tatsVisibleRows = [], ddQuickView = "", lastDataAsOfLabel = "", currentDataMode = "live";
         let acDetailState = { idx: null, marketCondition: "half", monthlyLeaseRateUsd: null };
         let coSort = { col: "airlineCount", dir: "desc" }, p4Sort = { col: "age", dir: "desc" };
-        const ModuleSystem = (() => {
-          const factories = {};
-          const instances = {};
-          return {
-            register(name, factory) {
-              factories[name] = factory;
-              delete instances[name];
-            },
-            get(name) {
-              if (!instances[name]) {
-                if (!factories[name]) throw new Error(`Module not registered: ${name}`);
-                instances[name] = factories[name]();
-              }
-              return instances[name];
-            }
-          };
-        })();
-        window.ModuleSystem = ModuleSystem;
+
         const C = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#3b82f6", "#ec4899", "#14b8a6", "#a855f7", "#22c55e", "#fb923c", "#60a5fa", "#f472b6", "#2dd4bf", "#facc15", "#c084fc", "#4ade80", "#38bdf8"];
         function ic(id, cfg) {
           if (typeof window.Chart === "undefined") return;
@@ -6158,7 +6141,7 @@
                 legend: { display: false }, tooltip: {
                   callbacks: {
                     label: ctx => {
-                      const e = topN[ctx.dataIndex]; return m === "tam" ? `${ctx.raw.toFixed(1)}M` : m === "tats" ? `Score: ${ctx.raw}` : ctx.raw + " aircraft`;}}}}}});
+                      const e = topN[ctx.dataIndex]; return m === "tam" ? `${ctx.raw.toFixed(1)}M` : m === "tats" ? `Score: ${ctx.raw}` : ctx.raw + " aircraft";}}}}}});
                       // Sunburst
                       renderSunburst(topN);
                       // Action table
