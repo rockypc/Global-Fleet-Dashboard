@@ -1,0 +1,196 @@
+Airlines,Ishka Credit Score,Ishka Credit Score Outlook or Proxy Score,Overall credit quality,Aircraft in Fleet DB,Match Status,Mapping Note
+Air Baltic,CCC+,CCC+,Critical,89,Matched,
+Aegean Airlines,BBB-,BBB-,Stable,89,Matched,
+Aeroflot Group,B,CCC,Critical,215,Matched,Mapped to: Aeroflot
+Aerolineas Argentinas,,,,83,Matched,
+Afrijet,,,,12,Matched,
+Air Arabia,BBB+,BBB,Stable,174,Matched,
+Air Astana,BB-,BB-,Adequate but some concerns,48,Matched,
+Air Austral,,,,10,Matched,
+Air Canada,BB,BB,Adequate but some concerns,300,Matched,
+Air China,B    ,B,Weak,740,Matched,
+Air Europa,CCC,CCC,Critical,87,Matched,
+Air France HOP!,,,,36,Matched,Mapped to: Air France Hop
+Air France-KLM Group,BB-  ,BB,Adequate but some concerns,48,Matched,Mapped to: Unconfirmed Air France-KLM Group Airline
+Air India,B+,,,730,Matched,
+Air Macau,,,,23,Matched,
+Air Mauritius,,,,16,Matched,
+Air New Zealand,BBB- ,BBB-,Stable,128,Matched,
+Air Niugini,,,,27,Matched,
+Air Nostrum,,,,44,Matched,
+Air Premia,,,,9,Matched,
+Air Senegal,,,,9,Matched,
+Air Serbia,,,,33,Matched,
+Air Transat/Transat,CCC,CCC,Critical,46,Matched,Mapped to: Air Transat
+AirAsia X,CCC,CCC,Critical,54,Matched,
+AirAsia X,,,,54,Matched,
+Airlink,,,,85,Matched,
+AJet,,,,150,Matched,
+Akasa Air,,,,226,Matched,
+Alaska Air Group,BB,BB,Adequate but some concerns,513,Matched,Mapped to: Alaska Airlines
+AlbaStar,,,,3,Matched,
+Allegiant Travel Company,BB-,B+,Weak,162,Matched,Mapped to: Allegiant Air
+American,B-   ,B-,Weak,1315,Matched,Mapped to: American Airlines
+ANA Holdings,BBB-,BBB-,Stable,292,Matched,Mapped to: ANA
+Arkia,,,,14,Matched,
+Asiana Airlines,B-    ,B-,Weak,95,Matched,
+ASL Aviation Holdings,B+,,,0,No fleet found - review,
+Atlas Air,,,,82,Matched,
+Avelo Airlines,CCC,CCC,Critical,68,Matched,
+Avianca Brazil,D    ,CC,Critical,0,No fleet found - review,
+Avianca Group,B+   ,B+,Weak,197,Matched,Mapped to: Avianca
+Avianca Holdings,CCC- ,CCC-,Critical,197,Matched,Mapped to: Avianca
+Azal Azerbaijan Airlines,,,,60,Matched,Mapped to: Azerbaijan Airlines
+Azul,CCC    ,CCC,Critical,250,Matched,
+BA Cityflyer,,,,20,Matched,Mapped to: BA CityFlyer
+Bamboo Airways,,,,18,Matched,
+Bangkok Airways,BB,BB-,Adequate but some concerns,22,Matched,
+Breeze Airways,CCC,CCC,Critical,105,Matched,
+British Airways,BB+ ,BBB-,Stable,334,Matched,
+CAA Congo,,,,3,Matched,Mapped to: Air Congo
+Canada Jetlines,,,,0,No fleet found - review,
+Capital A,CCC  ,CCC,Critical,88,Matched,Mapped to: Capital Airlines
+Cargojet,BB-  ,BB-,Adequate but some concerns,45,Matched,Mapped to: Cargojet Airways
+Caribbean Airlines,,,,21,Matched,
+Cathay Pacific,BB- ,BB-,Adequate but some concerns,273,Matched,
+Cebu Pacific,B   ,B,Weak,169,Matched,
+Chair Airlines,,,,4,Matched,
+Chengdu Airlines,,,,81,Matched,
+China Airlines,BB+,BB+,Adequate but some concerns,158,Matched,
+China Eastern,B-   ,B-,Weak,735,Matched,Mapped to: China Eastern Airlines
+China Express Airlines,B-,B-,Weak,164,Matched,
+China Southern,B+,B+,Weak,874,Matched,Mapped to: China Southern Airlines
+Colorful Guizhou Airlines,,,,41,Matched,
+Copa Holdings,BBB+,BBB+,Stable,139,Matched,Mapped to: Copa Airlines
+Corendon,,,,10,Matched,Mapped to: Corendon Airlines
+Croatia Airlines,CCC+,CCC+,Critical,26,Matched,
+Delta Air Lines,BBB-,BBB-,Stable,1325,Matched,
+DHL Group,BBB-,BBB-,Stable,0,No fleet found - review,
+Eastar Jet,,,,23,Matched,
+easyJet,BBB+    ,BBB+,Stable,473,Matched,Mapped to: EasyJet
+EgyptAir,,,,110,Matched,
+EL AL,B,B+,Weak,77,Matched,Mapped to: El Al
+Emirates,BBB+,BBB,Stable,644,Matched,
+Ethiopian Airlines,,,,237,Matched,
+Etihad Airways,,,,244,Matched,
+EVA Air,BBB-,BBB-,Stable,144,Matched,
+Finnair,B+,B+,Weak,54,Matched,
+Flybe,B-,CCC-,Critical,0,No fleet found - review,
+flydubai,,,,242,Matched,Mapped to: Flydubai
+flynas,BB,BB,Adequate but some concerns,230,Matched,Mapped to: Flynas
+FlyOne,,,,6,Matched,
+FlySafair,,,,42,Matched,Mapped to: Safair
+Frontier Airlines,CCC,CCC,Critical,347,Matched,
+Garuda Indonesia,CCC+,CCC,Critical,148,Matched,
+Germania,,,,0,No fleet found - review,
+GlobalX,CCC,CCC,Critical,23,Matched,
+Go First,CCC,,,0,No fleet found - review,
+Gol,CCC,CCC,Critical,221,Matched,
+Aeromexico ,B+   ,B+,Weak,139,Matched,
+Grupo SATA,CCC- ,CCC-,Critical,0,No fleet found - review,
+Grupo Viva,,,,0,No fleet found - review,
+Grupo Viva Aerobus,BB  ,B+,Weak,0,No fleet found - review,
+Gulf Air,,,,69,Matched,
+Hainan Airlines,CCC  ,CCC,Critical,368,Matched,
+Hawaiian Airlines,B-,,,0,Not in Aircraft Detail,Airline or holding group not present as operator in fleet DB
+IAG,BBB- ,BBB,Stable,0,No fleet found - review,
+Iberia,BB,BB,Adequate but some concerns,119,Matched,
+Iberia Express,,,,25,Matched,
+Icelandair Group,BB-,BB-,Adequate but some concerns,65,Matched,Mapped to: Icelandair
+IndiGo,BB+,BB,Adequate but some concerns,1357,Matched,
+ITA Airways,,,,124,Matched,
+Japan Airlines,BBB,BBB,Stable,0,Not in Aircraft Detail,Airline or holding group not present as operator in fleet DB
+Jazeera Airways,BB-,B+,Weak,49,Matched,
+Jeju Air,B,CCC,Critical,76,Matched,
+Jet Airways,CCC+ ,CC,Critical,0,No fleet found - review,
+Jet2 plc,BBB,BBB,Stable,256,Matched,Mapped to: Jet2
+JetBlue,B-    ,CCC+,Critical,388,Matched,
+JetSMART,,,,95,Matched,Mapped to: JetSmart Chile
+Jettime,,,,12,Matched,
+Jordan Aviation,,,,7,Matched,
+Juneyao Air,B-   ,B-,Weak,103,Matched,
+Kenya Airways,CCC,CCC-,Critical,36,Matched,
+Korean Air,BB- ,BB-,Adequate but some concerns,296,Matched,
+Kuwait Airways,,,,45,Matched,
+LATAM Group,BB- ,BB,Adequate but some concerns,25,Matched,Mapped to: LATAM Airlines Group
+Lion Air Group,,,,515,Matched,Mapped to: Lion Air
+LOT Polish Airlines,,,,140,Matched,
+Lucky Air,,,,54,Matched,
+Lufthansa Group,BBB- ,BBB-,Stable,370,Matched,Mapped to: Lufthansa
+Lynx Air,,,,0,No fleet found - review,
+Malaysia Airlines,,,,163,Matched,
+Mas,,,,0,No fleet found - review,
+MIAT - Mongolian Airlines,,,,10,Matched,Mapped to: Miat Mongolian Airlines
+MODERN Logistics,,,,2,Matched,Mapped to: Modern Logistics
+National Jet Express,,,,24,Matched,
+Nok Air,CCC-,CCC-,Critical,10,Matched,
+Norse Atlantic Airways,CCC- ,CCC-,Critical,2,Matched,
+Norwegian,BB+ ,BB+,Adequate but some concerns,121,Matched,
+Pakistan International Airlines,CCC- ,CC,Critical,38,Matched,
+PAL Holdings,BB-,BB-,Adequate but some concerns,71,Matched,Mapped to: Philippine Airlines
+Pegasus Airlines,B+ ,B+,Weak,270,Matched,Mapped to: Pegasus
+Plus Ultra,,,,5,Matched,
+Pobeda,,,,43,Matched,
+Porter Airlines,,,,104,Matched,
+Qantas Group,BB   ,BB,Adequate but some concerns,229,Matched,Mapped to: Qantas
+Qatar Airways,BBB-,BB+,Adequate but some concerns,593,Matched,
+Qingdao Airlines,,,,40,Matched,
+Regional Express,B-,CCC,Critical,57,Matched,
+Republic Airways,B+,B+,Weak,249,Matched,
+Rossiya Airlines,,,,164,Matched,
+Royal Air Maroc,,,,71,Matched,
+Royal Jordanian,CCC+,CCC+,Critical,49,Matched,
+RwandAir,,,,15,Matched,
+Ryanair,A    ,A,Strong,490,Matched,
+S7,,,,0,No fleet found - review,
+SalamAir,,,,24,Matched,
+SAS,CCC+,B-,Weak,111,Matched,
+Saudia,,,,332,Matched,
+Shaheen Air International,,,,0,No fleet found - review,
+Shandong Airlines,,,,158,Matched,
+Shenzhen Airlines,,,,240,Matched,
+Sichuan Airlines,,,,244,Matched,
+Singapore Airlines Group,A-,A-,Strong,209,Matched,Mapped to: Singapore Airlines
+Sky Airline,,,,30,Matched,
+Skymark Airlines,B,B-,Weak,49,Matched,
+SkyWest Inc.,BB ,BB,Adequate but some concerns,667,Matched,Mapped to: SkyWest Airlines
+Smartavia,,,,13,Matched,
+SmartLynx Latvia,,,,6,Matched,
+Smartwings,,,,27,Matched,
+South African Airways,,,,25,Matched,
+Southwest Airlines,BBB  ,BBB,Stable,1273,Matched,
+SpiceJet,CCC-,CCC-,Critical,214,Matched,
+Spirit Airlines,CCC  ,CCC,Critical,205,Matched,
+Spring Airlines,BB,BB,Adequate but some concerns,177,Matched,
+SriLankan Airlines,CCC,,,27,Matched,
+Star Air,,,,11,Matched,
+Sun Country,BB,BB-,Adequate but some concerns,67,Matched,Mapped to: Sun Country Airlines
+SunExpress,,,,147,Matched,
+Sunwing Travel Group,,,,0,No fleet found - review,
+T'way Air,B-  ,CCC,Critical,59,Matched,
+TAAG Angola,,,,37,Matched,Mapped to: TAAG Angola Airlines
+TAP Air Portugal,B+  ,B+,Weak,101,Matched,
+Thai AirAsia,CCC,CCC,Critical,62,Matched,
+Thai Airways,BB-    ,BB-,Adequate but some concerns,171,Matched,Mapped to: Thai Airways International
+Thomas Cook Group,B+   ,CCC+,Critical,0,No fleet found - review,
+Tianjin Airlines,,,,112,Matched,
+Titan Airways,BB-,BB-,Adequate but some concerns,10,Matched,
+Transavia,,,,56,Matched,
+TruJet,,,,0,No fleet found - review,
+TUI Group,BB,BB,Adequate but some concerns,0,No fleet found - review,
+Tunisair,,,,36,Matched,
+Turkish Airlines,BB ,BB,Adequate but some concerns,771,Matched,
+United Airlines,BB,BB,Adequate but some concerns,1729,Matched,
+Ural Airlines,,,,51,Matched,
+VietJet Air,CCC,CCC,Critical,467,Matched,
+Vietnam Airlines,CCC+,CCC+,Critical,146,Matched,
+Virgin Atlantic,CCC+,CCC+,Critical,52,Matched,
+Virgin Australia,BB-,BB-,Adequate but some concerns,95,Matched,
+Vistara,,,,0,Not in Aircraft Detail,Airline or holding group not present as operator in fleet DB
+VoePass,,,,6,Matched,
+Volaris,B+  ,B,Weak,261,Matched,
+Vueling,BB-   ,BB-,Adequate but some concerns,191,Matched,
+WestJet,,,,284,Matched,
+Wizz Air,B+  ,B,Weak,369,Matched,
+WOW,,,,0,No fleet found - review,
+Xiamen Airlines,,,,225,Matched,
