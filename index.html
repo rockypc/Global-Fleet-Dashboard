@@ -3551,26 +3551,84 @@
           })).sort((a, b) => b.totalActiveFleet - a.totalActiveFleet);
         }
 
+        // --- 1. AIRFRAME BASELINES ---
+        const airframeBaselines = {
+            "A320": { "cCheckIntervalMonths": 24, "heavyCheckIntervalYears": 6, "landingGearOverhaulYears": 10 },
+            "A320neo": { "cCheckIntervalMonths": 24, "heavyCheckIntervalYears": 6, "landingGearOverhaulYears": 10 },
+            "A330": { "cCheckIntervalMonths": 24, "heavyCheckIntervalYears": 6, "landingGearOverhaulYears": 10 },
+            "A330neo": { "cCheckIntervalMonths": 24, "heavyCheckIntervalYears": 6, "landingGearOverhaulYears": 10 },
+            "A350": { "cCheckIntervalMonths": 36, "heavyCheckIntervalYears": 6, "landingGearOverhaulYears": 10 },
+            "B737": { "cCheckIntervalMonths": 36, "heavyCheckIntervalYears": 9, "landingGearOverhaulYears": 10 },
+            "B737MAX": { "cCheckIntervalMonths": 36, "heavyCheckIntervalYears": 9, "landingGearOverhaulYears": 10 },
+            "B777": { "cCheckIntervalMonths": 36, "heavyCheckIntervalYears": 8, "landingGearOverhaulYears": 10 },
+            "B787": { "cCheckIntervalMonths": 36, "heavyCheckIntervalYears": 12, "landingGearOverhaulYears": 10 },
+            "E-Jet": { "cCheckIntervalMonths": 24, "heavyCheckIntervalYears": 8, "landingGearOverhaulYears": 10 }
+        };
+
+        // --- 2. ENGINE BASELINES ---
+        const engineBaselines = {
+            "V2500-A5": { firstRunSV_FH: 18000, matureRunSV_FH: 12000, llpLimit_FC: 20000, svCostReserve_M: 3.85 },
+            "CFM56-5B": { firstRunSV_FH: 20000, matureRunSV_FH: 14000, llpLimit_FC: 20000, svCostReserve_M: 3.40 },
+            "CFM56-7B": { firstRunSV_FH: 20000, matureRunSV_FH: 14000, llpLimit_FC: 20000, svCostReserve_M: 3.35 },
+            "LEAP-1A":  { firstRunSV_FH: 14000, matureRunSV_FH: 10000, llpLimit_FC: 14000, svCostReserve_M: 4.60 },
+            "LEAP-1B":  { firstRunSV_FH: 14000, matureRunSV_FH: 10000, llpLimit_FC: 14000, svCostReserve_M: 4.50 },
+            "PW1100G":  { firstRunSV_FH: 10000, matureRunSV_FH: 8000,  llpLimit_FC: 15000, svCostReserve_M: 4.80 },
+            "CF6-80C2": { firstRunSV_FH: 16000, matureRunSV_FH: 10000, llpLimit_FC: 15000, svCostReserve_M: 5.20 },
+            "CF6-80E":  { firstRunSV_FH: 14000, matureRunSV_FH: 9000,  llpLimit_FC: 15000, svCostReserve_M: 5.80 },
+            "GE90":     { firstRunSV_FH: 25000, matureRunSV_FH: 15000, llpLimit_FC: 15000, svCostReserve_M: 9.50 },
+            "GEnx-1B":  { firstRunSV_FH: 20000, matureRunSV_FH: 12000, llpLimit_FC: 15000, svCostReserve_M: 8.20 },
+            "Trent 7000":{ firstRunSV_FH: 12000, matureRunSV_FH: 8000,  llpLimit_FC: 12000, svCostReserve_M: 8.50 },
+            "Trent XWB":{ firstRunSV_FH: 18000, matureRunSV_FH: 11000, llpLimit_FC: 15000, svCostReserve_M: 9.80 },
+            "CF34-8E":  { firstRunSV_FH: 16000, matureRunSV_FH: 12000, llpLimit_FC: 25000, svCostReserve_M: 2.20 },
+            "CF34-10E": { firstRunSV_FH: 18000, matureRunSV_FH: 13000, llpLimit_FC: 25000, svCostReserve_M: 2.80 },
+            "PD-8":     { firstRunSV_FH: 12000, matureRunSV_FH: 8000,  llpLimit_FC: 15000, svCostReserve_M: 2.50 }
+        };
+
+        // --- 3. NORMALIZATION ENGINE ---
+        function normalizeAirframe(rawType, rawSeries, engineFamily) {
+            const type = (rawType || "").toUpperCase();
+            const series = (rawSeries || "").toUpperCase();
+            const eng = (engineFamily || "").toUpperCase();
+            if (type.includes("A32") || type.includes("A318") || type.includes("A319")) {
+                if (series.includes("NEO") || type.includes("NEO") || eng.includes("LEAP-1A") || eng.includes("PW1100G")) return "A320neo";
+                return "A320";
+            }
+            if (type.includes("A330")) {
+                if (series.includes("NEO") || eng.includes("TRENT 7000")) return "A330neo";
+                return "A330";
+            }
+            if (type.includes("A350")) return "A350";
+            if (type.includes("737")) {
+                if (series.includes("MAX") || type.includes("MAX") || eng.includes("LEAP-1B")) return "B737MAX";
+                return "B737";
+            }
+            if (type.includes("777")) return "B777";
+            if (type.includes("787")) return "B787";
+            if (type.includes("E190") || type.includes("E175") || type.includes("E170") || type.includes("E195")) return "E-Jet";
+            return null; 
+        }
+
+        function normalizeEngine(rawEngineFamily, rawEngineType) {
+            const combined = `${rawEngineFamily || ""} ${rawEngineType || ""}`.toUpperCase();
+            if (combined.includes("V25")) return "V2500-A5";
+            if (combined.includes("CFM56-5")) return "CFM56-5B";
+            if (combined.includes("CFM56-7")) return "CFM56-7B";
+            if (combined.includes("LEAP-1A")) return "LEAP-1A";
+            if (combined.includes("LEAP-1B")) return "LEAP-1B";
+            if (combined.includes("PW11") || combined.includes("PW15")) return "PW1100G";
+            if (combined.includes("CF6-80C2")) return "CF6-80C2";
+            if (combined.includes("CF6-80E")) return "CF6-80E";
+            if (combined.includes("GE90")) return "GE90";
+            if (combined.includes("GENX-1B")) return "GEnx-1B";
+            if (combined.includes("TRENT 7000")) return "Trent 7000";
+            if (combined.includes("TRENT XWB")) return "Trent XWB";
+            if (combined.includes("CF34-8")) return "CF34-8E";
+            if (combined.includes("CF34-10")) return "CF34-10E";
+            if (combined.includes("PD-8")) return "PD-8";
+            return null;
+        }
+
         ModuleSystem.register('Maintenance', () => {
-          const mxRules = {
-            "A320_CFM56-5B": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 18000, engLlpFc: 20000 },
-            "A320_IAE V2500": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 16000, engLlpFc: 20000 },
-            "A321_CFM56-5B": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 15000, engLlpFc: 20000 },
-            "A320neo_CFM LEAP-1A": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 20000, engLlpFc: 17500 },
-            "A321neo_CFM LEAP-1A": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 18000, engLlpFc: 17500 },
-            "A320neo_PW1100G": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 14000, engLlpFc: 15000 },
-            "737-800_CFM56-7B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 18000, engLlpFc: 20000 },
-            "737-700_CFM56-7B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 20000, engLlpFc: 20000 },
-            "737-8_CFM LEAP-1B": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 21000, engPrFh: 22000, engLlpFc: 20000 },
-            "777_GE90": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 15000, engPrFh: 15000, engLlpFc: 15000 },
-            "787_GEnx": { cCheckMo: 36, heavyMo: 144, gearMo: 144, gearFc: 20000, engPrFh: 24000, engLlpFc: 20000 },
-            "A330_CF6-80E1": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 15000, engLlpFc: 20000 },
-            "A330_Trent 700": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 14000, engLlpFc: 15000 },
-            "747_CF6-80C2": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 12000, engLlpFc: 15000 },
-            "E190_CF34-10E": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 25000, engPrFh: 12500, engLlpFc: 25000 },
-            "E175_CF34-8E": { cCheckMo: 36, heavyMo: 144, gearMo: 120, gearFc: 25000, engPrFh: 14000, engLlpFc: 25000 },
-            "CRJ900_CF34-8C": { cCheckMo: 24, heavyMo: 144, gearMo: 120, gearFc: 20000, engPrFh: 12000, engLlpFc: 20000 }
-          };
           const overlayId = "mx-detail-overlay";
 
           function normalizeType(type) {
@@ -3643,11 +3701,28 @@
           }
 
           function calculateExposure(aircraft) {
-            const normalizedType = normalizeType(aircraft["Type"]);
-            const rawEng = String(aircraft["Engine Family"] || "").trim();
-            const key = `${normalizedType}_${rawEng}`;
-            const rule = mxRules[key];
-            if (!rule) return null;
+            const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
+            const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"]);
+
+            const airframeProfile = airframeBaselines[mappedAirframe];
+            const engineProfile = engineBaselines[mappedEngine];
+
+            let rule = null;
+            if (airframeProfile && engineProfile) {
+                rule = { 
+                  ...airframeProfile, 
+                  ...engineProfile, 
+                  heavyMo: airframeProfile.heavyCheckIntervalYears * 12,
+                  gearMo: airframeProfile.landingGearOverhaulYears * 12,
+                  cCheckMo: airframeProfile.cCheckIntervalMonths,
+                  gearFc: engineProfile.llpLimit_FC,
+                  engLlpFc: engineProfile.llpLimit_FC,
+                  engPrFh: engineProfile.firstRunSV_FH 
+                };
+            } else {
+                console.warn(`Baseline missing for: Airframe[${mappedAirframe}] Engine[${mappedEngine}] from raw ${aircraft["Type"]} / ${aircraft["Engine Family"]}`);
+                return null;
+            }
 
             const ageInMonths = (parseFloat(aircraft._age) || 0) * 12;
             const cycles = aircraft._cycles || (ageInMonths * 120);
@@ -5440,11 +5515,27 @@
          * Returns an object with remaining-life calculations or null if no rule matched.
          */
         function calculateMxExposure(aircraft) {
-          const acType = (aircraft["Type"] || "").trim();
-          const engFam = (aircraft["Engine Family"] || "").trim();
-          const lookupKey = `${acType}_${engFam}`;
-          const rule = mxRules[lookupKey] || null;
-          if (!rule) return null;
+          const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
+          const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"]);
+
+          const airframeProfile = airframeBaselines[mappedAirframe];
+          const engineProfile = engineBaselines[mappedEngine];
+
+          let rule = null;
+          if (airframeProfile && engineProfile) {
+              rule = { 
+                ...airframeProfile, 
+                ...engineProfile, 
+                heavyMo: airframeProfile.heavyCheckIntervalYears * 12,
+                gearMo: airframeProfile.landingGearOverhaulYears * 12,
+                cCheckMo: airframeProfile.cCheckIntervalMonths,
+                gearFc: engineProfile.llpLimit_FC,
+                engLlpFc: engineProfile.llpLimit_FC,
+                engPrFh: engineProfile.firstRunSV_FH 
+              };
+          } else {
+              return null;
+          }
 
           // --- Variables ---
           const ageYears = aircraft._age || 0;
