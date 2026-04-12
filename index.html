@@ -3688,34 +3688,27 @@
             const airframeProfile = airframeBaselines[mappedAirframe];
             const engineProfile = engineBaselines[mappedEngine];
 
-            let rule = null;
-            if (airframeProfile && engineProfile) {
-                rule = { 
-                  ...airframeProfile, 
-                  ...engineProfile, 
-                  heavyMo: airframeProfile.heavyCheckIntervalYears * 12,
-                  gearMo: airframeProfile.landingGearOverhaulYears * 12,
-                  cCheckMo: airframeProfile.cCheckIntervalMonths,
-                  gearFc: engineProfile.llpLimit_FC,
-                  engLlpFc: engineProfile.llpLimit_FC,
-                  engPrFh: engineProfile.firstRunSV_FH 
-                };
-            } else {
-                console.warn(`Baseline missing for: Airframe[${mappedAirframe}] Engine[${mappedEngine}] from raw ${aircraft["Type"]} / ${aircraft["Engine Family"]}`);
-                return null;
+            const baseline = (airframeProfile && engineProfile) ? { ...airframeProfile, ...engineProfile } : null;
+            
+            if (!baseline) {
+                return null; 
             }
 
             const ageInMonths = (parseFloat(aircraft._age) || 0) * 12;
             const cycles = aircraft._cycles || (ageInMonths * 120);
+            
+            const heavyMo = baseline.heavyCheckIntervalYears * 12;
+            const gearMo = baseline.landingGearOverhaulYears * 12;
+            const llpFc = baseline.llpLimit_FC;
 
             return {
-              key,
-              normalizedType,
-              rule,
-              heavyMonths: Math.max(0, rule.heavyMo - (ageInMonths % rule.heavyMo)),
-              gearMonths: Math.max(0, rule.gearMo - (ageInMonths % rule.gearMo)),
-              gearCycles: Math.max(0, rule.gearFc - (cycles % rule.gearFc)),
-              llpCycles: Math.max(0, rule.engLlpFc - (cycles % rule.engLlpFc))
+              key: `${mappedAirframe}_${mappedEngine}`,
+              normalizedType: mappedAirframe,
+              rule: baseline,
+              heavyMonths: Math.max(0, heavyMo - (ageInMonths % heavyMo)),
+              gearMonths: Math.max(0, gearMo - (ageInMonths % gearMo)),
+              gearCycles: Math.max(0, llpFc - (cycles % llpFc)),
+              llpCycles: Math.max(0, llpFc - (cycles % llpFc))
             };
           }
 
