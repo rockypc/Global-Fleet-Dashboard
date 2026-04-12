@@ -5487,8 +5487,8 @@
 
         /**
          * calculateMxExposure(aircraft)
-         * Matches the aircraft to the mxRules dictionary using Type + Engine Family.
-         * Returns an object with remaining-life calculations or null if no rule matched.
+         * Matches the aircraft to the relational baseline profiles using the normalization engine.
+         * Returns an object with remaining-life calculations or null if no baseline matches.
          */
         function calculateMxExposure(aircraft) {
           const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
@@ -5496,63 +5496,46 @@
 
           const airframeProfile = airframeBaselines[mappedAirframe];
           const engineProfile = engineBaselines[mappedEngine];
-
-          let rule = null;
-          if (airframeProfile && engineProfile) {
-              rule = { 
-                ...airframeProfile, 
-                ...engineProfile, 
-                heavyMo: airframeProfile.heavyCheckIntervalYears * 12,
-                gearMo: airframeProfile.landingGearOverhaulYears * 12,
-                cCheckMo: airframeProfile.cCheckIntervalMonths,
-                gearFc: engineProfile.llpLimit_FC,
-                engLlpFc: engineProfile.llpLimit_FC,
-                engPrFh: engineProfile.firstRunSV_FH 
-              };
-          } else {
+          const baseline = (airframeProfile && engineProfile) ? { ...airframeProfile, ...engineProfile } : null;
+          
+          if (!baseline) {
               return null;
           }
 
-          // --- Variables ---
           const ageYears = aircraft._age || 0;
           const ageMonths = Math.round(ageYears * 12);
-          // Cumulative cycles: use parsed value, or estimate as age_months * 120 cycles/month
           let cumCycles = parseFloat(aircraft["Cumulative Cycles"]) || 0;
           if (cumCycles === 0 && ageYears > 0) {
             cumCycles = ageMonths * 120;
           }
-          // Cumulative flight hours: use parsed value, or estimate
           let cumHours = parseFloat(aircraft["Cumulative Hours"]) || 0;
           if (cumHours === 0 && ageYears > 0) {
-            cumHours = ageMonths * 250; // ~250 FH/month industry avg
+            cumHours = ageMonths * 250; 
           }
 
-          // --- Calculations ---
-
-          // 1. Next C-Check (months remaining)
-          const cCheckRemMo = rule.cCheckMo - (ageMonths % rule.cCheckMo);
-
-          // 2. Next Heavy Check / D-Check (months remaining)
-          const heavyRemMo = rule.heavyMo - (ageMonths % rule.heavyMo);
-
-          // 3. Landing Gear Overhaul â€” lesser of calendar limit vs. cycle limit
-          const gearRemMo = rule.gearMo - (ageMonths % rule.gearMo);
-          const gearRemFc = rule.gearFc - (cumCycles % rule.gearFc);
-          // Convert gear cycle limit to approximate months for comparison
+          // --- Calculations using pure baselines ---
+          const cCheckMo = baseline.cCheckIntervalMonths;
+          const heavyMo = baseline.heavyCheckIntervalYears * 12;
+          const gearMo = baseline.landingGearOverhaulYears * 12;
+          const llpFc = baseline.llpLimit_FC;
+          const firstFh = baseline.firstRunSV_FH;
+          
+          const cCheckRemMo = cCheckMo - (ageMonths % cCheckMo);
+          const heavyRemMo = heavyMo - (ageMonths % heavyMo);
+          
+          const gearRemMo = gearMo - (ageMonths % gearMo);
+          const gearRemFc = llpFc - (cumCycles % llpFc);
           const monthlyFc = cumCycles > 0 && ageMonths > 0 ? cumCycles / ageMonths : 120;
           const gearFcAsMonths = monthlyFc > 0 ? Math.round(gearRemFc / monthlyFc) : 9999;
           const gearEffectiveMo = Math.min(gearRemMo, gearFcAsMonths);
           const gearLimitedBy = gearFcAsMonths < gearRemMo ? "cycles" : "calendar";
 
-          // 4. Engine Performance Restoration (flight hours remaining)
-          const engPrRemFh = rule.engPrFh - (cumHours % rule.engPrFh);
-
-          // 5. Engine LLP Life (cycles remaining)
-          const engLlpRemFc = rule.engLlpFc - (cumCycles % rule.engLlpFc);
+          const engPrRemFh = Math.max(0, firstFh - cumHours); 
+          const engLlpRemFc = llpFc - (cumCycles % llpFc);
 
           return {
-            lookupKey,
-            rule,
+            lookupKey: `${mappedAirframe}_${mappedEngine}`,
+            rule: baseline,
             ageMonths,
             cumCycles: Math.round(cumCycles),
             cumHours: Math.round(cumHours),
@@ -5618,7 +5601,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
                 <div style="font-size:13px;font-weight:600;color:#94a3b8;">Maintenance baseline data unavailable for this variant</div>
-                <div style="font-size:11px;color:#475569;">Lookup key: <span class="mono" style="color:#64748b;">${escapeHtml(acType)}_${escapeHtml(engFam)}</span></div>
+                <div style="font-size:11px;color:#475569;">Attempted Match: <span class="mono" style="color:#64748b;">${escapeHtml(acType)} / ${escapeHtml(engFam)}</span></div>
                 <div style="font-size:10px;color:#334155;max-width:420px;margin-top:4px;">The MPD rules dictionary currently covers A320ceo, A320neo, 737-800 NG, and 737-8 MAX variants. Other types will be added in future phases.</div>
               </div>`;
             return;
@@ -5650,11 +5633,11 @@
               </div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
-              ${mxMetricHtml(icoHeavy, 'Months to Heavy Check (D-Check)', mx.heavyRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.heavyMo + ' mo Â· ' + Math.round(mx.heavyRemMo / 12 * 10) / 10 + ' years remaining', ragHeavy)}
-              ${mxMetricHtml(icoCchk, 'Months to Next C-Check', mx.cCheckRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.cCheckMo + ' mo', ragCchk)}
-              ${mxMetricHtml(icoGear, 'Life to Gear Overhaul', mx.gearEffectiveMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Limited by ' + mx.gearLimitedBy + ' Â· Calendar: ' + mx.gearRemMo + ' mo Â· Cycles: ' + mx.gearRemFc.toLocaleString() + ' FC remaining', ragGear)}
-              ${mxMetricHtml(icoEng, 'Remaining Engine LLP Cycles', mx.engLlpRemFc.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FC</span>', 'LLP limit: ' + mx.rule.engLlpFc.toLocaleString() + ' FC per shop visit', ragEngLlp)}
-              ${mxMetricHtml(icoEngPR, 'Engine Perf. Restoration (FH)', mx.engPrRemFh.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FH</span>', 'PR interval: ' + mx.rule.engPrFh.toLocaleString() + ' FH', ragEngPr)}
+              ${mxMetricHtml(icoHeavy, 'Months to Heavy Check (D-Check)', mx.heavyRemMo > 0 ? mx.heavyRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>' : 'Overdue / In Shop', 'Interval: ' + (mx.rule.heavyCheckIntervalYears * 12) + ' mo Â· ' + Math.max(0, Math.round(mx.heavyRemMo / 12 * 10) / 10) + ' years remaining', ragHeavy)}
+              ${mxMetricHtml(icoCchk, 'Months to Next C-Check', mx.cCheckRemMo + ' <span style="font-size:14px;font-weight:500;">months</span>', 'Interval: ' + mx.rule.cCheckIntervalMonths + ' mo', ragCchk)}
+              ${mxMetricHtml(icoGear, 'Life to Gear Overhaul', mx.gearEffectiveMo > 0 ? mx.gearEffectiveMo + ' <span style="font-size:14px;font-weight:500;">months</span>' : 'Overdue / Completed', 'Limited by ' + mx.gearLimitedBy + ' Â· Calendar: ' + mx.gearRemMo + ' mo Â· Cycles: ' + mx.gearRemFc.toLocaleString() + ' FC remaining', ragGear)}
+              ${mxMetricHtml(icoEng, 'Remaining Engine LLP Cycles', mx.engLlpRemFc.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FC</span>', 'LLP limit: ' + mx.rule.llpLimit_FC.toLocaleString() + ' FC per shop visit', ragEngLlp)}
+              ${mxMetricHtml(icoEngPR, 'First Engine Shop Visit (FH)', mx.engPrRemFh > 0 ? mx.engPrRemFh.toLocaleString() + ' <span style="font-size:14px;font-weight:500;">FH</span>' : 'Overdue / Completed', '1st Run limit: ' + mx.rule.firstRunSV_FH.toLocaleString() + ' FH', ragEngPr)}
             </div>
             <div style="margin-top:14px;padding:10px 14px;background:#0a0f1e;border:1px solid #1a2234;border-radius:8px;display:flex;align-items:center;gap:8px;">
               <svg style="width:14px;height:14px;color:#334155;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
