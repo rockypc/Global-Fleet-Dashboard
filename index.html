@@ -3608,11 +3608,20 @@
             return null; 
         }
 
-        function normalizeEngine(rawEngineFamily, rawEngineType) {
+        function normalizeEngine(rawEngineFamily, rawEngineType, rawType) {
             const combined = `${rawEngineFamily || ""} ${rawEngineType || ""}`.toUpperCase();
+            const airframe = (rawType || "").toUpperCase();
+
             if (combined.includes("V25")) return "V2500-A5";
             if (combined.includes("CFM56-5")) return "CFM56-5B";
             if (combined.includes("CFM56-7")) return "CFM56-7B";
+            
+            // Catch generic CFM56 entries by looking at the airframe
+            if (combined.includes("CFM56")) {
+                if (airframe.includes("737")) return "CFM56-7B";
+                return "CFM56-5B"; // Default to Airbus
+            }
+
             if (combined.includes("LEAP-1A")) return "LEAP-1A";
             if (combined.includes("LEAP-1B")) return "LEAP-1B";
             if (combined.includes("PW11") || combined.includes("PW15")) return "PW1100G";
@@ -3631,34 +3640,6 @@
         ModuleSystem.register('Maintenance', () => {
           const overlayId = "mx-detail-overlay";
 
-          function normalizeType(type) {
-            const raw = String(type || "")
-              .replace(/^(Airbus|Boeing|Embraer|Bombardier)\s+/i, "")
-              .trim();
-
-            if (/^777/i.test(raw)) return "777";
-            if (/^A330/i.test(raw)) return "A330";
-            if (/^747/i.test(raw)) return "747";
-            if (/^787/i.test(raw)) return "787";
-            if (/^A321neo/i.test(raw)) return "A321neo";
-            if (/^A320neo/i.test(raw)) return "A320neo";
-            if (/^A321/i.test(raw)) return "A321";
-            if (/^A320/i.test(raw)) return "A320";
-            if (/^737-800/i.test(raw)) return "737-800";
-            if (/^737-700/i.test(raw)) return "737-700";
-            if (/^737-8\b|^737 MAX 8/i.test(raw)) return "737-8";
-            if (/^E190/i.test(raw)) return "E190";
-            if (/^E175/i.test(raw)) return "E175";
-            if (/^CRJ900/i.test(raw)) return "CRJ900";
-
-            return raw
-              .replace(/ -[0-9]{3}ER/gi, "")
-              .replace(/ -[0-9]{3}/gi, "")
-              .replace(/-[0-9]{3}ER/gi, "")
-              .replace(/-[0-9]{3}/gi, "")
-              .replace(/\s+/g, " ")
-              .trim();
-          }
 
           function getStatusMeta(value, redThreshold, amberThreshold) {
             if (value < redThreshold) return { label: "Critical", bg: "#3f0d14", border: "#be123c", color: "#fda4af" };
@@ -3702,7 +3683,7 @@
 
           function calculateExposure(aircraft) {
             const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
-            const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"]);
+            const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"], aircraft["Type"]);
 
             const airframeProfile = airframeBaselines[mappedAirframe];
             const engineProfile = engineBaselines[mappedEngine];
@@ -3752,7 +3733,9 @@
 
             const idx = allData.indexOf(aircraft);
             const headerMeta = `${escapeHtml(aircraft["Registration"] || "-")} Â· SN ${escapeHtml(aircraft["Serial Number"] || "-")} Â· ${escapeHtml(aircraft["Operator"] || "Unknown Operator")}`;
-            const matchedConfig = `${normalizeType(aircraft["Type"] || "")} / ${escapeHtml(aircraft["Engine Family"] || "Unknown Engine")}`;
+            const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
+            const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"], aircraft["Type"]);
+            const matchedConfig = `${mappedAirframe || "Unknown Airframe"} / ${mappedEngine || "Unknown Engine"}`;
 
             const detailHtml = mx
               ? (() => {
@@ -3820,7 +3803,7 @@
           }
 
           return {
-            normalizeType,
+
             calculateExposure,
             formatLlpValue,
             llpBadgeHtml,
@@ -5516,7 +5499,7 @@
          */
         function calculateMxExposure(aircraft) {
           const mappedAirframe = normalizeAirframe(aircraft["Type"], aircraft["Series"], aircraft["Engine Family"]);
-          const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"]);
+          const mappedEngine = normalizeEngine(aircraft["Engine Family"], aircraft["Engine Type"], aircraft["Type"]);
 
           const airframeProfile = airframeBaselines[mappedAirframe];
           const engineProfile = engineBaselines[mappedEngine];
