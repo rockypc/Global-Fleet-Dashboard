@@ -812,10 +812,225 @@
         box-shadow: none !important;
       }
     }
+
+    /* ===== FLEET INTELLIGENCE QUERY BAR ===== */
+    #fiq-bar {
+      background: #060d1a;
+      border-bottom: 1px solid #1a2234;
+      flex-shrink: 0;
+      transition: max-height .3s cubic-bezier(.4,0,.2,1), padding .3s;
+    }
+    #fiq-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 20px;
+      cursor: pointer;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      transition: color .15s;
+      user-select: none;
+    }
+    #fiq-trigger:hover { color: #06b6d4; }
+    #fiq-trigger .fiq-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #1e3a5f;
+      transition: background .15s;
+    }
+    #fiq-trigger:hover .fiq-dot,
+    #fiq-trigger.open .fiq-dot { background: #06b6d4; }
+    #fiq-trigger.open { color: #06b6d4; }
+    #fiq-drawer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s cubic-bezier(.4,0,.2,1);
+    }
+    #fiq-drawer.open { max-height: 600px; }
+    #fiq-inner {
+      padding: 12px 20px 16px;
+      border-top: 1px solid #1a2234;
+    }
+    #fiq-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #fiq-input {
+      flex: 1;
+      padding: 9px 14px 9px 36px;
+      background: #0a0f1e;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #fiq-input:focus {
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6,182,212,.1);
+    }
+    #fiq-input::placeholder { color: #334155; }
+    .fiq-input-wrap { position: relative; flex: 1; }
+    .fiq-input-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #1e3a5f;
+      pointer-events: none;
+    }
+    #fiq-submit {
+      padding: 9px 18px;
+      background: linear-gradient(135deg,#0891b2,#0e7490);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    #fiq-submit:hover { background: linear-gradient(135deg,#0e7490,#0c696e); box-shadow: 0 4px 14px rgba(8,145,178,.35); }
+    #fiq-submit:disabled { opacity: .45; cursor: not-allowed; }
+    .fiq-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .fiq-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: rgba(6,182,212,.07);
+      border: 1px solid rgba(6,182,212,.2);
+      border-radius: 6px;
+      font-size: 10.5px;
+      color: #7dd3fc;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .fiq-chip:hover { background: rgba(6,182,212,.15); border-color: rgba(6,182,212,.45); }
+    #fiq-result {
+      margin-top: 12px;
+      animation: fiqFadeIn .3s ease-out;
+    }
+    @keyframes fiqFadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    .fiq-card {
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(16,185,129,.25);
+      background: linear-gradient(135deg,rgba(16,185,129,.06),rgba(6,182,212,.03));
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0 16px;
+      align-items: center;
+    }
+    .fiq-card.fiq-error {
+      border-color: rgba(239,68,68,.25);
+      background: linear-gradient(135deg,rgba(239,68,68,.06),rgba(239,68,68,.02));
+    }
+    .fiq-card.fiq-warn {
+      border-color: rgba(245,158,11,.25);
+      background: linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));
+    }
+    .fiq-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: #06b6d4;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .fiq-desc { font-size: 11.5px; color: #94a3b8; line-height: 1.5; }
+    .fiq-desc strong { color: #e2e8f0; }
+    .fiq-meta { display: flex; gap: 10px; }
+    .fiq-meta-item { text-align: center; }
+    .fiq-meta-lbl { font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: .06em; }
+    .fiq-meta-val { font-size: 13px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
+    .fiq-conf-bar { width: 60px; height: 3px; background: #1f2937; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .fiq-conf-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg,#10b981,#06b6d4); }
+    .fiq-action-row { display: flex; gap: 6px; margin-top: 10px; }
+    .fiq-act-btn {
+      padding: 5px 12px;
+      border: 1px solid #1f2937;
+      background: transparent;
+      color: #64748b;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .fiq-act-btn:hover { border-color: #06b6d4; color: #06b6d4; background: rgba(6,182,212,.05); }
+    .fiq-history-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .fiq-hist-item {
+      padding: 3px 9px;
+      background: #0d1424;
+      border: 1px solid #1a2234;
+      border-radius: 5px;
+      font-size: 10px;
+      color: #475569;
+      cursor: pointer;
+      transition: all .15s;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .fiq-hist-item:hover { border-color: #334155; color: #94a3b8; }
   </style>
 </head>
 
 <body>
+
+  <!-- FLEET INTELLIGENCE QUERY BAR -->
+  <div id="fiq-bar" class="hidden">
+    <div id="fiq-trigger" onclick="fiqToggle()">
+      <div class="fiq-dot"></div>
+      <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      Fleet Intelligence Query
+      <svg id="fiq-chevron" style="width:10px;height:10px;margin-left:2px;transition:transform .25s;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+    <div id="fiq-drawer">
+      <div id="fiq-inner">
+        <!-- Input row -->
+        <div id="fiq-input-row">
+          <div class="fiq-input-wrap">
+            <svg class="fiq-input-icon" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input id="fiq-input" type="text" placeholder="e.g. &quot;Average utilization for United 737&quot; or &quot;Count Aeromexico aircraft&quot;" autocomplete="off">
+          </div>
+          <button id="fiq-submit" onclick="fiqRun()">Ask</button>
+        </div>
+        <!-- Suggested chips -->
+        <div class="fiq-chips" id="fiq-chips"></div>
+        <!-- History row -->
+        <div class="fiq-history-row" id="fiq-history"></div>
+        <!-- Result -->
+        <div id="fiq-result"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- UPDATE BANNER (shown when data is loaded from storage) -->
   <div id="update-banner" class="update-banner hidden" style="justify-content:space-between;">
@@ -3399,6 +3614,8 @@
           fillAllSelects();
           initColToggles();
           validateNav();
+          // Expose allData to window scope for cross-script modules (Fleet Intelligence Query Bar)
+          window.allData = allData;
           // Eager renders removed to fix WARN-09. Tabs render on switch.
           renderHome();
           switchTab("home");
@@ -7328,6 +7545,338 @@ function renderSunburst(topN){
       }
       return { pass, fail, total };
     };
+  </script>
+
+  <!-- ===== FLEET INTELLIGENCE QUERY ENGINE ===== -->
+  <script>
+  (function() {
+    'use strict';
+
+    // ── Levenshtein fuzzy match ──────────────────────────────────────────────
+    function lev(a, b) {
+      const la = a.length, lb = b.length;
+      const m = Array.from({length: lb+1}, (_,i) => Array.from({length: la+1}, (_,j) => j===0?i:j));
+      for (let i=1;i<=lb;i++) for (let j=1;j<=la;j++) m[i][j]=a[j-1]===b[i-1]?m[i-1][j-1]:1+Math.min(m[i-1][j],m[i][j-1],m[i-1][j-1]);
+      return m[lb][la];
+    }
+
+    function fuzzyMatch(input, candidates, threshold) {
+      threshold = threshold || 4;
+      const q = input.toLowerCase().trim();
+      // Exact
+      let ex = candidates.find(c => c.toLowerCase() === q);
+      if (ex) return {match: ex, conf: 1.0, exact: true};
+      // Contains
+      let sub = candidates.find(c => c.toLowerCase().includes(q) || q.includes(c.toLowerCase()));
+      if (sub) return {match: sub, conf: 0.93, exact: false};
+      // Word-level: any token in query matches a word in candidate
+      const tokens = q.split(/\s+/).filter(t => t.length >= 3);
+      for (const tok of tokens) {
+        let ws = candidates.find(c => c.toLowerCase().includes(tok));
+        if (ws) return {match: ws, conf: 0.88, exact: false};
+      }
+      // Fuzzy
+      const scored = candidates.map(c => ({c, d: lev(q, c.toLowerCase())})).sort((a,b) => a.d-b.d);
+      if (scored.length && scored[0].d <= threshold) return {match: scored[0].c, conf: Math.max(0.6, 1-scored[0].d/10), exact: false};
+      return null;
+    }
+
+    // ── Column mapping for this dashboard's CSV ──────────────────────────────
+    const METRIC_MAP = [
+      {keys: ['utiliz','util','daily hrs','daily hours'],        col: 'Average Daily Utilisation', unit: 'hrs/day'},
+      {keys: ['cumulative hour','cum hour','total hour','hours'],col: 'Cumulative Hours',           unit: 'hrs'},
+      {keys: ['cumulative cycle','cum cycle','cycle'],           col: 'Cumulative Cycles',          unit: 'cycles'},
+      {keys: ['age','aged','years old'],                         col: 'Age',                        unit: 'yrs'},
+      {keys: ['p12m','prev 12','previous 12','last 12'],         col: 'Average Previous 12M Hours', unit: 'hrs'},
+      {keys: ['tats','risk score','tats score'],                 col: 'TATS Score',                 unit: ''},
+      {keys: ['seat','seats','capacity'],                        col: 'Total Seats',                unit: 'seats'},
+      {keys: ['value','appraised','market value'],               col: 'Appraised Value ($M)',        unit: '$M'},
+      {keys: ['mtow','max takeoff','max take-off'],              col: 'MTOW (lbs)',                  unit: 'lbs'},
+    ];
+
+    const AGG_MAP = [
+      {keys: ['average','avg','mean'],  fn: 'average'},
+      {keys: ['total','sum'],           fn: 'sum'},
+      {keys: ['count','how many','#'], fn: 'count'},
+      {keys: ['max','highest','most'],  fn: 'max'},
+      {keys: ['min','lowest','least'],  fn: 'min'},
+    ];
+
+    // ── Parse query ──────────────────────────────────────────────────────────
+    function parseQuery(input, data) {
+      const q = input.toLowerCase();
+
+      // 1. Metric
+      let metric = null;
+      for (const m of METRIC_MAP) {
+        if (m.keys.some(k => q.includes(k))) { metric = m; break; }
+      }
+      if (!metric) {
+        // Default: if query contains 'aircraft' or no metric found for count queries
+        if (q.includes('count') || q.includes('how many')) {
+          metric = {col: null, unit: 'aircraft'};
+        } else {
+          return {error: 'Could not identify a metric. Try: "average utilization", "total hours", "count aircraft", "average age"'};
+        }
+      }
+
+      // 2. Aggregation
+      let agg = 'average';
+      for (const a of AGG_MAP) {
+        if (a.keys.some(k => q.includes(k))) { agg = a.fn; break; }
+      }
+      if (metric.col === null) agg = 'count';
+
+      // 3. Operator
+      const operators = [...new Set(data.map(r => (r['Operator']||'').trim()).filter(Boolean))];
+      // Try each token/phrase as operator match
+      let operatorMatch = null;
+      const phrases = extractPhrases(input);
+      for (const ph of phrases) {
+        const m = fuzzyMatch(ph, operators, 5);
+        if (m && m.conf >= 0.75) { operatorMatch = m; break; }
+      }
+
+      // 4. Aircraft type — check Master Series, Current Family, Type
+      const masterSeries = [...new Set(data.map(r => (r['Master Series']||'').trim()).filter(Boolean))];
+      const families     = [...new Set(data.map(r => (r['Current Family']||'').trim()).filter(Boolean))];
+      const types        = [...new Set(data.map(r => (r['Type']||'').trim()).filter(Boolean))];
+      let acMatch = null;
+      for (const ph of phrases) {
+        let m = fuzzyMatch(ph, masterSeries, 3);
+        if (m && m.conf >= 0.8) { acMatch = {col:'Master Series', ...m}; break; }
+        m = fuzzyMatch(ph, families, 3);
+        if (m && m.conf >= 0.8) { acMatch = {col:'Current Family', ...m}; break; }
+        m = fuzzyMatch(ph, types, 3);
+        if (m && m.conf >= 0.8) { acMatch = {col:'Type', ...m}; break; }
+      }
+
+      // 5. Status
+      const statuses = [...new Set(data.map(r => (r['Status']||'').trim()).filter(Boolean))];
+      let statusMatch = null;
+      if (q.includes('stor')) statusMatch = fuzzyMatch('Storage', statuses, 3);
+      else if (q.includes('service') || q.includes('active')) statusMatch = fuzzyMatch('In Service', statuses, 3);
+
+      // Must have at least one filter (or it's too broad)
+      if (!operatorMatch && !acMatch && !statusMatch && agg !== 'count') {
+        return {error: 'Please add a filter — operator name, aircraft type, or status (e.g. "average utilization United A320")', warn: true};
+      }
+
+      const conf = calcConf([operatorMatch, acMatch, statusMatch]);
+      return {metric, agg, operatorMatch, acMatch, statusMatch, conf, error: null};
+    }
+
+    function extractPhrases(input) {
+      // Generate sliding windows of 1-4 words to catch multi-word names
+      const words = input.trim().split(/\s+/);
+      const phrases = [];
+      for (let len = 4; len >= 1; len--) {
+        for (let i = 0; i <= words.length - len; i++) {
+          phrases.push(words.slice(i, i+len).join(' '));
+        }
+      }
+      return phrases;
+    }
+
+    function calcConf(matches) {
+      let c = 1.0;
+      matches.filter(Boolean).forEach(m => { if (!m.exact) c *= m.conf; });
+      return c;
+    }
+
+    // ── Execute query ────────────────────────────────────────────────────────
+    function executeQuery(parsed, data) {
+      let filtered = data;
+      if (parsed.operatorMatch) filtered = filtered.filter(r => (r['Operator']||'').trim() === parsed.operatorMatch.match);
+      if (parsed.acMatch)       filtered = filtered.filter(r => (r[parsed.acMatch.col]||'').trim() === parsed.acMatch.match);
+      if (parsed.statusMatch)   filtered = filtered.filter(r => (r['Status']||'').trim() === parsed.statusMatch.match);
+
+      if (!filtered.length) return {error: 'No aircraft matched your criteria. Check spelling or try broader terms.'};
+
+      if (parsed.agg === 'count' || !parsed.metric.col) {
+        return { value: filtered.length, unit: 'aircraft', count: filtered.length, data: filtered };
+      }
+
+      const vals = filtered.map(r => parseFloat(r[parsed.metric.col])).filter(v => isFinite(v));
+      if (!vals.length) return {error: `No valid "${parsed.metric.col}" data found in the ${filtered.length} matched aircraft.`};
+
+      let result;
+      switch (parsed.agg) {
+        case 'sum':   result = vals.reduce((a,b)=>a+b,0); break;
+        case 'max':   result = Math.max(...vals);          break;
+        case 'min':   result = Math.min(...vals);          break;
+        case 'count': result = filtered.length;            break;
+        default:      result = vals.reduce((a,b)=>a+b,0)/vals.length;
+      }
+      return {value: result, unit: parsed.metric.unit, count: filtered.length, dataPoints: vals.length, data: filtered};
+    }
+
+    // ── Format value ─────────────────────────────────────────────────────────
+    function fmtVal(v, unit) {
+      if (unit === '$M') return '$' + v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'M';
+      if (unit === 'aircraft') return v.toLocaleString();
+      if (Number.isInteger(v) || unit === 'cycles') return v.toLocaleString('en-US',{maximumFractionDigits:0});
+      return v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+    }
+
+    // ── Render result ────────────────────────────────────────────────────────
+    function renderResult(parsed, result) {
+      const el = document.getElementById('fiq-result');
+      if (!el) return;
+
+      if (result.error) {
+        el.innerHTML = `<div class="fiq-card fiq-error"><span style="font-size:1.2rem;">❌</span><div><div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:2px;">Query Error</div><div class="fiq-desc">${result.error}</div></div><div></div></div>`;
+        return;
+      }
+
+      const formatted = fmtVal(result.value, result.unit||'');
+      const agg = parsed.agg.charAt(0).toUpperCase() + parsed.agg.slice(1);
+      const metric = parsed.metric.col || 'Aircraft Count';
+
+      let filterDesc = '';
+      if (parsed.operatorMatch) filterDesc += `<strong>${parsed.operatorMatch.match}</strong>`;
+      if (parsed.acMatch)       filterDesc += (filterDesc ? ' · ' : '') + `<strong>${parsed.acMatch.match}</strong>`;
+      if (parsed.statusMatch)   filterDesc += (filterDesc ? ' · ' : '') + parsed.statusMatch.match;
+
+      const confPct = Math.round((parsed.conf||1) * 100);
+      const cardCls = confPct < 80 ? 'fiq-warn' : '';
+
+      el.innerHTML = `
+        <div class="fiq-card ${cardCls}">
+          <div class="fiq-val">${formatted}<span style="font-size:13px;font-weight:500;color:#475569;margin-left:4px;">${result.unit||''}</span></div>
+          <div>
+            <div class="fiq-desc" style="margin-bottom:6px;">${agg} <strong>${metric}</strong>${filterDesc ? ' for ' + filterDesc : ''} across <strong>${result.count.toLocaleString()} aircraft</strong>${result.dataPoints && result.dataPoints !== result.count ? ` (${result.dataPoints.toLocaleString()} with data)` : ''}.</div>
+            <div class="fiq-action-row">
+              <button class="fiq-act-btn" onclick="fiqCopy('${formatted.replace(/'/g,"\\'")}')">📋 Copy</button>
+              <button class="fiq-act-btn" onclick="fiqExport()">📥 Export CSV</button>
+              ${parsed.operatorMatch ? `<button class="fiq-act-btn" onclick="document.getElementById('dd-operator').value='${parsed.operatorMatch.match.replace(/'/g,"\\'")}';switchTab('deepdive');runDD();">🔍 Deep Dive</button>` : ''}
+            </div>
+          </div>
+          <div class="fiq-meta">
+            <div class="fiq-meta-item">
+              <div class="fiq-meta-lbl">Match</div>
+              <div class="fiq-meta-val" style="color:${confPct>=90?'#10b981':confPct>=75?'#f59e0b':'#f87171'}">${confPct}%</div>
+              <div class="fiq-conf-bar"><div class="fiq-conf-fill" style="width:${confPct}%"></div></div>
+            </div>
+            <div class="fiq-meta-item">
+              <div class="fiq-meta-lbl">Aircraft</div>
+              <div class="fiq-meta-val">${result.count.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Store for export
+      window._fiqLastData = result.data;
+      window._fiqLastMetric = metric;
+    }
+
+    // ── History ──────────────────────────────────────────────────────────────
+    function loadHistory() {
+      try { return JSON.parse(localStorage.getItem('fiq_history') || '[]'); } catch(e) { return []; }
+    }
+    function saveHistory(h) {
+      try { localStorage.setItem('fiq_history', JSON.stringify(h.slice(0,8))); } catch(e) {}
+    }
+    function addHistory(query) {
+      let h = loadHistory().filter(q => q !== query);
+      h.unshift(query);
+      saveHistory(h);
+      renderHistory();
+    }
+    function renderHistory() {
+      const el = document.getElementById('fiq-history');
+      if (!el) return;
+      const h = loadHistory();
+      el.innerHTML = h.length
+        ? h.map(q => `<span class="fiq-hist-item" title="${q}" onclick="document.getElementById('fiq-input').value=this.title;fiqRun()">${q}</span>`).join('')
+        : '';
+    }
+
+    // ── Suggested chips ──────────────────────────────────────────────────────
+    function renderChips(data) {
+      const el = document.getElementById('fiq-chips');
+      if (!el) return;
+      const ops = [...new Set(data.map(r=>(r['Operator']||'').trim()).filter(Boolean))].slice(0,2);
+      const fams = [...new Set(data.map(r=>(r['Current Family']||'').trim()).filter(Boolean))].slice(0,2);
+      const suggestions = [
+        ops[0] && fams[0] ? `Average utilization ${ops[0]} ${fams[0]}` : null,
+        ops[1]            ? `Count ${ops[1]} aircraft`                  : null,
+        fams[0]           ? `Average age ${fams[0]}`                    : null,
+        ops[0]            ? `Total hours ${ops[0]}`                     : null,
+      ].filter(Boolean).slice(0,4);
+      el.innerHTML = suggestions.map(s =>
+        `<span class="fiq-chip" onclick="document.getElementById('fiq-input').value=this.title;fiqRun()" title="${s}">${s}</span>`
+      ).join('');
+    }
+
+    // ── Public API ───────────────────────────────────────────────────────────
+    window.fiqToggle = function() {
+      const trigger = document.getElementById('fiq-trigger');
+      const drawer  = document.getElementById('fiq-drawer');
+      const chevron = document.getElementById('fiq-chevron');
+      const isOpen  = drawer.classList.contains('open');
+      drawer.classList.toggle('open', !isOpen);
+      trigger.classList.toggle('open', !isOpen);
+      chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+      if (!isOpen) document.getElementById('fiq-input').focus();
+    };
+
+    window.fiqRun = function() {
+      const input = (document.getElementById('fiq-input').value || '').trim();
+      if (!input) return;
+      const data = window.allData;
+      if (!data || !data.length) {
+        document.getElementById('fiq-result').innerHTML = '<div class="fiq-card fiq-error" style="grid-template-columns:auto 1fr;"><span>⚠️</span><div class="fiq-desc">Fleet data not yet loaded. Please wait for data to sync.</div></div>';
+        return;
+      }
+      document.getElementById('fiq-submit').disabled = true;
+      try {
+        const parsed = parseQuery(input, data);
+        const result = parsed.error ? parsed : executeQuery(parsed, data);
+        renderResult(parsed.error ? {agg:'',metric:{col:''},conf:0} : parsed, result);
+        if (!result.error) addHistory(input);
+      } catch(err) {
+        document.getElementById('fiq-result').innerHTML = `<div class="fiq-card fiq-error" style="grid-template-columns:auto 1fr;"><span>❌</span><div class="fiq-desc">Unexpected error: ${err.message}</div></div>`;
+      } finally {
+        document.getElementById('fiq-submit').disabled = false;
+      }
+    };
+
+    window.fiqCopy = function(val) {
+      navigator.clipboard.writeText(val).catch(() => {});
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy', 1800);
+    };
+
+    window.fiqExport = function() {
+      const data = window._fiqLastData;
+      const metric = window._fiqLastMetric || '';
+      if (!data || !data.length) return;
+      const cols = ['Registration','Serial Number','Operator','Type','Current Family','Status',metric].filter(Boolean);
+      let csv = cols.map(c => `"${c}"`).join(',') + '\n';
+      data.forEach(r => { csv += cols.map(c => `"${(r[c]||'').toString().replace(/"/g,'""')}"`).join(',') + '\n'; });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      a.download = 'fleet-query-export.csv';
+      a.click();
+    };
+
+    // ── Auto-init once allData is ready ──────────────────────────────────────
+    function tryInit() {
+      if (window.allData && window.allData.length) {
+        document.getElementById('fiq-bar').classList.remove('hidden');
+        document.getElementById('fiq-input').addEventListener('keydown', e => { if(e.key==='Enter') window.fiqRun(); });
+        renderChips(window.allData);
+        renderHistory();
+        console.log('✅ Fleet Intelligence Query Bar ready ·', window.allData.length, 'aircraft');
+      } else {
+        setTimeout(tryInit, 600);
+      }
+    }
+    window.addEventListener('load', () => setTimeout(tryInit, 400));
+  })();
   </script>
 </body>
 
